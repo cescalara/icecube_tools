@@ -167,7 +167,7 @@ class IceCubeEffectiveArea():
 
         else:
 
-            raise ValueError(self._filename + 'is not recognised as one of the known effective area files.')
+            raise ValueError(self._filename + ' is not recognised as one of the known effective area files.')
         
 
     
