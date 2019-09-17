@@ -1,3 +1,4 @@
+import numpy as np
 from abc import ABC, abstractmethod
 
 """
@@ -86,5 +87,38 @@ class R2015AeffReader(IceCubeAeffReader):
             self.reconstructed_energy_bins = directory['bin_edges_2'][()]
 
 
+            
+class R2018AeffReader(IceCubeAeffReader):
+    """
+    Reader for the 2018 Oct 18 release.
+    Link: https://icecube.wisc.edu/science/data/PS-3years.
+    """
 
+    def read(self):
+
+        self.year = int(self._filename[-22:-18])
+        self.nu_type = 'nu_mu'
+        
+        import pandas as pd
+        
+        filelayout = ['Emin', 'Emax', 'cos(z)min', 'cos(z)max', 'Aeff']
+        output = pd.read_csv(self._filename, comment = '#',
+                             delim_whitespace = True,
+                             names = filelayout).to_dict()
+        self.output = output
+        
+        true_energy_lower = set(output['Emin'].values())
+        true_energy_upper = set(output['Emax'].values())
+
+        cos_zenith_lower = set(output['cos(z)min'].values())
+        cos_zenith_upper = set(output['cos(z)max'].values())
+        
+        self.true_energy_bins = np.array( list(true_energy_upper.union(true_energy_lower)) )
+
+        self.cos_zenith_bins = np.array( list(cos_zenith_upper.union(cos_zenith_lower)) )
+
+        self.effective_area_values = np.reshape(list(output['Aeff'].values()), (len(true_energy_lower), len(cos_zenith_lower)))
+        
+    
+    
         
