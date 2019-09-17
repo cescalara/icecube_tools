@@ -6,6 +6,8 @@ Module for working with the public IceCube
 effective area information.
 """
 
+
+
 class IceCubeAeffReader(ABC):
     """
     Abstract base class for a file reader to handle
@@ -96,16 +98,15 @@ class R2018AeffReader(IceCubeAeffReader):
 
     def read(self):
 
-        self.year = int(self._filename[-22:-18])
-        self.nu_type = 'nu_mu'
-        
         import pandas as pd
         
+        self.year = int(self._filename[-22:-18])
+        self.nu_type = 'nu_mu'
+         
         filelayout = ['Emin', 'Emax', 'cos(z)min', 'cos(z)max', 'Aeff']
         output = pd.read_csv(self._filename, comment = '#',
                              delim_whitespace = True,
                              names = filelayout).to_dict()
-        self.output = output
         
         true_energy_lower = set(output['Emin'].values())
         true_energy_upper = set(output['Emax'].values())
@@ -117,8 +118,14 @@ class R2018AeffReader(IceCubeAeffReader):
 
         self.cos_zenith_bins = np.array( list(cos_zenith_upper.union(cos_zenith_lower)) )
 
-        self.effective_area_values = np.reshape(list(output['Aeff'].values()), (len(true_energy_lower), len(cos_zenith_lower)))
+        self.effective_area_values = np.reshape(list(output['Aeff'].values()),
+                                                (len(true_energy_lower),
+                                                 len(cos_zenith_lower)))
         
-    
-    
+
         
+class IceCubeEffectiveArea(ABC):
+    """
+    Abstract base class for the IceCube effective area.
+    """
+    
