@@ -6,7 +6,8 @@ Module for working with the public IceCube
 effective area information.
 """
 
-
+R2015_AEFF_FILENAME = "effective_area.h5"
+R2018_AEFF_FILENAME = "TabulatedAeff.txt"
 
 class IceCubeAeffReader(ABC):
     """
@@ -57,8 +58,18 @@ class R2015AeffReader(IceCubeAeffReader):
     Link: https://icecube.wisc.edu/science/data/HE_NuMu_diffuse.
     """
 
-    def __init__(self, filename):
-        
+    def __init__(self, filename, **kwargs):
+
+        if 'year' in kwargs:
+            self.year = kwargs['year']
+        else:
+            self.year = 2011
+            
+        if 'nu_type' in kwargs:
+            self.nu_type = kwargs['nu_type']
+        else:
+            self.nu_type = 'nu_mu'
+
         super().__init__(filename)
 
         self._label_order['reconstructed_energy'] = 2
@@ -66,19 +77,16 @@ class R2015AeffReader(IceCubeAeffReader):
         self._units['reconstructed_energy'] = 'GeV'
 
         
-    def read(self, year=2011, nu_type='nu_mu'):
+    def read(self):
         """
         Read input from the provided HDF5 file.
         """
 
         import h5py
-
-        self.year = year
-        self.nu_type = nu_type
         
         with h5py.File(self._filename, 'r') as f:
 
-            directory = f[str(year) + '/' + nu_type + '/']
+            directory = f[str(self.year) + '/' + self.nu_type + '/']
             
             self.effective_area_values = directory['area'][()]
 
@@ -124,8 +132,42 @@ class R2018AeffReader(IceCubeAeffReader):
         
 
         
-class IceCubeEffectiveArea(ABC):
+class IceCubeEffectiveArea():
     """
-    Abstract base class for the IceCube effective area.
+    IceCube effective area.
     """
+
+    def __init__(self, filename, **kwargs):
+        """
+        IceCube effective area.
+        
+        :param filename: name of the file to be read from (string).
+        :param kwargs: kwargs to be passed to reader if relevant.
+        """
+
+        self._filename = filename
+
+        self._reader = self.get_reader(**kwargs)
+    
+        self.values = self._reader.effective_area_values
+
+        
+    def get_reader(self, **kwargs):
+        """
+        Define an IceCubeAeffReader based on the filename.
+        """      
+
+        if R2015_AEFF_FILENAME in self._filename:
+
+            return R2015AeffReader(self._filename, **kwargs)
+
+        elif R2018_AEFF_FILENAME in self._filename:
+
+            return R2018AeffReader(self._filename)
+
+        else:
+
+            raise ValueError(self._filename + 'is not recognised as one of the known effective area files.')
+        
+
     
