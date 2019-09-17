@@ -45,7 +45,13 @@ class FluxModel(ABC):
 
         pass
 
+    @abstractmethod
+    def integrated_spectrum(self):
 
+        pass
+
+
+    
 class PowerLawFlux(FluxModel):
     """
     Power law flux models.

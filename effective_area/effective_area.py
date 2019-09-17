@@ -151,6 +151,10 @@ class IceCubeEffectiveArea():
     
         self.values = self._reader.effective_area_values
 
+        self.true_energy_bins = self._reader.true_energy_bins
+
+        self.cos_zenith_bins = self._reader.cos_zenith_bins
+        
         
     def get_reader(self, **kwargs):
         """
