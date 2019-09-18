@@ -123,9 +123,11 @@ class R2018AeffReader(IceCubeAeffReader):
         cos_zenith_upper = set(output['cos(z)max'].values())
         
         self.true_energy_bins = np.array( list(true_energy_upper.union(true_energy_lower)) )
-
+        self.true_energy_bins.sort()
+        
         self.cos_zenith_bins = np.array( list(cos_zenith_upper.union(cos_zenith_lower)) )
-
+        self.cos_zenith_bins.sort()
+        
         self.effective_area_values = np.reshape(list(output['Aeff'].values()),
                                                 (len(true_energy_lower),
                                                  len(cos_zenith_lower)))

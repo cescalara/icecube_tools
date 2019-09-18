@@ -134,7 +134,7 @@ class NeutrinoCalculator():
 
         self._time = time * YEAR_TO_SEC # s
         
-        self._selected_effective_area_values = self.effective_area.values
+        self._selected_effective_area_values = self.effective_area.values.copy()
         
         # @TODO: Add contribution from bins on boundary.
         self._selected_effective_area_values[self.effective_area.true_energy_bins[1:] < min_energy] = 0

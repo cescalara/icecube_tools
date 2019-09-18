@@ -74,6 +74,7 @@ class PowerLawFlux(FluxModel):
         :param upper_energy_bound: [TeV]
         """
 
+        """
         if lower_energy_bound < self._lower_energy and upper_energy_bound < self._lower_energy:
             return 0
         elif lower_energy_bound < self._lower_energy and upper_energy_bound > self._lower_energy:
@@ -83,6 +84,7 @@ class PowerLawFlux(FluxModel):
             return 0
         elif upper_energy_bound > self._upper_energy and lower_energy_bound < self._upper_energy:
             upper_energy_bound = self._upper_energy
+        """
 
         norm = self._normalisation / ( np.power(self._normalisation_energy, -self._index) * (1 - self._index) )
 
