@@ -154,7 +154,9 @@ class IceCubeEffectiveArea():
         self.true_energy_bins = self._reader.true_energy_bins
 
         self.cos_zenith_bins = self._reader.cos_zenith_bins
-        
+
+        self._integrate_out_ancillary_params()
+
         
     def get_reader(self, **kwargs):
         """
@@ -174,4 +176,23 @@ class IceCubeEffectiveArea():
             raise ValueError(self._filename + ' is not recognised as one of the known effective area files.')
         
 
-    
+
+    def _integrate_out_ancillary_params(self):
+        """
+        Sometimes the effective area is given as a 
+        function of ancillary parameters, e.g. the 
+        reconstructed muon energy. To give a unified 
+        interface, these can be integrated over.
+        """
+
+        if len(np.shape(self.values)) > 2:
+
+            dim_to_int = []
+            
+            for key in self._reader._label_order:
+
+                if 'true_energy' not in key and 'cos_zenith' not in key:
+
+                    dim_to_int.append(self._reader._label_order[key])
+
+            self.values = np.sum(self.values, axis=tuple(dim_to_int))  
