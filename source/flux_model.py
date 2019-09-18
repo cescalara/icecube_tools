@@ -6,39 +6,10 @@ Module for simple flux models used in
 neutrino detection calculations
 """
 
-DIFFUSE_FLUX_TYPE = 0
-POINT_SOURCE_FLUX_TYPE = 1
-
 class FluxModel(ABC):
     """
     Abstract base class for flux models.
-    """
-
-    def __init__(self, flux_type=DIFFUSE_FLUX_TYPE):
-
-        self._flux_type = flux_type
-        
-        super().__init__()
-
-
-    @property
-    def flux_type(self):
-        """
-        Flux model can be either diffuse or point source.
-        """
-        return self._flux_type
-
-    @flux_type.setter
-    def flux_type(self, value):
-
-        if value is not DIFFUSE_FLUX_TYPE or POINT_SOURCE_FLUX_TYPE:
-
-            raise ValueError(str(value) + ' is not a recognised flux type')
-
-        else:
-
-            self._flux_type = value
-        
+    """        
         
     @abstractmethod
     def spectrum(self):
@@ -58,7 +29,7 @@ class PowerLawFlux(FluxModel):
     """
 
     def __init__(self, normalisation, normalisation_energy, index, lower_energy,
-                 upper_energy=np.inf, flux_type=DIFFUSE_FLUX_TYPE):
+                 upper_energy=np.inf):
         """
         Power law flux models. 
 
@@ -69,7 +40,7 @@ class PowerLawFlux(FluxModel):
         :param upper_energy: Upper enegry bound [TeV], unbounded by default.
         """
 
-        super().__init__(flux_type=flux_type)
+        super().__init__()
         
         self._normalisation = normalisation
 
