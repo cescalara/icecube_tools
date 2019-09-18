@@ -87,7 +87,7 @@ class NeutrinoCalculator():
     def _select_single_cos_zenith(self):
 
         # cos(zenith) = -sin(declination)
-        cos_zenith = -np.sin(self.coordinate.dec.rad)
+        cos_zenith = -np.sin(self.source_model.coordinate.dec.rad)
 
         selected_bin_index = np.digitize(cos_zenith, self.effective_area.cos_zenith_bins) - 1
 
