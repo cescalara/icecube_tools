@@ -57,7 +57,13 @@ class PowerLawFlux(FluxModel):
         dN/dEdAdt or dN/dEdAdtdO depending on flux_type.
         """
 
-        return self._normalisation * np.power(energy / self._normalisation_energy, -self._index)
+        if (energy < self._lower_energy) or (energy > self._upper_energy):
+
+            return np.nan
+
+        else:
+        
+            return self._normalisation * np.power(energy / self._normalisation_energy, -self._index)
 
     
     def integrated_spectrum(self, lower_energy_bound, upper_energy_bound):
@@ -68,15 +74,19 @@ class PowerLawFlux(FluxModel):
         :param upper_energy_bound: [TeV]
         """
 
-        if lower_energy_bound < self._lower_energy:
+        if lower_energy_bound < self._lower_energy and upper_energy_bound < self._lower_energy:
+            return 0
+        elif lower_energy_bound < self._lower_energy and upper_energy_bound > self._lower_energy:
             lower_energy_bound = self._lower_energy
 
-        if upper_energy_bound > self._upper_energy:
+        if upper_energy_bound > self._upper_energy and lower_energy_bound > self._upper_energy:
+            return 0
+        elif upper_energy_bound > self._upper_energy and lower_energy_bound < self._upper_energy:
             upper_energy_bound = self._upper_energy
 
         norm = self._normalisation / ( np.power(self._normalisation_energy, -self._index) * (1 - self._index) )
 
-        return norm * ( np.power(upper_energy_bound, 1-self._index) - np.power(lower_energy_bound), 1-self._index )
+        return norm * ( np.power(upper_energy_bound, 1-self._index) - np.power(lower_energy_bound, 1-self._index) )
 
         
     

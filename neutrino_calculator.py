@@ -1,7 +1,7 @@
 import numpy as np
 
-from source.source_model import Source
-from effective_area.effective_area import IceCubeEffectiveArea
+from source.source_model import Source, DIFFUSE, POINT
+from effective_area import IceCubeEffectiveArea
 
 """
 Module for calculating the number of neutrinos,
@@ -10,7 +10,7 @@ given a flux model and effective area.
 
 M_TO_CM = 100.0
 GEV_TO_TEV = 1.0e-3
-
+YEAR_TO_SEC = 3.154e7
 
 class NeutrinoCalculator():
     """
@@ -69,19 +69,19 @@ class NeutrinoCalculator():
 
             Em = E * GEV_TO_TEV # TeV
             EM = self.effective_area.true_energy_bins[i+1] * GEV_TO_TEV # TeV
-
-            for j, czm in enumerate(self.effective_area.true_cosz_bins[:-1]):
+            
+            for j, czm in enumerate(self.effective_area.cos_zenith_bins[:-1]):
 
                 czM = self.effective_area.cos_zenith_bins[j+1]
-
-                integrated_flux = ( self.flux_model.integrated_spectrum(Em, EM)
+    
+                integrated_flux = ( self.source_model.flux_model.integrated_spectrum(Em, EM)
                                     * (czM - czm) * 2*np.pi )
-
-                aeff = self.effective_area.values[i][j] * M_TO_CM**2
-
+                
+                aeff = self._selected_effective_area_values[i][j] * M_TO_CM**2
+                
                 dN_dt += aeff * integrated_flux
 
-        return dN_dt
+        return dN_dt * self._time
 
     
     def _select_single_cos_zenith(self):
@@ -105,22 +105,59 @@ class NeutrinoCalculator():
             Em = E * GEV_TO_TEV # TeV
             EM = self.effective_area.true_energy_bins[i+1] * GEV_TO_TEV # TeV
 
-            integrated_flux = self.flux_model.integrated_spectrum(Em, EM)
+            integrated_flux = self.source_model.flux_model.integrated_spectrum(Em, EM)
 
-            aeff = self.effective_area.values.T[selected_bin_index][i] * M_TO_CM**2
+            aeff = self._selected_effective_area_values.T[selected_bin_index][i] * M_TO_CM**2
 
             dN_dt += aeff * integrated_flux
 
-        return dN_dt
+        return dN_dt * self._time
 
         
         
-    def __call__(self, min_energy=None, max_energy=None, min_cosz=None, max_cosz=None):
+    def __call__(self, time=1, min_energy=1e2, max_energy=1e9, min_cosz=-1, max_cosz=1):
         """
-        
+        Calculate the number of expected neutrinos, 
+        taking into account the observation time and
+        possible further constraints on the effective
+        area as a function of energy and cos(zenith). 
+
+        !! NB: We assume Aeff is zero outside of specified 
+        energy and cos(zenith)!!
+
+        :param time: Observation time in years.
+        :param min_energy: Aeff energy lower bound [GeV].
+        :param max_energy: Aeff energy upper bound [GeV].
+        :param min_cosz: Aeff cos(zenith) lower bound.
+        :param max_cosz: Aeff cos(zenith) upper bound.
         """
 
-        pass
+        self._time = time * YEAR_TO_SEC # s
+        
+        self._selected_effective_area_values = self.effective_area.values
+        
+        # @TODO: Add contribution from bins on boundary.
+        self._selected_effective_area_values[self.effective_area.true_energy_bins[1:] < min_energy] = 0
+        self._selected_effective_area_values[self.effective_area.true_energy_bins[:-1] > max_energy] = 0
+
+        self._selected_effective_area_values.T[self.effective_area.cos_zenith_bins[1:] < min_cosz] = 0
+        self._selected_effective_area_values.T[self.effective_area.cos_zenith_bins[:-1] > max_cosz] = 0
+        
+        if self.source_model.source_type == DIFFUSE:
+
+            N = self._diffuse_calculation()
+            
+        elif self.source_model.source_type == POINT:
+
+            N = self._point_source_calculation()
+
+        else:
+
+            raise ValueError(str(self.source.source_type) + ' is not recognised.')
+
+        return N
+
+        
 
         
 

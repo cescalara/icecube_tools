@@ -40,7 +40,7 @@ class Source(ABC):
     @property
     def flux_model(self):
 
-        return self._flux_type
+        return self._flux_model
 
     
     @flux_model.setter
