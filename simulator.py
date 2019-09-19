@@ -121,25 +121,3 @@ def spherical_to_icrs(theta, phi):
 
     return ra, dec
 
-    
-def icrs_to_unit_vector(ra, dec):
-    """
-    Convert to unit vector.
-    """
-
-    theta = np.pi/2 - dec
-    phi = ra
-    
-    x = np.sin(theta) * np.cos(phi)
-    y = np.sin(theta) * np.sin(phi)
-    z = np.cos(theta)
-
-    return np.array([x, y, z])
-
-
-def vMF_wrapper(ra, dec, kappa):
-    """
-    Wrap the vMF sampler for convenience.
-    """
-
-    pass

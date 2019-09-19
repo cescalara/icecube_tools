@@ -93,3 +93,67 @@ class AngularResolution():
 
             raise ValueError(self._filename + ' is not recognised as one of the known angular resolution files.')
         
+
+    def _get_angular_resolution(self, Etrue):
+        """
+        Get the median angular resolution for the 
+        given Etrue.
+        """
+
+        true_energy_bin_cen = (self.true_energy_bins[:-1] + self.true_energy_bins[1:]) / 2
+
+        ang_res = np.interp(np.log(Etrue), np.log(true_energy_bin_cen), self.values)
+
+        return ang_res
+
+    
+    def sample(self, Etrue, ra, dec):
+        """
+        Sample new ra, dec values given a true energy
+        and direction.
+        """
+
+        unit_vector = icrs_to_unit_vector(ra, dec)
+
+        ang_res = self._get_angular_resolution()
+
+        kappa = 7552 * np.power(np.rad2deg(ang_res))
+
+        new_unit_vector = sample_VMF(unit_vector, kappa, 1) 
+        
+        new_ra, new_dec = unit_vector_to_icrs(new_unit_vector)
+
+        return new_ra, new_dec
+        
+    
+def icrs_to_unit_vector(ra, dec):
+    """
+    Convert to unit vector.
+    """
+
+    theta = np.pi/2 - dec
+    phi = ra
+    
+    x = np.sin(theta) * np.cos(phi)
+    y = np.sin(theta) * np.sin(phi)
+    z = np.cos(theta)
+
+    return np.array([x, y, z])
+
+
+def unit_vector_to_icrs(unit_vector):
+    """
+    Convert to ra, dec.
+    """
+
+    x = unit_vector[0]
+    y = unit_vector[1]
+    z = unit_vector[2]
+
+    phi = np.arctan(y / x)
+    theta = np.arccos(z)
+
+    ra = phi
+    dec = np.pi/2 - theta
+    
+    return ra, dec

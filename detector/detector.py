@@ -42,7 +42,22 @@ class Detector(ABC):
         if not isinstance(value, EnergyResolution):
 
             raise ValueError(str(value) + ' is not an instance of EnergyResolution')
-        
+
+    @property
+    def angular_resolution(self):
+
+        return self._angular_resolution
+
+    @angular_resolution.setter
+    def angular_resolution(self, value):
+
+        if no isinstance(value, AngularResolution):
+
+            raise ValueError(str(value) + ' is nmot an instance of AngularResolution.')
+
+        else:
+
+            self._angular_resolution = value
           
 
 class IceCube(Detector):
@@ -50,12 +65,13 @@ class IceCube(Detector):
     IceCube detector.
     """
 
-    def __init__(self, effective_area, energy_resolution):
+    def __init__(self, effective_area, energy_resolution, angular_resolution):
         """
         IceCube detector.
 
         :param effective_area: instance of EffectiveArea.
         :param energy_resolution: instance of EnergyResolution.
+        :param angular_resolution: instance of AngularResolution.
         """
 
         super().__init__()
@@ -63,4 +79,6 @@ class IceCube(Detector):
         self.effective_area = effective_area
 
         self.energy_resolution = energy_resolution
+        
+        self.angular_resolution = angular_resolution
         
