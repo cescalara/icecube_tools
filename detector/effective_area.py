@@ -134,7 +134,7 @@ class R2018AeffReader(IceCubeAeffReader):
         
 
         
-class IceCubeEffectiveArea():
+class EffectiveArea():
     """
     IceCube effective area.
     """

@@ -1,7 +1,7 @@
 import numpy as np
 
 from source.source_model import Source, DIFFUSE, POINT
-from effective_area import IceCubeEffectiveArea
+from effective_area import EffectiveArea
 
 """
 Module for calculating the number of neutrinos,
@@ -17,25 +17,25 @@ class NeutrinoCalculator():
     Calculate the expected number of detected neutrinos.
     """
 
-    def __init__(self, source_model, effective_area):
+    def __init__(self, source, detector):
         """
         Calculate the expected number of detected neutrinos.
         
-        :param source_model: A Source instance.
-        :param effective_area: An IceCubeEffectiveArea instance.
+        :param source: A Source instance.
+        :param effective_area: An EffectiveArea instance.
         """
 
-        self._source_model = source_model
+        self._source = source
 
         self._effective_area = effective_area
 
     @property 
-    def source_model(self):
+    def source(self):
 
-        return self._source_model
+        return self._source
 
-    @source_model.setter
-    def source_model(self, value):
+    @source.setter
+    def source(self, value):
 
         if not isinstance(value, Source):
 
@@ -43,7 +43,7 @@ class NeutrinoCalculator():
 
         else:
 
-            self._source_model = value
+            self._source = value
 
     @property
     def effective_area(self):
@@ -53,9 +53,9 @@ class NeutrinoCalculator():
     @effective_area.setter
     def effective_area(self, value):
 
-        if not isinstance(value, IceCubeEffectiveArea):
+        if not isinstance(value, EffectiveArea):
 
-            raise ValueError(str(value) + ' is not an instance of IceCubeEffectiveArea')
+            raise ValueError(str(value) + ' is not an instance of EffectiveArea')
         
         else:
 
@@ -74,7 +74,7 @@ class NeutrinoCalculator():
 
                 czM = self.effective_area.cos_zenith_bins[j+1]
     
-                integrated_flux = ( self.source_model.flux_model.integrated_spectrum(Em, EM)
+                integrated_flux = ( self.source.flux_model.integrated_spectrum(Em, EM)
                                     * (czM - czm) * 2*np.pi )
                 
                 aeff = self._selected_effective_area_values[i][j] * M_TO_CM**2
@@ -87,7 +87,7 @@ class NeutrinoCalculator():
     def _select_single_cos_zenith(self):
 
         # cos(zenith) = -sin(declination)
-        cos_zenith = -np.sin(self.source_model.coordinate.dec.rad)
+        cos_zenith = -np.sin(self.source.coordinate.dec.rad)
 
         selected_bin_index = np.digitize(cos_zenith, self.effective_area.cos_zenith_bins) - 1
 
@@ -105,7 +105,7 @@ class NeutrinoCalculator():
             Em = E * GEV_TO_TEV # TeV
             EM = self.effective_area.true_energy_bins[i+1] * GEV_TO_TEV # TeV
 
-            integrated_flux = self.source_model.flux_model.integrated_spectrum(Em, EM)
+            integrated_flux = self.source.flux_model.integrated_spectrum(Em, EM)
 
             aeff = self._selected_effective_area_values.T[selected_bin_index][i] * M_TO_CM**2
 
@@ -121,10 +121,8 @@ class NeutrinoCalculator():
         taking into account the observation time and
         possible further constraints on the effective
         area as a function of energy and cos(zenith). 
-
         !! NB: We assume Aeff is zero outside of specified 
         energy and cos(zenith)!!
-
         :param time: Observation time in years.
         :param min_energy: Aeff energy lower bound [GeV].
         :param max_energy: Aeff energy upper bound [GeV].
@@ -143,7 +141,7 @@ class NeutrinoCalculator():
         self._selected_effective_area_values.T[self.effective_area.cos_zenith_bins[1:] < min_cosz] = 0
         self._selected_effective_area_values.T[self.effective_area.cos_zenith_bins[:-1] > max_cosz] = 0
         
-        if self.source_model.source_type == DIFFUSE:
+        if self.source.source_type == DIFFUSE:
 
             N = self._diffuse_calculation()
             
@@ -156,9 +154,3 @@ class NeutrinoCalculator():
             raise ValueError(str(self.source.source_type) + ' is not recognised.')
 
         return N
-
-        
-
-        
-
-        
