@@ -72,9 +72,9 @@ class R2015AeffReader(IceCubeAeffReader):
 
         super().__init__(filename)
 
-        self._label_order['reconstructed_energy'] = 2
+        self._label_order['reco_energy'] = 2
 
-        self._units['reconstructed_energy'] = 'GeV'
+        self._units['reco_energy'] = 'GeV'
 
         
     def read(self):
@@ -94,7 +94,7 @@ class R2015AeffReader(IceCubeAeffReader):
 
             self.cos_zenith_bins = directory['bin_edges_1'][()]
             
-            self.reconstructed_energy_bins = directory['bin_edges_2'][()]
+            self.reco_energy_bins = directory['bin_edges_2'][()]
 
 
             
@@ -145,7 +145,7 @@ class IceCubeEffectiveArea():
         
         :param filename: name of the file to be read from (string).
         :param kwargs: kwargs to be passed to reader if relevant.
-        """
+         """
 
         self._filename = filename
 
