@@ -1,7 +1,7 @@
 import numpy as np
 
 from detector import Detector
-from source_model import Source
+from source_model import Source, DIFFUSE, POINT
 from neutrino calculator import NeutrinoCalulator
 
 """
@@ -88,10 +88,19 @@ class Simulator():
                 accepted = np.random.choice([True, False], p=[detection_prob, 1-detection_prob])
                 
             true_energy.append(Etrue)
-            
+
             Ereco = self.detector.energy_resolution.sample(Etrue)
             reco_energy.append(Ereco)
-        
+            
+            if self.source.source_type == DIFFUSE:
+
+                coordinate.append(SkyCoord(ra*u.rad, dec*u.rad, frame='icrs'))
+
+            else:
+
+                reco_ra, reco_dec = self.detector.angular_resolution.sample(Etrue, ra, dec)
+                coordinate.append(SkyCoord(reco_ra*u.rad, reco_dec*u.rad, frame='icrs'))
+            
 
 def sphere_sample(N=1, radius=1):
     """
