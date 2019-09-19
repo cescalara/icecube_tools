@@ -17,7 +17,7 @@ class NeutrinoCalculator():
     Calculate the expected number of detected neutrinos.
     """
 
-    def __init__(self, source, detector):
+    def __init__(self, source, effective_area):
         """
         Calculate the expected number of detected neutrinos.
         
@@ -65,10 +65,9 @@ class NeutrinoCalculator():
     def _diffuse_calculation(self):
 
         dN_dt = 0
-        for i, E in enumerate(self.effective_area.true_energy_bins[:-1]):
-
-            Em = E * GEV_TO_TEV # TeV
-            EM = self.effective_area.true_energy_bins[i+1] * GEV_TO_TEV # TeV
+        for i, Em in enumerate(self.effective_area.true_energy_bins[:-1]):
+ 
+            EM = self.effective_area.true_energy_bins[i+1] 
             
             for j, czm in enumerate(self.effective_area.cos_zenith_bins[:-1]):
 
@@ -100,10 +99,9 @@ class NeutrinoCalculator():
 
         dN_dt = 0
         
-        for i, E in enumerate(self.effective_area.true_energy_bins[:-1]):
+        for i, Em in enumerate(self.effective_area.true_energy_bins[:-1]):
 
-            Em = E * GEV_TO_TEV # TeV
-            EM = self.effective_area.true_energy_bins[i+1] * GEV_TO_TEV # TeV
+            EM = self.effective_area.true_energy_bins[i+1] 
 
             integrated_flux = self.source.flux_model.integrated_spectrum(Em, EM)
 

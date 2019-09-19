@@ -68,6 +68,11 @@ class EnergyResolution(ABC):
         self._reconstrcuted_energy_bins = value
 
 
+    @abstractmethod
+    def sample(self):
+
+        pass
+        
         
 class NuMuEnergyResolution(ABC):
     """
@@ -184,7 +189,7 @@ class NuMuEnergyResolution(ABC):
                 self._sigma.append(np.nan)
 
 
-    def get_lognormal_params(self, Etrue):
+    def _get_lognormal_params(self, Etrue):
         """
         Returns params for lognormal representing 
         P(Ereco | Etrue).
@@ -197,3 +202,11 @@ class NuMuEnergyResolution(ABC):
         return self._mu[index], self._sigma[index]
         
         
+    def sample(self, Etrue):
+        """
+        Sample a reconstructed energy given a true energy.
+        """
+
+        mu, sigma = self._get_lognormal_params(Etrue)
+
+        return lognorm.rvs(sigma, loc=0, scale=mu)

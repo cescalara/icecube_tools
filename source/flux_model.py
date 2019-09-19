@@ -28,16 +28,16 @@ class PowerLawFlux(FluxModel):
     Power law flux models.
     """
 
-    def __init__(self, normalisation, normalisation_energy, index, lower_energy,
-                 upper_energy=np.inf):
+    def __init__(self, normalisation, normalisation_energy, index,
+                 lower_energy=0, upper_energy=np.inf):
         """
         Power law flux models. 
 
-        :param normalisation: Flux normalisation [TeV^-1 cm^-2 s^-1 sr^-1] or [TeV^-1 cm^-2 s^-1] for point sources.
-        :param normalisation energy: Energy at which flux is normalised [TeV].
+        :param normalisation: Flux normalisation [GeV^-1 cm^-2 s^-1 sr^-1] or [GeV^-1 cm^-2 s^-1] for point sources.
+        :param normalisation energy: Energy at which flux is normalised [GeV].
         :param index: Spectral index of the power law.
-        :param lower_energy: Lower energy bound [TeV].
-        :param upper_energy: Upper enegry bound [TeV], unbounded by default.
+        :param lower_energy: Lower energy bound [GeV].
+        :param upper_energy: Upper enegry bound [GeV], unbounded by default.
         """
 
         super().__init__()
@@ -70,8 +70,8 @@ class PowerLawFlux(FluxModel):
         """
         \int spectrum dE over finite energy bounds.
         
-        :param lower_energy_bound: [TeV]
-        :param upper_energy_bound: [TeV]
+        :param lower_energy_bound: [GeV]
+        :param upper_energy_bound: [GeV]
         """
 
         """
@@ -91,4 +91,29 @@ class PowerLawFlux(FluxModel):
         return norm * ( np.power(upper_energy_bound, 1-self._index) - np.power(lower_energy_bound, 1-self._index) )
 
         
-    
+    def sample(self, min_energy):
+        """
+        Sample energies from the power law.
+        Uses rejection sampling.
+
+        :param min_energy: Minimum energy to sample from [GeV].
+        """
+
+        dist_upper_lim = self.spectrum(min_energy)
+
+        accepted = False
+
+        while not accepted:
+
+            energy = np.random.uniform(min_energy, 1e3*min_energy)
+            dist = np.random.uniform(0, dist_upper_lim)
+
+            if dist < self.spectrum(energy):
+
+                accepted = True
+
+        return energy
+            
+
+        
+        
