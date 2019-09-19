@@ -213,4 +213,3 @@ class EffectiveArea():
         cosz_index = np.digitize(true_cos_zenith, self.cos_zenith_bins) - 1
 
         return scaled_values[energy_index][cosz_index]
-    

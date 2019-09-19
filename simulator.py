@@ -87,7 +87,7 @@ class Simulator():
 
                 accepted = np.random.choice([True, False], p=[detection_prob, 1-detection_prob])
                 
-            true_energy.append(Etrue)    
+            true_energy.append(Etrue)
             
             Ereco = self.detector.energy_resolution.sample(Etrue)
             reco_energy.append(Ereco)
