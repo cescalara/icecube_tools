@@ -74,12 +74,72 @@ class Simulator():
         coordinate = []
         for i in range(self.N):
 
-            # Energies
-            Etrue = self.source.flux.model.sample(self.min_energy)
-            true_energy.append(Etrue)
+            accepted = False
 
+            while not accepted:
+
+                Etrue = self.source.flux.model.sample(self.min_energy)
+
+                ra, dec = sphere_sample()
+                cosz = -np.sin(dec)
+                
+                detection_prob = detector.effective_area.detection_probability(Etrue, cosz)
+
+                accepted = np.random.choice([True, False], p=[detection_prob, 1-detection_prob])
+                
+            true_energy.append(Etrue)    
+            
             Ereco = self.detector.energy_resolution.sample(Etrue)
             reco_energy.append(Ereco)
-
-            # Arrival directions
         
+
+def sphere_sample(N=1, radius=1):
+    """
+    Sample points uniformly on a sphere.
+    """
+
+    u = np.random.uniform(0, 1, N)
+    v = np.random.uniform(0, 1, N)
+            
+    theta = 2 * np.pi * u
+    phi = np.arccos(2 * v - 1)
+
+    ra, dec = spherical_to_icrs(theta, phi)
+    
+    return ra, dec
+
+
+def spherical_to_icrs(theta, phi):
+    """
+    convert spherical coordinates to ICRS
+    ra, dec.
+    """
+
+    ra = phi
+
+    dec = np.pi/2 - theta
+
+    return ra, dec
+
+    
+def icrs_to_unit_vector(ra, dec):
+    """
+    Convert to unit vector.
+    """
+
+    theta = np.pi/2 - dec
+    phi = ra
+    
+    x = np.sin(theta) * np.cos(phi)
+    y = np.sin(theta) * np.sin(phi)
+    z = np.cos(theta)
+
+    return np.array([x, y, z])
+
+
+def vMF_wrapper(ra, dec, kappa):
+    """
+    Wrap the vMF sampler for convenience.
+    """
+
+    pass

@@ -198,3 +198,19 @@ class EffectiveArea():
                     dim_to_int.append(self._reader._label_order[key])
 
             self.values = np.sum(self.values, axis=tuple(dim_to_int))  
+
+            
+    def detection_probability(self, true_energy, true_cos_zenith):
+        """
+        Give the relative detection probability for 
+        a given true energy and arrival direction.
+        """
+
+        scaled_values = self.values.copy() / np.max(self.values)
+
+        energy_index = np.digitize(true_energy, self.true_energy_bins) - 1
+
+        cosz_index = np.digitize(true_cos_zenith, self.cos_zenith_bins) - 1
+
+        return scaled_values[energy_index][cosz_index]
+    
