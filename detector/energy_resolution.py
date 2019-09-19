@@ -63,9 +63,9 @@ class EnergyResolution(ABC):
 
     
     @reco_energy_bins.setter
-    def reconstrcuted_energy_bins(self, value):
+    def reco_energy_bins(self, value):
 
-        self._reconstrcuted_energy_bins = value
+        self._reco_energy_bins = value
 
 
     @abstractmethod
@@ -74,7 +74,7 @@ class EnergyResolution(ABC):
         pass
         
         
-class NuMuEnergyResolution(ABC):
+class NuMuEnergyResolution(EnergyResolution):
     """
     Muon neutrino energy resolution using public data.
     Makes use of the 2015 effective area release and its

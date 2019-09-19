@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 from effective_area import EffectiveArea
 from energy_resolution import EnergyResolution
+from angular_resolution import AngularResolution
 
 """
 Detector modules, bringing together 
@@ -51,7 +52,7 @@ class Detector(ABC):
     @angular_resolution.setter
     def angular_resolution(self, value):
 
-        if no isinstance(value, AngularResolution):
+        if not isinstance(value, AngularResolution):
 
             raise ValueError(str(value) + ' is nmot an instance of AngularResolution.')
 
@@ -74,11 +75,10 @@ class IceCube(Detector):
         :param angular_resolution: instance of AngularResolution.
         """
 
+        self._effective_area = effective_area
+
+        self._energy_resolution = energy_resolution
+        
+        self._angular_resolution = angular_resolution
+        
         super().__init__()
-
-        self.effective_area = effective_area
-
-        self.energy_resolution = energy_resolution
-        
-        self.angular_resolution = angular_resolution
-        

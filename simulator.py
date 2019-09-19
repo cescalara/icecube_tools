@@ -1,8 +1,10 @@
 import numpy as np
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 
 from detector import Detector
 from source_model import Source, DIFFUSE, POINT
-from neutrino calculator import NeutrinoCalulator
+from neutrino_calculator import NeutrinoCalculator
 
 """
 Module for running neutrino production 
@@ -59,8 +61,6 @@ class Simulator():
         Run a simulation for the given source 
         and detector configuration.
         """
-
-        self.kwargs = kwargs
         
         # Sample number of events
         nu_calc = NeutrinoCalculator(self.source, self.detector.effective_area)
@@ -69,37 +69,44 @@ class Simulator():
 
         self.N = np.random.poisson(self._Nex)
 
-        true_energy = []
-        reco_energy = []
-        coordinate = []
+        self.true_energy = []
+        self.reco_energy = []
+        self.coordinate = []
+
         for i in range(self.N):
 
+            Etrue = self.source.flux_model.sample(self.min_energy)
+            
             accepted = False
-
+            
             while not accepted:
-
-                Etrue = self.source.flux.model.sample(self.min_energy)
 
                 ra, dec = sphere_sample()
                 cosz = -np.sin(dec)
+
+                if cosz > self.max_cosz:
+
+                    detection_prob = 0
+
+                else:
                 
-                detection_prob = detector.effective_area.detection_probability(Etrue, cosz)
+                    detection_prob = float(self.detector.effective_area.detection_probability(Etrue, cosz))
 
                 accepted = np.random.choice([True, False], p=[detection_prob, 1-detection_prob])
                 
-            true_energy.append(Etrue)
+            self.true_energy.append(Etrue)
 
             Ereco = self.detector.energy_resolution.sample(Etrue)
-            reco_energy.append(Ereco)
+            self.reco_energy.append(Ereco)
             
             if self.source.source_type == DIFFUSE:
 
-                coordinate.append(SkyCoord(ra*u.rad, dec*u.rad, frame='icrs'))
+                self.coordinate.append(SkyCoord(ra*u.rad, dec*u.rad, frame='icrs'))
 
             else:
 
                 reco_ra, reco_dec = self.detector.angular_resolution.sample(Etrue, ra, dec)
-                coordinate.append(SkyCoord(reco_ra*u.rad, reco_dec*u.rad, frame='icrs'))
+                self.coordinate.append(SkyCoord(reco_ra*u.rad, reco_dec*u.rad, frame='icrs'))
             
 
 def sphere_sample(N=1, radius=1):
@@ -110,8 +117,8 @@ def sphere_sample(N=1, radius=1):
     u = np.random.uniform(0, 1, N)
     v = np.random.uniform(0, 1, N)
             
-    theta = 2 * np.pi * u
-    phi = np.arccos(2 * v - 1)
+    phi = 2 * np.pi * u
+    theta = np.arccos(2 * v - 1)
 
     ra, dec = spherical_to_icrs(theta, phi)
     
