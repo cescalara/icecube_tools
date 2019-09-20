@@ -93,7 +93,7 @@ class PowerLawFlux(FluxModel):
         return norm * ( np.power(upper_energy_bound, 1-self._index) - np.power(lower_energy_bound, 1-self._index) )
 
 
-    def sample(self, min_energy, N):
+    def sample(self, N):
         """
         Sample energies from the power law.
         Uses inverse transform sampling.
@@ -102,7 +102,7 @@ class PowerLawFlux(FluxModel):
         :param N: Number of samples.
         """
         
-        self.power_law = BoundedPowerLaw(self._index, min_energy, 1e3*min_energy)        
+        self.power_law = BoundedPowerLaw(self._index, self._lower_energy, self._upper_energy)        
         
         return self.power_law.samples(N)
 

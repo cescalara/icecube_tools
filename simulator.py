@@ -68,25 +68,27 @@ class Simulator():
         self._Nex = nu_calc(time=self.time, min_energy=self.min_energy, max_cosz=self.max_cosz)
         
         
-    def run(self, Nex=None):
+    def run(self, N=None):
         """
         Run a simulation for the given source 
         and detector configuration.
         """
 
-        if not Nex:
+        if not N:
 
             self._get_expected_number()
 
+            self.N = np.random.poisson(self._Nex)           
+            
         else:
 
-            self._Nex = Nex
-
-        self.N = np.random.poisson(self._Nex)    
+            self.N = int(N)
             
         self.true_energy = []
         self.reco_energy = []
         self.coordinate = []
+
+        max_energy = self.source.flux_model._upper_energy
         
         for i in progress_bar(range(self.N), desc='Sampling'):
 
@@ -94,7 +96,7 @@ class Simulator():
             
             while not accepted:
 
-                Etrue = self.source.flux_model.sample(self.min_energy, 1)[0]
+                Etrue = self.source.flux_model.sample(1)[0]
                 
                 ra, dec = sphere_sample()
                 cosz = -np.sin(dec)
@@ -105,7 +107,7 @@ class Simulator():
 
                 else:
                 
-                    detection_prob = float(self.detector.effective_area.detection_probability(Etrue, cosz, 1e3*self.min_energy))
+                    detection_prob = float(self.detector.effective_area.detection_probability(Etrue, cosz, max_energy))
 
                 accepted = np.random.choice([True, False], p=[detection_prob, 1-detection_prob])
                 

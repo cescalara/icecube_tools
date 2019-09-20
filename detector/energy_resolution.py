@@ -107,6 +107,7 @@ class NuMuEnergyResolution(EnergyResolution):
         self.values = self._normalise_over_reco()
 
         self._fit_lognormal()
+        self._fit_polynomial()
         
         
     def _integrate_out_cos_zenith(self):
@@ -188,7 +189,42 @@ class NuMuEnergyResolution(EnergyResolution):
                 self._mu.append(np.nan)
                 self._sigma.append(np.nan)
 
+                
+    def _fit_polynomial(self):
+        """
+        Fit a polynomial to approximate the lognormal
+        params at extreme energies where there are 
+        little statistics.
+        """
 
+        # hard coded values for excluding low statistics
+        imin = 5
+        imax = 210
+
+        # polynomial degree
+        degree = 5
+
+        true_energy_bin_cen = (self.true_energy_bins[:-1] + self.true_energy_bins[1:]) / 2
+
+        mu_sel = np.where(np.isfinite(self._mu))
+
+        Etrue_cen_mu = true_energy_bin_cen[mu_sel]
+        mu = np.array(self._mu)[mu_sel]
+
+        sigma_sel = np.where(np.isfinite(self._sigma))
+
+        Etrue_cen_sigma = true_energy_bin_cen[sigma_sel]
+        sigma = np.array(self._sigma)[sigma_sel]
+
+        mu_pars = np.polyfit(np.log10(Etrue_cen_mu[imin:imax]), np.log10(mu[imin:imax]), degree)
+
+        sigma_pars = np.polyfit(np.log10(Etrue_cen_sigma[imin:imax]), np.log10(sigma[imin:imax]), degree)
+        
+        self._mu_poly = np.poly1d(mu_pars)
+
+        self._sigma_poly = np.poly1d(sigma_pars)
+
+        
     def _get_lognormal_params(self, Etrue):
         """
         Returns params for lognormal representing 
@@ -197,9 +233,11 @@ class NuMuEnergyResolution(EnergyResolution):
         :param Etrue: The true neutrino energy [GeV]
         """
 
-        index = np.digitize(Etrue, self.true_energy_bins) - 1
+        mu = np.power( 10, self._mu_poly(np.log10(Etrue)) )
 
-        return self._mu[index], self._sigma[index]
+        sigma = np.power( 10, self._sigma_poly(np.log10(Etrue)) )
+
+        return mu, sigma
         
         
     def sample(self, Etrue):
