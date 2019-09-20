@@ -2,6 +2,8 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
+from tqdm.autonotebook import tqdm as progress_bar
+
 from detector import Detector
 from source_model import Source, DIFFUSE, POINT
 from neutrino_calculator import NeutrinoCalculator
@@ -55,32 +57,45 @@ class Simulator():
 
             raise ValueError(str(value) + ' is not an instance of Detector')
 
+        
+    def _get_expected_number(self):
+        """
+        Find the expected number of neutrinos.
+        """
+        
+        nu_calc = NeutrinoCalculator(self.source, self.detector.effective_area)
 
-    def run(self):
+        self._Nex = nu_calc(time=self.time, min_energy=self.min_energy, max_cosz=self.max_cosz)
+        
+        
+    def run(self, Nex=None):
         """
         Run a simulation for the given source 
         and detector configuration.
         """
-        
-        # Sample number of events
-        nu_calc = NeutrinoCalculator(self.source, self.detector.effective_area)
 
-        self._Nex = nu_calc(time=self.time, min_energy=self.min_energy, max_cosz=self.max_cosz)
+        if not Nex:
 
-        self.N = np.random.poisson(self._Nex)
+            self._get_expected_number()
 
+        else:
+
+            self._Nex = Nex
+
+        self.N = np.random.poisson(self._Nex)    
+            
         self.true_energy = []
         self.reco_energy = []
         self.coordinate = []
+        
+        for i in progress_bar(range(self.N), desc='Sampling'):
 
-        for i in range(self.N):
-
-            Etrue = self.source.flux_model.sample(self.min_energy)
-            
             accepted = False
             
             while not accepted:
 
+                Etrue = self.source.flux_model.sample(self.min_energy, 1)[0]
+                
                 ra, dec = sphere_sample()
                 cosz = -np.sin(dec)
 
@@ -90,7 +105,7 @@ class Simulator():
 
                 else:
                 
-                    detection_prob = float(self.detector.effective_area.detection_probability(Etrue, cosz))
+                    detection_prob = float(self.detector.effective_area.detection_probability(Etrue, cosz, 1e3*self.min_energy))
 
                 accepted = np.random.choice([True, False], p=[detection_prob, 1-detection_prob])
                 

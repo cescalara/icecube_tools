@@ -1,6 +1,8 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
+from power_law import BoundedPowerLaw
+
 """
 Module for simple flux models used in 
 neutrino detection calculations
@@ -29,7 +31,7 @@ class PowerLawFlux(FluxModel):
     """
 
     def __init__(self, normalisation, normalisation_energy, index,
-                 lower_energy=0, upper_energy=np.inf):
+                 lower_energy=1e2, upper_energy=np.inf):
         """
         Power law flux models. 
 
@@ -90,8 +92,22 @@ class PowerLawFlux(FluxModel):
 
         return norm * ( np.power(upper_energy_bound, 1-self._index) - np.power(lower_energy_bound, 1-self._index) )
 
+
+    def sample(self, min_energy, N):
+        """
+        Sample energies from the power law.
+        Uses inverse transform sampling.
         
-    def sample(self, min_energy):
+        :param min_energy: Minimum energy to sample from [GeV].
+        :param N: Number of samples.
+        """
+        
+        self.power_law = BoundedPowerLaw(self._index, min_energy, 1e3*min_energy)        
+        
+        return self.power_law.samples(N)
+
+    
+    def _rejection_sample(self, min_energy):
         """
         Sample energies from the power law.
         Uses rejection sampling.
