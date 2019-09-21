@@ -1,6 +1,7 @@
 import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy import units as u
+import h5py
 
 from tqdm.autonotebook import tqdm as progress_bar
 
@@ -21,8 +22,6 @@ class Simulator():
         self._source = source
 
         self._detector = detector
-
-        self.min_energy = 1e2 # GeV
 
         self.max_cosz = 1 
 
@@ -65,7 +64,7 @@ class Simulator():
         
         nu_calc = NeutrinoCalculator(self.source, self.detector.effective_area)
 
-        self._Nex = nu_calc(time=self.time, min_energy=self.min_energy, max_cosz=self.max_cosz)
+        self._Nex = nu_calc(time=self.time, min_energy=self.source.flux_model._lower_energy, max_cosz=self.max_cosz)
         
         
     def run(self, N=None):
@@ -87,7 +86,9 @@ class Simulator():
         self.true_energy = []
         self.reco_energy = []
         self.coordinate = []
-
+        self.ra = []
+        self.dec = []
+        
         max_energy = self.source.flux_model._upper_energy
         
         for i in progress_bar(range(self.N), desc='Sampling'):
@@ -119,13 +120,72 @@ class Simulator():
             if self.source.source_type == DIFFUSE:
 
                 self.coordinate.append(SkyCoord(ra*u.rad, dec*u.rad, frame='icrs'))
-
+                self.ra.append(ra)
+                self.dec.append(dec)
+                
             else:
 
                 reco_ra, reco_dec = self.detector.angular_resolution.sample(Etrue, ra, dec)
                 self.coordinate.append(SkyCoord(reco_ra*u.rad, reco_dec*u.rad, frame='icrs'))
-            
+                self.ra.append(ra)
+                self.dec.append(dec)
+                
 
+    def save(self, filename):
+        """
+        Save the output to filename.
+        """
+
+        self._filename = filename
+
+        with h5py.File(filename, 'w') as f:
+
+            f.create_dataset('true_energy', data=self.true_energy)
+
+            f.create_dataset('reco_energy', data=self.reco_energy)
+
+            f.create_dataset('ra', data=self.ra)
+
+            f.create_dataset('dec', data=self.dec)
+
+            f.create_dataset('index', data=self.source.flux_model._index)
+
+            f.create_dataset('source_type', data=self.source.source_type)
+
+                
+class MarginalisedEnergyLikelihood():
+    
+    
+    def __init__(self, energy, sim_index=1.5):
+
+        self._energy = energy
+
+        self._sim_index = sim_index
+
+        
+    def _calc_weights(self, new_index):
+
+        return  np.power(self._energy, self._sim_index - self._new_index)
+
+    
+    def get_likelihood(self, E, new_index):
+        """
+        P(Ereco | index) = \int dEtrue P(Ereco | Etrue) P(Etrue | index)
+        """
+
+        self._new_index = new_index
+
+        self._weights = self._calc_weights(new_index)
+
+        bins = np.linspace(2, 9) # GeV
+        
+        self._hist, _ = np.histogram(np.log10(self._energy), bins=bins, weights=self._weights, density=True)
+        
+        E_index = np.digitize(np.log10(E), bins) - 1
+
+        return self._hist[E_index]
+        
+                
 def sphere_sample(N=1, radius=1):
     """
     Sample points uniformly on a sphere.
@@ -153,4 +213,5 @@ def spherical_to_icrs(theta, phi):
     dec = np.pi/2 - theta
 
     return ra, dec
+
 
