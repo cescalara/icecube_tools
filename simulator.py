@@ -153,39 +153,6 @@ class Simulator():
             f.create_dataset('source_type', data=self.source.source_type)
 
                 
-class MarginalisedEnergyLikelihood():
-    
-    
-    def __init__(self, energy, sim_index=1.5):
-
-        self._energy = energy
-
-        self._sim_index = sim_index
-
-        
-    def _calc_weights(self, new_index):
-
-        return  np.power(self._energy, self._sim_index - self._new_index)
-
-    
-    def get_likelihood(self, E, new_index):
-        """
-        P(Ereco | index) = \int dEtrue P(Ereco | Etrue) P(Etrue | index)
-        """
-
-        self._new_index = new_index
-
-        self._weights = self._calc_weights(new_index)
-
-        bins = np.linspace(2, 9) # GeV
-        
-        self._hist, _ = np.histogram(np.log10(self._energy), bins=bins, weights=self._weights, density=True)
-        
-        E_index = np.digitize(np.log10(E), bins) - 1
-
-        return self._hist[E_index]
-        
-                
 def sphere_sample(N=1, radius=1):
     """
     Sample points uniformly on a sphere.
