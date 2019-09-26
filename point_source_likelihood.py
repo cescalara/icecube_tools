@@ -95,7 +95,7 @@ class PointSourceLikelihood():
 
         
         
-        log_likelihood = 0
+        likelihood = 1
         
         for i in range(self.N):
             
@@ -104,9 +104,9 @@ class PointSourceLikelihood():
 
             bg = (1 - (ns / self.N)) * self._background_likelihood(self._selected_energies[i])
 
-            log_likelihood += np.log(signal + bg)
+            likelihood *= (signal + bg)
 
-        return -log_likelihood
+        return -np.log(likelihood)
         
                 
 class MarginalisedEnergyLikelihood():
