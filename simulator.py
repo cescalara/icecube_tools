@@ -153,13 +153,13 @@ class Simulator():
             f.create_dataset('source_type', data=self.source.source_type)
 
                 
-def sphere_sample(N=1, radius=1):
+def sphere_sample(radius=1):
     """
     Sample points uniformly on a sphere.
     """
 
-    u = np.random.uniform(0, 1, N)
-    v = np.random.uniform(0, 1, N)
+    u = np.random.uniform(0, 1)
+    v = np.random.uniform(0, 1)
             
     phi = 2 * np.pi * u
     theta = np.arccos(2 * v - 1)
@@ -182,3 +182,6 @@ def spherical_to_icrs(theta, phi):
     return ra, dec
 
 
+def lists_to_tuple(list1, list2):
+
+    return  [(list1[i], list2[i]) for i in range(0, len(list1))] 

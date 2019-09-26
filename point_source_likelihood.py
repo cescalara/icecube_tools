@@ -1,7 +1,5 @@
 import numpy as np
-from astropy import units as u
-from astropy.coordinates import SkyCoord
-
+ 
 """
 Module to compute the IceCube point source likelihood
 using publicly available information.
@@ -23,31 +21,67 @@ class PointSourceLikelihood():
     energies and arrival directions.
     """    
     
-    def __init__(self, direction_likelihood, energy_likelihood):
+    def __init__(self, direction_likelihood, energy_likelihood, event_coords, energies, source_coord):
         """
         Calculate the point source likelihood for a given 
         neutrino dataset - in terms of reconstructed 
         energies and arrival directions.
         
-        :param direction_likelihood: An instance of vMFLikelihood.
+        :param direction_likelihood: An instance of SpatialGaussianLikelihood.
         :param energy_likelihood: An instance of MarginalisedEnergyLikelihood.
+        :param event_coords: List of (ra, dec) tuples for reconstructed coords.
+        :param energies: The reconstructed nu energies.
+        :param source_coord: (ra, dec) pf the point to test.
         """
 
-        self._direction_likihood = direction_likelihood 
+        self._direction_likelihood = direction_likelihood 
 
         self._energy_likelihood = energy_likelihood
 
+        self._band_width = 5 * self._direction_likelihood._sigma # degrees
 
-    def __call__(self, directions, energies):
+        self._event_coords = event_coords
+        
+        self._energies = energies
+
+        self._source_coord = source_coord
+
+        self.N = len(energies)
+
+        self._bg_index = 3.7
+        
+        
+    def _signal_likelihood(self, event_coord, source_coord, energy, index):
+
+        return direction_likelihood(event_coord, source_coord) * energy_likelihood(energy, index)
+
+
+    def _background_likelihood(self, energy):
+
+        return energy_likelihood(energy, self._bg_index) / np.deg2rad(self._band_width)
+    
+        
+    def __call__(self, ns, index):
         """
         Evaluate the PointSourceLikelihood for the given
         neutrino dataset.
 
-        :param directions: The reconstructed nu arrival directions.
-        :param energies: The reconstructed nu enrgies.
+        :param ns: Number of source counts.
+        :param index: Spectral index of the source.
         """
 
+        log_likelihood = 0
 
+        for i in range(N):
+            
+            signal = (ns / self.N) * self._signal_likelihood(self._event_coords[i], self._source_coord, self._energies[i], index)
+
+            bg = (1 - (ns / self.N)) * self._background_likelihood(self._energies[i])
+
+            log_likelihood += np.log(signal + bg)
+
+        return log_likelihood
+        
                 
 class MarginalisedEnergyLikelihood():
     """
