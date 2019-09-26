@@ -53,18 +53,20 @@ class PointSourceLikelihood():
         
     def _signal_likelihood(self, event_coord, source_coord, energy, index):
 
-        return direction_likelihood(event_coord, source_coord) * energy_likelihood(energy, index)
+        return self._direction_likelihood(event_coord, source_coord) * self._energy_likelihood(energy, index)
 
 
     def _background_likelihood(self, energy):
 
-        return energy_likelihood(energy, self._bg_index) / np.deg2rad(self._band_width)
-    
+        return self._energy_likelihood(energy, self._bg_index) / np.deg2rad(self._band_width)
+ 
         
     def __call__(self, ns, index):
         """
         Evaluate the PointSourceLikelihood for the given
         neutrino dataset.
+
+        returns -log(likelihood) for minimization.
 
         :param ns: Number of source counts.
         :param index: Spectral index of the source.
@@ -72,7 +74,7 @@ class PointSourceLikelihood():
 
         log_likelihood = 0
 
-        for i in range(N):
+        for i in range(self.N):
             
             signal = (ns / self.N) * self._signal_likelihood(self._event_coords[i], self._source_coord, self._energies[i], index)
 
@@ -80,7 +82,7 @@ class PointSourceLikelihood():
 
             log_likelihood += np.log(signal + bg)
 
-        return log_likelihood
+        return -log_likelihood
         
                 
 class MarginalisedEnergyLikelihood():
@@ -91,7 +93,7 @@ class MarginalisedEnergyLikelihood():
     """
     
     
-    def __init__(self, energy, sim_index=1.5):
+    def __init__(self, energy, sim_index=1.5, min_E=1e2, max_E=1e9):
         """
         Compute the marginalised energy likelihood by using a 
         simulation of a large number of reconstructed muon 
@@ -105,28 +107,42 @@ class MarginalisedEnergyLikelihood():
 
         self._sim_index = sim_index
 
+        self._index_bins = np.linspace(1.5, 4.0, 10)
+
+        self._energy_bins = np.linspace(np.log10(min_E), np.log10(max_E)) # GeV
+
+        self._precompute_histograms()
+
         
     def _calc_weights(self, new_index):
 
-        return  np.power(self._energy, self._sim_index - self._new_index)
+        return  np.power(self._energy, self._sim_index - new_index)
 
+    
+    def _precompute_histograms(self):
 
-    def __call__(self, E, new_index, min_E=1e2, max_E=1e9):
+        self._likelihood = []
+        
+        for index in self._index_bins:
+
+            weights = self._calc_weights(index)
+
+            hist, _ = np.histogram(np.log10(self._energy), bins=self._energy_bins,
+                                   weights=weights, density=True)
+
+            self._likelihood.append(hist)
+        
+
+    def __call__(self, E, new_index):
         """
         P(Ereco | index) = \int dEtrue P(Ereco | Etrue) P(Etrue | index)
         """
-
-        self._new_index = new_index
-
-        self._weights = self._calc_weights(new_index)
-
-        bins = np.linspace(np.log10(min_E), np.log10(max_E)) # GeV
         
-        self._hist, _ = np.histogram(np.log10(self._energy), bins=bins, weights=self._weights, density=True)
+        i_index = np.digitize(new_index, self._index_bins) - 1
         
-        E_index = np.digitize(np.log10(E), bins) - 1
+        E_index = np.digitize(np.log10(E), self._energy_bins) - 1
 
-        return self._hist[E_index]
+        return self._likelihood[i_index][E_index]
         
 
 
