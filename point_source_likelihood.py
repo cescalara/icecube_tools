@@ -4,6 +4,11 @@ import numpy as np
 Module to compute the IceCube point source likelihood
 using publicly available information.
 
+Based on the method described in:
+Braun, J. et al., 2008. Methods for point source analysis 
+in high energy neutrino telescopes. Astroparticle Physics, 
+29(4), pp.299–305.
+
 Currently well-defined for searches with
 Northern sky muon neutrinos.
 """
@@ -70,7 +75,7 @@ class MarginalisedEnergyLikelihood():
         return  np.power(self._energy, self._sim_index - self._new_index)
 
 
-    def __call__(self, E, new_index, min_E=1e2, max_E=1e7):
+    def __call__(self, E, new_index, min_E=1e2, max_E=1e9):
         """
         P(Ereco | index) = \int dEtrue P(Ereco | Etrue) P(Etrue | index)
         """
@@ -86,4 +91,46 @@ class MarginalisedEnergyLikelihood():
         E_index = np.digitize(np.log10(E), bins) - 1
 
         return self._hist[E_index]
+        
+
+
+class SpatialGaussianLikelihood():
+    """
+    Spatial part of the point source likelihood.
+
+    P(x_i | x_s) where x is the direction (unit_vector).
+    """
+    
+
+    def __init__(self, angular_resolution):
+        """
+        Spatial part of the point source likelihood.
+        
+        P(x_i | x_s) where x is the direction (unit_vector).
+        
+        :param angular_resolution; Angular resolution of detector [deg]. 
+        """
+
+        # @TODO: Init with some sigma as a function of E?
+        
+        self._sigma = angular_resolution
+
+    
+    def __call__(self, unit_vector, source_vector):
+        """
+        Use the neutrino energy to determine sigma and 
+        evaluate the likelihood.
+
+        P(x_i | x_s) = (1 / (2pi * sigma^2)) * exp( |x_i - x_s|^2/ (2*sigma^2) )
+        """
+
+        sigma_rad = np.deg2rad(self._sigma)
+        
+        norm = 1 / (2* np.pi * sigma_rad**2)
+
+        dist = np.exp( np.linalg.norm(unit_vector - source_vector)**2 / (2 * sigma_rad**2) )
+
+        return norm * dist
+
+        
         
