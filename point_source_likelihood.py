@@ -37,7 +37,7 @@ class PointSourceLikelihood():
         self._direction_likelihood = direction_likelihood 
 
         self._energy_likelihood = energy_likelihood
-
+        
         self._band_width = 5 * self._direction_likelihood._sigma # degrees
 
         self._event_coords = event_coords
@@ -46,9 +46,29 @@ class PointSourceLikelihood():
 
         self._source_coord = source_coord
 
-        self.N = len(energies)
-
         self._bg_index = 3.7
+
+        self._select_declination_band()
+
+
+    def _select_declination_band(self):
+
+        decs = np.array([_[1] for _ in self._event_coords])
+
+        _, source_dec = self._source_coord
+
+        dec_fac = np.deg2rad(self._band_width/2)
+        
+        selected = np.where((decs >= source_dec - dec_fac) & (decs <= source_dec + dec_fac))[0]
+
+        self._selected = selected
+        
+        self._selected_energies = self._energies[selected]
+
+        self._selected_event_coords = [(ec[0], ec[1]) for ec in self._event_coords
+                                       if (ec[1] >= source_dec - dec_fac) & (ec[1] <= source_dec + dec_fac)]
+        
+        self.N = len(selected)
         
         
     def _signal_likelihood(self, event_coord, source_coord, energy, index):
@@ -59,6 +79,7 @@ class PointSourceLikelihood():
     def _background_likelihood(self, energy):
 
         return self._energy_likelihood(energy, self._bg_index) / np.deg2rad(self._band_width)
+        #return 1  / np.deg2rad(self._band_width)
  
         
     def __call__(self, ns, index):
@@ -72,13 +93,16 @@ class PointSourceLikelihood():
         :param index: Spectral index of the source.
         """
 
+        
+        
         log_likelihood = 0
-
+        
         for i in range(self.N):
             
-            signal = (ns / self.N) * self._signal_likelihood(self._event_coords[i], self._source_coord, self._energies[i], index)
+            signal = (ns / self.N) * self._signal_likelihood(self._selected_event_coords[i],
+                                                             self._source_coord, self._selected_energies[i], index)
 
-            bg = (1 - (ns / self.N)) * self._background_likelihood(self._energies[i])
+            bg = (1 - (ns / self.N)) * self._background_likelihood(self._selected_energies[i])
 
             log_likelihood += np.log(signal + bg)
 
