@@ -93,7 +93,7 @@ class MarginalisedEnergyLikelihood():
     """
     
     
-    def __init__(self, energy, sim_index=1.5, min_E=1e2, max_E=1e9):
+    def __init__(self, energy, sim_index=1.5, min_index=1.5, max_index=4.0, min_E=1e2, max_E=1e9):
         """
         Compute the marginalised energy likelihood by using a 
         simulation of a large number of reconstructed muon 
@@ -107,7 +107,13 @@ class MarginalisedEnergyLikelihood():
 
         self._sim_index = sim_index
 
-        self._index_bins = np.linspace(1.5, 4.0, 10)
+        self._min_index = min_index
+        self._max_index = max_index
+
+        self._min_E = min_E
+        self._max_E = max_E
+        
+        self._index_bins = np.linspace(min_index, max_index)
 
         self._energy_bins = np.linspace(np.log10(min_E), np.log10(max_E)) # GeV
 
@@ -137,6 +143,16 @@ class MarginalisedEnergyLikelihood():
         """
         P(Ereco | index) = \int dEtrue P(Ereco | Etrue) P(Etrue | index)
         """
+
+        if E < self._min_E or E > self._max_E:
+
+            raise ValueError('Energy ' + str(E) + 'is not in the accepted range between '
+                             + str(self._min_E) + ' and ' + str(self._max_E))
+
+        if new_index < self._min_index or new_index > self._max_index:
+
+            raise ValueError('Sepctral index ' + str(new_index) + ' is not in the accepted range between '
+                             + str(self._min_index) + ' and ' + str(self._max_index))
         
         i_index = np.digitize(new_index, self._index_bins) - 1
         
