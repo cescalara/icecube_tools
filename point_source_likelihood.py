@@ -1,4 +1,6 @@
 import numpy as np
+from astropy import units as u
+from astropy.coordinates import SkyCoord
 
 """
 Module to compute the IceCube point source likelihood
@@ -116,21 +118,37 @@ class SpatialGaussianLikelihood():
         self._sigma = angular_resolution
 
     
-    def __call__(self, unit_vector, source_vector):
+    def __call__(self, event_coord, source_coord):
         """
         Use the neutrino energy to determine sigma and 
         evaluate the likelihood.
 
         P(x_i | x_s) = (1 / (2pi * sigma^2)) * exp( |x_i - x_s|^2/ (2*sigma^2) )
+
+        :param event_coord: (ra, dec) of event [rad].
+        :param source_coord: (ra, dec) of point source [rad].
         """
 
         sigma_rad = np.deg2rad(self._sigma)
-        
-        norm = 1 / (2* np.pi * sigma_rad**2)
 
-        dist = np.exp( np.linalg.norm(unit_vector - source_vector)**2 / (2 * sigma_rad**2) )
+        ra, dec = event_coord
+                
+        src_ra, src_dec = source_coord
+        
+        norm = 0.5 / (np.pi * sigma_rad**2)
+
+        # Calculate the cosine of the distance of the source and the event on
+        # the sphere.
+        cos_r = np.cos(src_ra - ra) * np.cos(src_dec) * np.cos(dec) + np.sin(src_dec) * np.sin(dec)
+        
+        # Handle possible floating precision errors.
+        if cos_r < -1.0:
+            cos_r = 1.0
+        if cos_r > 1.0:
+            cos_r = 1.0
+
+        r = np.arccos(cos_r)
+         
+        dist = np.exp( -0.5*(r / sigma_rad)**2 )
 
         return norm * dist
-
-        
-        
