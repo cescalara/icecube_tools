@@ -57,9 +57,9 @@ class PointSourceLikelihood():
 
         _, source_dec = self._source_coord
 
-        dec_fac = np.deg2rad(self._band_width/2)
+        dec_fac = np.deg2rad(self._band_width)
         
-        selected = np.where((decs >= source_dec - dec_fac) & (decs <= source_dec + dec_fac))[0]
+        selected = np.where((decs >= source_dec - dec_fac) & (decs <= source_dec + dec_fac) )[0]
 
         self._selected = selected
         
@@ -87,26 +87,30 @@ class PointSourceLikelihood():
         Evaluate the PointSourceLikelihood for the given
         neutrino dataset.
 
-        returns -log(likelihood) for minimization.
+        returns -log(likelihood_ratio) for minimization.
+
+        Uses calculation described in:
+        https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf
 
         :param ns: Number of source counts.
         :param index: Spectral index of the source.
         """
-
         
         
-        likelihood = 1
+        log_likelihood_ratio = 0.0
         
         for i in range(self.N):
             
-            signal = (ns / self.N) * self._signal_likelihood(self._selected_event_coords[i],
+            signal = self._signal_likelihood(self._selected_event_coords[i],
                                                              self._source_coord, self._selected_energies[i], index)
 
-            bg = (1 - (ns / self.N)) * self._background_likelihood(self._selected_energies[i])
+            bg = self._background_likelihood(self._selected_energies[i])
 
-            likelihood *= (signal + bg)
-
-        return -np.log(likelihood)
+            chi = (1 / self.N) * (signal/bg - 1)
+            
+            log_likelihood_ratio += np.log(1 + ns * chi)
+                        
+        return -log_likelihood_ratio
         
                 
 class MarginalisedEnergyLikelihood():
