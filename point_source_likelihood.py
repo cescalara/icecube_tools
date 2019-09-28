@@ -96,6 +96,8 @@ class PointSourceLikelihood():
         :param index: Spectral index of the source.
         """
         
+
+        alpha = -0.9999
         
         log_likelihood_ratio = 0.0
         
@@ -107,8 +109,17 @@ class PointSourceLikelihood():
             bg = self._background_likelihood(self._selected_energies[i])
 
             chi = (1 / self.N) * (signal/bg - 1)
-            
-            log_likelihood_ratio += np.log(1 + ns * chi)
+
+            alpha_i = ns * chi
+               
+            if alpha_i < alpha:
+
+                alpha_tilde = (alpha_i - alpha) / (1 + alpha) 
+                log_likelihood_ratio += np.log(1 + alpha) + alpha_tilde + (0.5 * alpha_tilde**2) 
+
+            else:
+                
+            log_likelihood_ratio += np.log(1 + alpha_i)
                         
         return -log_likelihood_ratio
         
