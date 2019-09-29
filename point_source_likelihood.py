@@ -127,7 +127,30 @@ class PointSourceLikelihood():
         log_likelihood_ratio += (self.Ntot - self.N) * np.log1p(- ns / self.N)
             
         return -log_likelihood_ratio
-        
+
+    
+    def get_neg_log_S(self, ns, index):
+        """
+        Return -log(S), where S is the total signal likelihood.  
+        """
+
+        log_likelihood = 0.0
+
+        for i in range(self.N):
+
+            signal = self._signal_likelihood(self._selected_event_coords[i], self._source_coord, self._selected_energies[i], index)
+
+            bg = self._background_likelihood(self._selected_energies[i])
+
+            S_i = (ns / self.N) * signal
+
+            B_i = (1 - ns/self.N) * bg
+            
+            log_likelihood += np.log(S_i + B_i)
+
+        return -log_likelihood
+
+    
                 
 class MarginalisedEnergyLikelihood():
     """
