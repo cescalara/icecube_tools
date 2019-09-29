@@ -50,6 +50,8 @@ class PointSourceLikelihood():
 
         self._select_declination_band()
 
+        self.Ntot = len(self._energies)
+        
 
     def _select_declination_band(self):
 
@@ -78,8 +80,8 @@ class PointSourceLikelihood():
 
     def _background_likelihood(self, energy):
 
-        return self._energy_likelihood(energy, self._bg_index) / np.deg2rad(self._band_width)
-        #return 1  / np.deg2rad(self._band_width)
+        return self._energy_likelihood(energy, self._bg_index) / np.deg2rad(self._band_width*2)
+        #return 1  / np.deg2rad(self._band_width*2)
  
         
     def __call__(self, ns, index):
@@ -97,7 +99,8 @@ class PointSourceLikelihood():
         """
         
 
-        alpha = -0.9999
+        one_plus_alpha = 1e-5 
+        alpha = 1 - one_plus_alpha
         
         log_likelihood_ratio = 0.0
         
@@ -112,15 +115,17 @@ class PointSourceLikelihood():
 
             alpha_i = ns * chi
                
-            if alpha_i < alpha:
+            if (1 + alpha_i) < one_plus_alpha:
 
-                alpha_tilde = (alpha_i - alpha) / (1 + alpha) 
-                log_likelihood_ratio += np.log(1 + alpha) + alpha_tilde + (0.5 * alpha_tilde**2) 
+                alpha_tilde = (alpha_i - alpha) / one_plus_alpha 
+                log_likelihood_ratio += np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde**2) 
 
             else:
                 
-            log_likelihood_ratio += np.log(1 + alpha_i)
-                        
+                log_likelihood_ratio += np.log1p(alpha_i)
+
+        log_likelihood_ratio += (self.Ntot - self.N) * np.log1p(- ns / self.N)
+            
         return -log_likelihood_ratio
         
                 
