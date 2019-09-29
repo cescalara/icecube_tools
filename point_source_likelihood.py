@@ -107,7 +107,7 @@ class PointSourceLikelihood():
         for i in range(self.N):
             
             signal = self._signal_likelihood(self._selected_event_coords[i],
-                                                             self._source_coord, self._selected_energies[i], index)
+                                             self._source_coord, self._selected_energies[i], index)
 
             bg = self._background_likelihood(self._selected_energies[i])
 
@@ -285,3 +285,71 @@ class SpatialGaussianLikelihood():
         dist = np.exp( -0.5*(r / sigma_rad)**2 )
 
         return norm * dist
+
+
+class SimplePointSourceLikelihood():
+
+    
+    def __init__(self, direction_likelihood, event_coords, source_coord):
+        """
+        Point source likelihood with only spatial information.
+        """
+
+        self._direction_likelihood = direction_likelihood
+
+        self._band_width = direction_likelihood._sigma
+        
+        self._event_coords = event_coords
+
+        self._source_coord = source_coord
+
+        self._select_declination_band()
+
+        self.Ntot = len(self._event_coords)
+        
+
+    def _signal_likelihood(self, event_coord, source_coord):
+
+        return self._direction_likelihood(event_coord, source_coord)
+
+    
+    def _background_likelihood(self):
+
+        return 1 / (np.deg2rad(self._band_width*2) * 2*np.pi) 
+
+
+    def _select_declination_band(self):
+
+        decs = np.array([_[1] for _ in self._event_coords])
+
+        _, source_dec = self._source_coord
+
+        dec_fac = np.deg2rad(self._band_width)
+        
+        selected = np.where((decs >= source_dec - dec_fac) & (decs <= source_dec + dec_fac) )[0]
+
+        self._selected = selected
+        
+        self._selected_event_coords = [(ec[0], ec[1]) for ec in self._event_coords
+                                       if (ec[1] >= source_dec - dec_fac) & (ec[1] <= source_dec + dec_fac)]
+        
+        self.N = len(selected)
+  
+
+    def __call__(self, ns):
+
+        log_likelihood = 0.0
+        
+        for i in range(self.N):
+
+            signal = (ns / self.N) * self._signal_likelihood(self._selected_event_coords[i],
+                                                             self._source_coord)
+
+            bg = (1 - (ns / self.N)) * self._background_likelihood()
+
+            log_likelihood += np.log(signal + bg)
+
+        return -log_likelihood
+            
+
+        
