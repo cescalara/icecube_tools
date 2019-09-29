@@ -38,7 +38,7 @@ class PointSourceLikelihood():
 
         self._energy_likelihood = energy_likelihood
         
-        self._band_width = 5 * self._direction_likelihood._sigma # degrees
+        self._band_width = 3 * self._direction_likelihood._sigma # degrees
 
         self._event_coords = event_coords
         
@@ -297,7 +297,7 @@ class SimplePointSourceLikelihood():
 
         self._direction_likelihood = direction_likelihood
 
-        self._band_width = direction_likelihood._sigma
+        self._band_width = 3 * direction_likelihood._sigma
         
         self._event_coords = event_coords
 
