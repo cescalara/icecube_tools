@@ -80,8 +80,8 @@ class PointSourceLikelihood():
 
     def _background_likelihood(self, energy):
 
-        return self._energy_likelihood(energy, self._bg_index) / np.deg2rad(self._band_width*2)
-        #return 1  / np.deg2rad(self._band_width*2)
+        return self._energy_likelihood(energy, self._bg_index) / (np.deg2rad(self._band_width*2) * 2*np.pi)
+        #return 1  / (np.deg2rad(self._band_width*2) * 2*np.pi)
  
         
     def __call__(self, ns, index):
