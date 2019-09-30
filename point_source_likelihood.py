@@ -1,5 +1,6 @@
 import numpy as np
- 
+from iminuit import Minuit
+
 """
 Module to compute the IceCube point source likelihood
 using publicly available information.
@@ -48,6 +49,9 @@ class PointSourceLikelihood():
 
         self._bg_index = 3.7
 
+        self._ns_min = 0.0
+        self._ns_max = 100.0
+
         self._select_declination_band()
 
         self.Ntot = len(self._energies)
@@ -84,12 +88,9 @@ class PointSourceLikelihood():
         #return 1  / (np.deg2rad(self._band_width*2) * 2*np.pi)
  
         
-    def __call__(self, ns, index):
+    def _get_neg_log_likelihood_ratio(self, ns, index):
         """
-        Evaluate the PointSourceLikelihood for the given
-        neutrino dataset.
-
-        returns -log(likelihood_ratio) for minimization.
+        Calculate the -log(likelihood_ratio) for minimization.
 
         Uses calculation described in:
         https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf
@@ -129,26 +130,92 @@ class PointSourceLikelihood():
         return -log_likelihood_ratio
 
     
-    def get_neg_log_S(self, ns, index):
+    def _get_log_likelihood(self, ns=0.0, index=None):
         """
-        Return -log(S), where S is the total signal likelihood.  
+        Calculate -log(likelihood) where likelihood is the 
+        full point source likelihood. Negative is reutrned for
+        easy minimization.
+
+        Evaluated at the best fit ns and index, this is the 
+        maximum likelihood for the source + background hypothesis.
+        Evaluated at ns=0, index=None, this is the likelihood 
+        for the background only hypothesis.
+
+        :param ns: Number of source counts.
+        :param index: Spectral index of source.
         """
 
         log_likelihood = 0.0
 
         for i in range(self.N):
 
-            signal = self._signal_likelihood(self._selected_event_coords[i], self._source_coord, self._selected_energies[i], index)
+            if index:
+                
+                signal = self._signal_likelihood(self._selected_event_coords[i], self._source_coord, self._selected_energies[i], index)
+                S_i = (ns / self.N) * signal
 
+            else:
+
+                S_i = 0
+                
             bg = self._background_likelihood(self._selected_energies[i])
-
-            S_i = (ns / self.N) * signal
 
             B_i = (1 - ns/self.N) * bg
             
             log_likelihood += np.log(S_i + B_i)
 
         return -log_likelihood
+
+    
+    def __call__(self, ns, index):
+        """
+        Wrapper function for convenience.
+        """
+
+        return self._get_log_likelihood(ns, index)
+
+    
+    def _minimize(self):
+        """
+        Minimize -log(likelihood) for the source hypothesis, 
+        returning the best fit ns and index.
+        """
+
+        m = Minuit(self._get_log_likelihood, ns=0.0, index=2.0,
+                   error_ns=0.1, error_index=0.1, errordef=0.5,
+                   limit_ns=(self._ns_min, self._ns_max),
+                   limit_index=(self._energy_likelihood._min_index, self._energy_likelihood._max_index))
+        m.tol = 10
+        m.migrad()
+
+        if not m.migrad_ok() or not m.matrix_accurate():
+
+            m = Minuit(self._get_log_likelihood, ns=0.0, index=2.0, fix_index=True,
+                       error_ns=0.1, error_index=0.1, errordef=0.5,
+                       limit_ns=(self._ns_min, self._ns_max),
+                       limit_index=(self._energy_likelihood._min_index, self._energy_likelihood._max_index))
+            m.tol = 10
+            m.migrad()
+
+        self._best_fit_ns = m.values['ns']
+        self._best_fit_index = m.values['index']
+            
+    
+    def get_test_statistic(self):
+        """
+        Calculate the test statistic for the best fit ns
+        """
+
+        self._minimize()
+
+        Ls = -self._get_log_likelihood(self._best_fit_ns, self._best_fit_index)
+        Lb = -self._get_log_likelihood(0.0, None)
+
+        self.likelihood_ratio = np.exp(Lb - Ls)
+
+        self.test_statistic = -2 * (Lb - Ls)
+
+        return self.test_statistic
 
     
                 
