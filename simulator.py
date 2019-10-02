@@ -17,9 +17,18 @@ and detection simulations.
 
 class Simulator():
 
-    def __init__(self, source, detector):
+    def __init__(self, sources, detector):
+        """
+        Class for handling simple neutrino production
+        and detection simulations.
 
-        self._source = source
+        :param sources: List of/single Source object.
+        """
+
+        if not isinstance(sources, list):
+            sources = [sources]
+            
+        self._sources = sources
 
         self._detector = detector
 
@@ -29,10 +38,11 @@ class Simulator():
 
         
     @property
-    def source(self):
+    def sources(self):
 
-        return self._source
+        return self._sources
 
+    
     @source.setter
     def source(self, value):
 
@@ -42,19 +52,23 @@ class Simulator():
 
         else:
 
-            self._source = source
+            self._sources.append(source)
 
+            
     @property
     def detector(self):
 
         return self._detector
 
+    
     @detector.setter
     def detector(self):
 
         if not isinstance(value, Detector):
 
             raise ValueError(str(value) + ' is not an instance of Detector')
+
+        self._detector = detector
 
         
     def _get_expected_number(self):
