@@ -70,6 +70,8 @@ class PointSourceLikelihood():
         selected = np.where((decs >= source_dec - dec_fac) & (decs <= source_dec + dec_fac)
                             & (ras >=source_ra - dec_fac) & (ras <= source_ra + dec_fac))[0]
 
+        selected_band = np.where((decs >= source_dec - dec_fac) & (decs <= source_dec + dec_fac))[0]
+        
         self._selected = selected
         
         self._selected_energies = self._energies[selected]
@@ -79,6 +81,8 @@ class PointSourceLikelihood():
                                        & (ec[0] >= source_ra - dec_fac) & (ec[0] <= source_ra + dec_fac)]
         
         self.N = len(selected)
+
+        self.N_band = len(selected_band)
         
         
     def _signal_likelihood(self, event_coord, source_coord, energy, index):
@@ -104,7 +108,7 @@ class PointSourceLikelihood():
         """
         
 
-        one_plus_alpha = 1e-5 
+        one_plus_alpha = 1 + 1e-5 
         alpha = 1 - one_plus_alpha
         
         log_likelihood_ratio = 0.0
@@ -129,7 +133,7 @@ class PointSourceLikelihood():
                 
                 log_likelihood_ratio += np.log1p(alpha_i)
 
-        log_likelihood_ratio += (self.Ntot - self.N) * np.log1p(- ns / self.N)
+        log_likelihood_ratio += (self.N_band - self.N) * np.log1p(- ns / self.N)
             
         return -log_likelihood_ratio
 
@@ -185,7 +189,7 @@ class PointSourceLikelihood():
         returning the best fit ns and index.
         """
 
-        m = Minuit(self._get_log_likelihood, ns=0.0, index=2.0,
+        m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=2.0,
                    error_ns=0.1, error_index=0.1, errordef=0.5,
                    limit_ns=(self._ns_min, self._ns_max),
                    limit_index=(self._energy_likelihood._min_index, self._energy_likelihood._max_index))
@@ -194,7 +198,7 @@ class PointSourceLikelihood():
 
         if not m.migrad_ok() or not m.matrix_accurate():
 
-            m = Minuit(self._get_log_likelihood, ns=0.0, index=2.0, fix_index=True,
+            m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=2.0, fix_index=True,
                        error_ns=0.1, error_index=0.1, errordef=0.5,
                        limit_ns=(self._ns_min, self._ns_max),
                        limit_index=(self._energy_likelihood._min_index, self._energy_likelihood._max_index))
@@ -269,13 +273,19 @@ class PointSourceLikelihood():
 
         #else:
                 
-        Ls = -self._get_log_likelihood(self._best_fit_ns, self._best_fit_index)
-        Lb = -self._get_log_likelihood(0.0, None)
+        #Ls = -self._get_log_likelihood(self._best_fit_ns, self._best_fit_index)
+        #Lb = -self._get_log_likelihood(0.0, None)
 
-        self.likelihood_ratio = np.exp(Lb - Ls + (self.Ntot - self.N) * np.log1p(-self._best_fit_ns / self.N))
+        #self.likelihood_ratio = np.exp(Lb - Ls + (self.Ntot - self.N) * np.log1p(-self._best_fit_ns / self.N))
 
-        self.test_statistic = -2 * (Lb - Ls + (self.Ntot - self.N) * np.log1p(-self._best_fit_ns / self.N))
+        #self.test_statistic = -2 * (Lb - Ls + (self.Ntot - self.N) * np.log1p(-self._best_fit_ns / self.N))
 
+        neg_log_lik = self._get_neg_log_likelihood_ratio(self._best_fit_ns, self._best_fit_index)
+        
+        self.likelihood_ratio = np.exp(neg_log_lik)
+        
+        self.test_statistic = -2 * neg_log_lik
+        
         return self.test_statistic
 
     
