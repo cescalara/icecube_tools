@@ -138,6 +138,7 @@ class Simulator():
 
                 accepted = np.random.choice([True, False], p=[detection_prob, 1-detection_prob])
                 
+            self.source_label.append(label)
             self.true_energy.append(Etrue)
 
             Ereco = self.detector.energy_resolution.sample(Etrue)
@@ -174,9 +175,20 @@ class Simulator():
 
             f.create_dataset('dec', data=self.dec)
 
-            f.create_dataset('index', data=self.source.flux_model._index)
+            f.create_dataset('source_label', data=self.source_label)            
+            
+            for i, source in enumerate(self.sources):
 
-            f.create_dataset('source_type', data=self.source.source_type)
+                s = f.create_group('source_' + str(i))
+            
+                s.create_dataset('index', data=source.flux_model._index)
+
+                s.create_dataset('source_type', data=source.source_type)
+
+                s.create_dataset('normalisation', data=source.flux_model._normalisation)
+
+                s.create_dataset('normalisation_energy', data=source.flux_model._normalisation_energy)
+                
 
                 
 def sphere_sample(radius=1):
