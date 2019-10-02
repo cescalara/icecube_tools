@@ -43,8 +43,8 @@ class Simulator():
         return self._sources
 
     
-    @source.setter
-    def source(self, value):
+    @sources.setter
+    def sources(self, value):
 
         if not isinstance(value, Source):
 
@@ -121,9 +121,9 @@ class Simulator():
             
             while not accepted:
 
-                max_energy = self.source[label].flux_model._upper_energy
+                max_energy = self.sources[label].flux_model._upper_energy
                 
-                Etrue = self.source[label].flux_model.sample(1)[0]
+                Etrue = self.sources[label].flux_model.sample(1)[0]
                 
                 ra, dec = sphere_sample()
                 cosz = -np.sin(dec)
@@ -144,7 +144,7 @@ class Simulator():
             Ereco = self.detector.energy_resolution.sample(Etrue)
             self.reco_energy.append(Ereco)
             
-            if self.source[label].source_type == DIFFUSE:
+            if self.sources[label].source_type == DIFFUSE:
 
                 self.coordinate.append(SkyCoord(ra*u.rad, dec*u.rad, frame='icrs'))
                 self.ra.append(ra)

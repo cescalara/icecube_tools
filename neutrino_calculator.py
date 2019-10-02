@@ -144,7 +144,7 @@ class NeutrinoCalculator():
 
         N = []
         
-        for source in self.sources:
+        for source in self._sources:
 
             src_min_energy = source.flux_model._lower_energy
             src_max_energy = source.flux_model._upper_energy
