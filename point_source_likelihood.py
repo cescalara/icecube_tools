@@ -39,7 +39,7 @@ class PointSourceLikelihood():
 
         self._energy_likelihood = energy_likelihood
         
-        self._band_width = 3 * self._direction_likelihood._sigma # degrees
+        self._band_width = 5 * self._direction_likelihood._sigma # degrees
 
         self._event_coords = event_coords
         
@@ -59,20 +59,24 @@ class PointSourceLikelihood():
 
     def _select_declination_band(self):
 
+        ras = np.array([_[0] for _ in self._event_coords])
+
         decs = np.array([_[1] for _ in self._event_coords])
 
-        _, source_dec = self._source_coord
+        source_ra, source_dec = self._source_coord
 
         dec_fac = np.deg2rad(self._band_width)
         
-        selected = np.where((decs >= source_dec - dec_fac) & (decs <= source_dec + dec_fac) )[0]
+        selected = np.where((decs >= source_dec - dec_fac) & (decs <= source_dec + dec_fac)
+                            & (ras >=source_ra - dec_fac) & (ras <= source_ra + dec_fac))[0]
 
         self._selected = selected
         
         self._selected_energies = self._energies[selected]
 
         self._selected_event_coords = [(ec[0], ec[1]) for ec in self._event_coords
-                                       if (ec[1] >= source_dec - dec_fac) & (ec[1] <= source_dec + dec_fac)]
+                                       if (ec[1] >= source_dec - dec_fac) & (ec[1] <= source_dec + dec_fac)
+                                       & (ec[0] >= source_ra - dec_fac) & (ec[0] <= source_ra + dec_fac)]
         
         self.N = len(selected)
         
@@ -199,8 +203,54 @@ class PointSourceLikelihood():
 
         self._best_fit_ns = m.values['ns']
         self._best_fit_index = m.values['index']
+
+        
+    def _first_derivative_likelihood_ratio(self, ns=0.0, index=4.0):
+        """
+        First derivative of the likelihood ratio. 
+        Equation 41 in
+        https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf.
+        """
+
+        one_plus_alpha = 1e-12 
+        alpha = 1 - one_plus_alpha
+
+        self._first_derivative = []
+        
+        for i in range(self.N):
+
+            signal = self._signal_likelihood(self._selected_event_coords[i],
+                                             self._source_coord, self._selected_energies[i], index)
             
-    
+            bg = self._background_likelihood(self._selected_energies[i])
+
+            first_der = - (bg - signal) / (bg * self.N) 
+            
+            self._first_derivative.append(first_der)
+            
+            #chi_i = (1 / self.N) * ( - 1)
+
+            #alpha_tilde = (- alpha) / one_plus_alpha 
+
+            #self._first_derivative.append( (1 / one_plus_alpha) * (1 - alpha_tilde) * chi_i )
+
+        self._first_derivative = np.array(self._first_derivative)
+                
+        return sum(self._first_derivative)
+
+
+    def _second_derivative_likelihood_ratio(self, ns=0.0):
+        """
+        Second derivative of the likelihood ratio.
+        Equation 44 in
+        https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf.
+        """
+
+        self._second_derivative = -(self._first_derivative)**2
+            
+        return sum(self._second_derivative)
+        
+            
     def get_test_statistic(self):
         """
         Calculate the test statistic for the best fit ns
@@ -208,12 +258,23 @@ class PointSourceLikelihood():
 
         self._minimize()
 
+        #if self._best_fit_ns == 0:
+
+        #    first_der = self._first_derivative_likelihood_ratio(self._best_fit_ns, self._best_fit_index)
+        #    second_der = self._second_derivative_likelihood_ratio()
+
+        #    self.likelihood_ratio = 1.0
+
+        #    self.test_statistic = -2 * (first_der**2 / (4 * second_der))
+
+        #else:
+                
         Ls = -self._get_log_likelihood(self._best_fit_ns, self._best_fit_index)
         Lb = -self._get_log_likelihood(0.0, None)
 
-        self.likelihood_ratio = np.exp(Lb - Ls)
+        self.likelihood_ratio = np.exp(Lb - Ls + (self.Ntot - self.N) * np.log1p(-self._best_fit_ns / self.N))
 
-        self.test_statistic = -2 * (Lb - Ls)
+        self.test_statistic = -2 * (Lb - Ls + (self.Ntot - self.N) * np.log1p(-self._best_fit_ns / self.N))
 
         return self.test_statistic
 
