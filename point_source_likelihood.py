@@ -68,7 +68,7 @@ class PointSourceLikelihood():
         dec_fac = np.deg2rad(self._band_width)
         
         selected = np.where((decs >= source_dec - dec_fac) & (decs <= source_dec + dec_fac)
-                            & (ras >=source_ra - dec_fac) & (ras <= source_ra + dec_fac))[0]
+                            & (ras >= source_ra - dec_fac) & (ras <= source_ra + dec_fac))[0]
 
         selected_band = np.where((decs >= source_dec - dec_fac) & (decs <= source_dec + dec_fac))[0]
         
@@ -108,7 +108,7 @@ class PointSourceLikelihood():
         """
         
 
-        one_plus_alpha = 1 + 1e-5 
+        one_plus_alpha = 1 + 1e-10 
         alpha = 1 - one_plus_alpha
         
         log_likelihood_ratio = 0.0
@@ -209,38 +209,35 @@ class PointSourceLikelihood():
         self._best_fit_index = m.values['index']
 
         
-    def _first_derivative_likelihood_ratio(self, ns=0.0, index=4.0):
+    def _first_derivative_likelihood_ratio(self, ns=0.0, index=2.0):
         """
         First derivative of the likelihood ratio. 
         Equation 41 in
         https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf.
+        
+        Here, we assume ns=0.
         """
 
-        one_plus_alpha = 1e-12 
-        alpha = 1 - one_plus_alpha
-
+        alpha = 1e-10
+        one_plus_alpha = 1 + alpha
+        
         self._first_derivative = []
         
         for i in range(self.N):
 
-            signal = self._signal_likelihood(self._selected_event_coords[i],
-                                             self._source_coord, self._selected_energies[i], index)
-            
+            signal = self._signal_likelihood(self._selected_event_coords[i], self._source_coord, self._selected_energies[i], index) 
+
             bg = self._background_likelihood(self._selected_energies[i])
-
-            first_der = - (bg - signal) / (bg * self.N) 
             
-            self._first_derivative.append(first_der)
-            
-            #chi_i = (1 / self.N) * ( - 1)
+            chi_i = (1 / self.N) * ((signal/bg) - 1)
 
-            #alpha_tilde = (- alpha) / one_plus_alpha 
+            alpha_tilde = (-alpha) / one_plus_alpha 
 
-            #self._first_derivative.append( (1 / one_plus_alpha) * (1 - alpha_tilde) * chi_i )
+            self._first_derivative.append( (1 / one_plus_alpha) * (1 - alpha_tilde) * chi_i )
 
         self._first_derivative = np.array(self._first_derivative)
                 
-        return sum(self._first_derivative)
+        return sum(self._first_derivative) - (self.N_band  - self.N) / self.N_band
 
 
     def _second_derivative_likelihood_ratio(self, ns=0.0):
@@ -250,9 +247,9 @@ class PointSourceLikelihood():
         https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf.
         """
 
-        self._second_derivative = -(self._first_derivative)**2
+        self._second_derivative = -(self._first_derivative)**2 
             
-        return sum(self._second_derivative)
+        return sum(self._second_derivative) - (self.N_band - self.N) / self.N_band**2
         
             
     def get_test_statistic(self):
@@ -262,16 +259,17 @@ class PointSourceLikelihood():
 
         self._minimize()
 
-        #if self._best_fit_ns == 0:
+        if self._best_fit_ns < 1e-10:
 
-        #    first_der = self._first_derivative_likelihood_ratio(self._best_fit_ns, self._best_fit_index)
-        #    second_der = self._second_derivative_likelihood_ratio()
+            first_der = self._first_derivative_likelihood_ratio(self._best_fit_ns, self._best_fit_index)
+            second_der = self._second_derivative_likelihood_ratio()
 
-        #    self.likelihood_ratio = 1.0
+            self.likelihood_ratio = 1.0
 
-        #    self.test_statistic = -2 * (first_der**2 / (4 * second_der))
-
-        #else:
+            self.test_statistic = -2 * (first_der**2 / (4 * second_der))
+        #    print(self.test_statistic)
+            
+        else:
                 
         #Ls = -self._get_log_likelihood(self._best_fit_ns, self._best_fit_index)
         #Lb = -self._get_log_likelihood(0.0, None)
@@ -280,11 +278,11 @@ class PointSourceLikelihood():
 
         #self.test_statistic = -2 * (Lb - Ls + (self.Ntot - self.N) * np.log1p(-self._best_fit_ns / self.N))
 
-        neg_log_lik = self._get_neg_log_likelihood_ratio(self._best_fit_ns, self._best_fit_index)
+            neg_log_lik = self._get_neg_log_likelihood_ratio(self._best_fit_ns, self._best_fit_index)
         
-        self.likelihood_ratio = np.exp(neg_log_lik)
+            self.likelihood_ratio = np.exp(neg_log_lik)
         
-        self.test_statistic = -2 * neg_log_lik
+            self.test_statistic = -2 * neg_log_lik
         
         return self.test_statistic
 
