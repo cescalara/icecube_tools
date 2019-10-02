@@ -17,22 +17,22 @@ class NeutrinoCalculator():
     Calculate the expected number of detected neutrinos.
     """
 
-    def __init__(self, source, effective_area):
+    def __init__(self, sources, effective_area):
         """
         Calculate the expected number of detected neutrinos.
         
-        :param source: A Source instance.
+        :param sources: A list of Source instances.
         :param effective_area: An EffectiveArea instance.
         """
 
-        self._source = source
+        self._sources = sources
 
         self._effective_area = effective_area
 
     @property 
     def source(self):
 
-        return self._source
+        return self._sources
 
     @source.setter
     def source(self, value):
@@ -43,7 +43,7 @@ class NeutrinoCalculator():
 
         else:
 
-            self._source = value
+            self._source.append(value)
 
     @property
     def effective_area(self):
@@ -62,7 +62,7 @@ class NeutrinoCalculator():
             self._effective_area = value
 
             
-    def _diffuse_calculation(self):
+    def _diffuse_calculation(self, source):
 
         dN_dt = 0
         for i, Em in enumerate(self.effective_area.true_energy_bins[:-1]):
@@ -73,7 +73,7 @@ class NeutrinoCalculator():
 
                 czM = self.effective_area.cos_zenith_bins[j+1]
     
-                integrated_flux = ( self.source.flux_model.integrated_spectrum(Em, EM)
+                integrated_flux = ( source.flux_model.integrated_spectrum(Em, EM)
                                     * (czM - czm) * 2*np.pi )
                 
                 aeff = self._selected_effective_area_values[i][j] * M_TO_CM**2
@@ -83,19 +83,19 @@ class NeutrinoCalculator():
         return dN_dt * self._time
 
     
-    def _select_single_cos_zenith(self):
+    def _select_single_cos_zenith(self, source):
 
         # cos(zenith) = -sin(declination)
-        cos_zenith = -np.sin(self.source.coordinate.dec.rad)
+        cos_zenith = -np.sin(source.coordinate.dec.rad)
 
         selected_bin_index = np.digitize(cos_zenith, self.effective_area.cos_zenith_bins) - 1
 
         return selected_bin_index
     
 
-    def _point_source_calculation(self):
+    def _point_source_calculation(self, source):
 
-        selected_bin_index = self._select_single_cos_zenith()
+        selected_bin_index = self._select_single_cos_zenith(source)
 
         dN_dt = 0
         
@@ -103,24 +103,27 @@ class NeutrinoCalculator():
 
             EM = self.effective_area.true_energy_bins[i+1] 
 
-            integrated_flux = self.source.flux_model.integrated_spectrum(Em, EM)
+            integrated_flux = source.flux_model.integrated_spectrum(Em, EM)
 
             aeff = self._selected_effective_area_values.T[selected_bin_index][i] * M_TO_CM**2
 
             dN_dt += aeff * integrated_flux
 
         return dN_dt * self._time
-
-        
+    
         
     def __call__(self, time=1, min_energy=1e2, max_energy=1e9, min_cosz=-1, max_cosz=1):
         """
         Calculate the number of expected neutrinos, 
         taking into account the observation time and
         possible further constraints on the effective
-        area as a function of energy and cos(zenith). 
+        area as a function of energy and cos(zenith).
+        Returns list of expected neutrino numbers for
+        each source.
+      
         !! NB: We assume Aeff is zero outside of specified 
         energy and cos(zenith)!!
+        
         :param time: Observation time in years.
         :param min_energy: Aeff energy lower bound [GeV].
         :param max_energy: Aeff energy upper bound [GeV].
@@ -138,17 +141,29 @@ class NeutrinoCalculator():
 
         self._selected_effective_area_values.T[self.effective_area.cos_zenith_bins[1:] < min_cosz] = 0
         self._selected_effective_area_values.T[self.effective_area.cos_zenith_bins[:-1] > max_cosz] = 0
+
+        N = []
         
-        if self.source.source_type == DIFFUSE:
+        for source in self.sources:
 
-            N = self._diffuse_calculation()
+            src_min_energy = source.flux_model._lower_energy
+            src_max_energy = source.flux_model._upper_energy
             
-        elif self.source_model.source_type == POINT:
+            self._selected_effective_area_values[self.effective_area.true_energy_bins[1:] < src_min_energy] = 0
+            self._selected_effective_area_values[self.effective_area.true_energy_bins[:-1] > src_max_energy] = 0
 
-            N = self._point_source_calculation()
+            if source.source_type == DIFFUSE:
+                
+                n = self._diffuse_calculation(source)
+            
+            elif source.source_type == POINT:
 
-        else:
+                n = self._point_source_calculation(source)
 
-            raise ValueError(str(self.source.source_type) + ' is not recognised.')
+            else:
 
+                raise ValueError(str(source.source_type) + ' is not recognised.')
+
+            N.append(n)
+            
         return N

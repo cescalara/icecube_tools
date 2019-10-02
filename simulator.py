@@ -76,22 +76,31 @@ class Simulator():
         Find the expected number of neutrinos.
         """
         
-        nu_calc = NeutrinoCalculator(self.source, self.detector.effective_area)
+        nu_calc = NeutrinoCalculator(self.sources, self.detector.effective_area)
 
-        self._Nex = nu_calc(time=self.time, min_energy=self.source.flux_model._lower_energy, max_cosz=self.max_cosz)
+        self._Nex = nu_calc(time=self.time, max_cosz=self.max_cosz)
+
+        self._source_weights = np.array(self._Nex) / sum(self._Nex)
         
         
     def run(self, N=None):
         """
-        Run a simulation for the given source 
+        Run a simulation for the given set of sources 
         and detector configuration.
+        
+        The expected number of neutrinos will be
+        calculated for each source. If total N is forced, 
+        then the number from each source will be weighted
+        accordingly.
+
+        :param N: Set expected number of neutrinos manually.
         """
 
-        if not N:
+        self._get_expected_number()
 
-            self._get_expected_number()
-
-            self.N = np.random.poisson(self._Nex)           
+        if not N:                    
+        
+            self.N = np.random.poisson(sum(self._Nex))           
             
         else:
 
@@ -102,16 +111,19 @@ class Simulator():
         self.coordinate = []
         self.ra = []
         self.dec = []
-        
-        max_energy = self.source.flux_model._upper_energy
+        self.source_label = []
         
         for i in progress_bar(range(self.N), desc='Sampling'):
 
+            label = np.random.choice(range(len(self.sources)), p=self._source_weights)
+            
             accepted = False
             
             while not accepted:
 
-                Etrue = self.source.flux_model.sample(1)[0]
+                max_energy = self.source[label].flux_model._upper_energy
+                
+                Etrue = self.source[label].flux_model.sample(1)[0]
                 
                 ra, dec = sphere_sample()
                 cosz = -np.sin(dec)
@@ -131,7 +143,7 @@ class Simulator():
             Ereco = self.detector.energy_resolution.sample(Etrue)
             self.reco_energy.append(Ereco)
             
-            if self.source.source_type == DIFFUSE:
+            if self.source[label].source_type == DIFFUSE:
 
                 self.coordinate.append(SkyCoord(ra*u.rad, dec*u.rad, frame='icrs'))
                 self.ra.append(ra)
