@@ -78,7 +78,8 @@ class AngularResolution():
         self.values = self._reader.ang_res_values
 
         self.true_energy_bins = self._reader.true_energy_bins
-        
+
+        self.sigma = sigma
 
     def get_reader(self):
         """
@@ -125,6 +126,34 @@ class AngularResolution():
 
         return new_ra, new_dec
         
+
+class FixedAngularResolution():
+
+    def __init__(self, sigma=1.0):
+        """
+        Simple fixed angular resolution.
+
+        :param sigma: Resolution [deg].
+        """
+
+        self.sigma = sigma
+
+        
+    def sample(self, coord):
+        """
+        Sample reconstructed coord given original position.
+
+        :coord: ra, dec in [rad].
+        """
+
+        ra, dec = coord
+
+        new_ra = np.random.normal(ra, np.deg2rad(self.sigma))
+
+        new_dec = np.random.normal(dec, np.deg2rad(self.sigma))
+
+        return new_ra, new_dec
+    
     
 def icrs_to_unit_vector(ra, dec):
     """

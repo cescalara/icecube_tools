@@ -124,8 +124,15 @@ class Simulator():
                 max_energy = self.sources[label].flux_model._upper_energy
                 
                 Etrue = self.sources[label].flux_model.sample(1)[0]
-                
-                ra, dec = sphere_sample()
+
+                if self.sources[label].source_type == DIFFUSE:
+
+                    ra, dec = sphere_sample()
+
+                else:
+
+                    ra, dec = self.sources[label].coord
+                    
                 cosz = -np.sin(dec)
 
                 if cosz > self.max_cosz:
@@ -152,10 +159,10 @@ class Simulator():
                 
             else:
 
-                reco_ra, reco_dec = self.detector.angular_resolution.sample(Etrue, ra, dec)
+                reco_ra, reco_dec = self.detector.angular_resolution.sample((ra, dec))
                 self.coordinate.append(SkyCoord(reco_ra*u.rad, reco_dec*u.rad, frame='icrs'))
-                self.ra.append(ra)
-                self.dec.append(dec)
+                self.ra.append(reco_ra)
+                self.dec.append(reco_dec)
                 
 
     def save(self, filename):

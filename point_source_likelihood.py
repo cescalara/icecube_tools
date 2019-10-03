@@ -39,7 +39,7 @@ class PointSourceLikelihood():
 
         self._energy_likelihood = energy_likelihood
         
-        self._band_width = 5 * self._direction_likelihood._sigma # degrees
+        self._band_width = 12 * self._direction_likelihood._sigma # degrees
 
         self._event_coords = event_coords
         
@@ -131,7 +131,7 @@ class PointSourceLikelihood():
                 
                 log_likelihood_ratio += np.log1p(alpha_i)
 
-        log_likelihood_ratio += (self.Nband - self.N) * np.log1p(- ns / self.N)
+        log_likelihood_ratio += (self.Nband - self.N) * np.log1p(-ns / self.N)
             
         return -log_likelihood_ratio
 
@@ -321,7 +321,7 @@ class MarginalisedEnergyLikelihood():
         
     def _calc_weights(self, new_index):
 
-        return  np.power(self._energy, self._sim_index - new_index)
+        return np.power(self._energy, self._sim_index - new_index)
 
     
     def _precompute_histograms(self):
@@ -485,3 +485,35 @@ class SimplePointSourceLikelihood():
             
 
         
+def reweight_spectrum(energies, sim_index, new_index):
+    """
+    Use energies from a simulation with a harder 
+    spectral index for efficiency.
+
+    The spectrum is then resampled from the 
+    weighted histogram
+
+    :param energies: Energies to be reiweghted.
+    :sim_index: Spectral index of the simulation. 
+    :new_index: Spectral index to reweight to.
+    """
+
+    weights = np.array([np.power(_, sim_index-new_index) for _ in energies])
+    
+    hist, bins = np.histogram(np.log10(energies), bins=50, 
+                              weights=weights, density=True)
+
+    bin_midpoints = bins[:-1] + np.diff(bins)/2
+
+    cdf = np.cumsum(hist)
+    cdf = cdf / cdf[-1]
+
+    values = np.random.rand(len(energies))
+
+    value_bins = np.searchsorted(cdf, values)
+    
+    random_from_cdf = bin_midpoints[value_bins]
+
+    energies = np.power(10, random_from_cdf)
+
+    return energies

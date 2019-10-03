@@ -86,14 +86,14 @@ class PointSource(Source):
     by its flux model.
     """
 
-    def __init__(self, flux_model, coordinate):
+    def __init__(self, flux_model, coord):
         """
         A point source is localised to a point 
         on the sky and has a spectrum described 
         by its flux model.
         
         :param flux_model: A FluxModel object.
-        :param coordinate: An astropy SkyCoord object.
+        :param coordinate: (ra, dec) coord.
         """
         
         super().__init__()
@@ -102,22 +102,16 @@ class PointSource(Source):
 
         self.flux_model = flux_model
 
-        self.coordinate = coordinate
+        self._coord = coord
         
         
     @property
-    def coordinate(self):
+    def coord(self):
 
-        return self._coordinate
+        return self._coord
 
     
-    @coordinate.setter
-    def coordinate(self, value):
+    @coord.setter
+    def coord(self, value):
 
-        if not isinstance(value, SkyCoord):
-
-            raise ValueError(str(value) + ' is not an astropy SkyCoord instance')
-
-        else:
-
-            self._coordinate = value
+        self._coord = value
