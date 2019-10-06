@@ -51,6 +51,7 @@ class PointSourceLikelihood():
 
         self._ns_min = 0.0
         self._ns_max = 100.0
+        self._max_index = 3.0
 
         self._select_nearby_events()
 
@@ -187,19 +188,19 @@ class PointSourceLikelihood():
         returning the best fit ns and index.
         """
 
-        m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=2.0,
+        m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=self._max_index,
                    error_ns=0.1, error_index=0.1, errordef=0.5,
                    limit_ns=(self._ns_min, self._ns_max),
-                   limit_index=(self._energy_likelihood._min_index, 2.7))
+                   limit_index=(self._energy_likelihood._min_index, self._max_index))
         m.tol = 10
         m.migrad()
 
         if not m.migrad_ok() or not m.matrix_accurate():
 
-            m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=2.0, fix_index=True,
+            m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=self._max_index, fix_index=True,
                        error_ns=0.1, error_index=0.1, errordef=0.5,
                        limit_ns=(self._ns_min, self._ns_max),
-                       limit_index=(self._energy_likelihood._min_index, 2.7))
+                       limit_index=(self._energy_likelihood._min_index, self._max_index))
             m.tol = 10
             m.migrad()
 
@@ -482,7 +483,77 @@ class SimplePointSourceLikelihood():
             log_likelihood += np.log(signal + bg)
 
         return -log_likelihood
-            
+
+
+
+class SimpleWithEnergyPointSourceLikelihood():
+
+    
+    def __init__(self, direction_likelihood, energy_likelihood, event_coords, source_coord):
+        """
+        Simple version of point source likelihood.
+        """
+
+        self._direction_likelihood = direction_likelihood
+
+        self._energy_likelihood = energy_likelihood
+        
+        self._band_width = 3 * direction_likelihood._sigma
+        
+        self._event_coords = event_coords
+
+        self._source_coord = source_coord
+
+        self._select_declination_band()
+
+        self.Ntot = len(self._event_coords)
+
+        self._bg_index = 3.7
+        
+
+    def _signal_likelihood(self, event_coord, source_coord, energy, index):
+
+        return self._direction_likelihood(event_coord, source_coord) * self._energy_likelihood(energy, index)
+
+    
+    def _background_likelihood(self, energy):
+
+        return 1 / (np.deg2rad(self._band_width*2) * 2*np.pi) * self._energy_likelihood(energy, self._bg_index) 
+
+
+    def _select_declination_band(self):
+
+        decs = np.array([_[1] for _ in self._event_coords])
+
+        _, source_dec = self._source_coord
+
+        dec_fac = np.deg2rad(self._band_width)
+        
+        selected = np.where((decs >= source_dec - dec_fac) & (decs <= source_dec + dec_fac) )[0]
+
+        self._selected = selected
+        
+        self._selected_event_coords = [(ec[0], ec[1]) for ec in self._event_coords
+                                       if (ec[1] >= source_dec - dec_fac) & (ec[1] <= source_dec + dec_fac)]
+        
+        self.N = len(selected)
+  
+
+    def __call__(self, ns):
+
+        log_likelihood = 0.0
+        
+        for i in range(self.N):
+
+            signal = (ns / self.N) * self._signal_likelihood(self._selected_event_coords[i],
+                                                             self._source_coord)
+
+            bg = (1 - (ns / self.N)) * self._background_likelihood()
+
+            log_likelihood += np.log(signal + bg)
+
+        return -log_likelihood
+    
 
         
 def reweight_spectrum(energies, sim_index, new_index, bins=int(1e3)):
