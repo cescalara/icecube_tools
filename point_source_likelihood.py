@@ -485,7 +485,7 @@ class SimplePointSourceLikelihood():
             
 
         
-def reweight_spectrum(energies, sim_index, new_index, bins=100):
+def reweight_spectrum(energies, sim_index, new_index, bins=int(1e3)):
     """
     Use energies from a simulation with a harder 
     spectral index for efficiency.
@@ -500,13 +500,13 @@ def reweight_spectrum(energies, sim_index, new_index, bins=100):
 
     weights = np.array([np.power(_, sim_index-new_index) for _ in energies])
     
-    hist, bins = np.histogram(np.log10(energies), bins=50, 
+    hist, bins = np.histogram(np.log10(energies), bins=bins, 
                               weights=weights, density=True)
 
     bin_midpoints = bins[:-1] + np.diff(bins)/2
 
     cdf = np.cumsum(hist)
-    cdf = cdf / cdf[-1]
+    cdf = cdf / float(cdf[-1])
 
     values = np.random.rand(len(energies))
 
