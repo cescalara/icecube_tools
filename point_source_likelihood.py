@@ -52,7 +52,7 @@ class PointSourceLikelihood():
         self._bg_index = 3.7
 
         self._ns_min = 0.0
-        self._ns_max = 50.0
+        self._ns_max = 10
         self._max_index = 3.7
 
         self._select_nearby_events()
@@ -125,14 +125,14 @@ class PointSourceLikelihood():
 
             alpha_i = ns * chi
                
-            #if (1 + alpha_i) < one_plus_alpha:
+            if (1 + alpha_i) < one_plus_alpha:
 
-            #    alpha_tilde = (alpha_i - alpha) / one_plus_alpha 
-            #    log_likelihood_ratio += np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde**2) 
+                alpha_tilde = (alpha_i - alpha) / one_plus_alpha 
+                log_likelihood_ratio += np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde**2) 
 
-            #else:
+            else:
                 
-            log_likelihood_ratio += np.log1p(alpha_i)
+                log_likelihood_ratio += np.log1p(alpha_i)
 
         log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
             
@@ -191,21 +191,21 @@ class PointSourceLikelihood():
         """
 
         
-        m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=2.0,
+        m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=self._max_index,
                    error_ns=0.1, error_index=0.1, errordef=0.5,
                    limit_ns=(self._ns_min, self._ns_max),
                    limit_index=(self._energy_likelihood._min_index, self._max_index))
         m.tol = 10
         m.migrad()
 
-        #if not m.migrad_ok() or not m.matrix_accurate():
+        if not m.migrad_ok() or not m.matrix_accurate():
 
-        #    m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=self._max_index, fix_index=True,
-        #               error_ns=0.1, error_index=0.1, errordef=0.5,
-        #               limit_ns=(self._ns_min, self._ns_max),
-        #               limit_index=(self._energy_likelihood._min_index, self._max_index))
-        #    m.tol = 10
-        #    m.migrad()
+            m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=self._max_index, fix_index=True,
+                       error_ns=0.1, error_index=0.1, errordef=0.5,
+                       limit_ns=(self._ns_min, self._ns_max),
+                       limit_index=(self._energy_likelihood._min_index, self._max_index))
+            m.tol = 10
+            m.migrad()
 
         self._best_fit_ns = m.values['ns']
         self._best_fit_index = m.values['index']
