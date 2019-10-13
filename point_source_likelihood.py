@@ -41,6 +41,8 @@ class PointSourceLikelihood():
         
         self._band_width = 3 * self._direction_likelihood._sigma # degrees
 
+        self._band_solid_angle = ((2 * self._band_width) / 180) * 4 * np.pi
+        
         self._event_coords = event_coords
         
         self._energies = energies
@@ -51,7 +53,7 @@ class PointSourceLikelihood():
 
         self._ns_min = 0.0
         self._ns_max = 100.0
-        self._max_index = 3.3
+        self._max_index = 2.7
 
         self._select_nearby_events()
 
@@ -93,7 +95,7 @@ class PointSourceLikelihood():
 
     def _background_likelihood(self, energy):
 
-        return self._energy_likelihood(energy, self._bg_index) / (np.deg2rad(self._band_width) * 2*np.pi)
+        return self._energy_likelihood(energy, self._bg_index) / self._band_solid_angle
  
         
     def _get_neg_log_likelihood_ratio(self, ns, index):
