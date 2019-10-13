@@ -51,7 +51,7 @@ class PointSourceLikelihood():
 
         self._ns_min = 0.0
         self._ns_max = 100.0
-        self._max_index = 3.0
+        self._max_index = 3.3
 
         self._select_nearby_events()
 
@@ -123,14 +123,14 @@ class PointSourceLikelihood():
 
             alpha_i = ns * chi
                
-            if (1 + alpha_i) < one_plus_alpha:
+            #if (1 + alpha_i) < one_plus_alpha:
 
-                alpha_tilde = (alpha_i - alpha) / one_plus_alpha 
-                log_likelihood_ratio += np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde**2) 
+            #    alpha_tilde = (alpha_i - alpha) / one_plus_alpha 
+            #    log_likelihood_ratio += np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde**2) 
 
-            else:
+            #else:
                 
-                log_likelihood_ratio += np.log1p(alpha_i)
+            log_likelihood_ratio += np.log1p(alpha_i)
 
         log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
             
