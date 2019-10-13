@@ -93,7 +93,7 @@ class PointSourceLikelihood():
 
     def _background_likelihood(self, energy):
 
-        return self._energy_likelihood(energy, self._bg_index) / (np.deg2rad(self._band_width*2) * 2*np.pi)
+        return self._energy_likelihood(energy, self._bg_index) / (np.deg2rad(self._band_width) * 2*np.pi)
  
         
     def _get_neg_log_likelihood_ratio(self, ns, index):
