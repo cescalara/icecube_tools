@@ -52,8 +52,8 @@ class PointSourceLikelihood():
         self._bg_index = 3.7
 
         self._ns_min = 0.0
-        self._ns_max = 100.0
-        self._max_index = 2.7
+        self._ns_max = 50.0
+        self._max_index = 3.7
 
         self._select_nearby_events()
 
@@ -184,32 +184,63 @@ class PointSourceLikelihood():
         return self._get_neg_log_likelihood_ratio(ns, index)
 
     
-    def _minimize(self):
+    def _minimize_old(self):
         """
         Minimize -log(likelihood_ratio) for the source hypothesis, 
         returning the best fit ns and index.
         """
 
-        m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=self._max_index,
+        
+        m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=2.0,
                    error_ns=0.1, error_index=0.1, errordef=0.5,
                    limit_ns=(self._ns_min, self._ns_max),
                    limit_index=(self._energy_likelihood._min_index, self._max_index))
         m.tol = 10
         m.migrad()
 
-        if not m.migrad_ok() or not m.matrix_accurate():
+        #if not m.migrad_ok() or not m.matrix_accurate():
 
-            m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=self._max_index, fix_index=True,
-                       error_ns=0.1, error_index=0.1, errordef=0.5,
-                       limit_ns=(self._ns_min, self._ns_max),
-                       limit_index=(self._energy_likelihood._min_index, self._max_index))
-            m.tol = 10
-            m.migrad()
+        #    m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=self._max_index, fix_index=True,
+        #               error_ns=0.1, error_index=0.1, errordef=0.5,
+        #               limit_ns=(self._ns_min, self._ns_max),
+        #               limit_index=(self._energy_likelihood._min_index, self._max_index))
+        #    m.tol = 10
+        #    m.migrad()
 
         self._best_fit_ns = m.values['ns']
         self._best_fit_index = m.values['index']
 
         
+    def _minimize(self):
+        """
+        Minimize -log(likelihood_ratio) for the source hypothesis, 
+        returning the best fit ns and index.
+        
+        This simple grid method takes roughly the same time as minuit 
+        and is more accurate... 
+        """
+
+        ns_grid = np.linspace(self._ns_min, self._ns_max, 10)
+        index_grid = np.linspace(self._energy_likelihood._min_index, self._max_index, 10)
+
+        out = np.zeros((len(ns_grid), len(index_grid)))
+        for i, ns in enumerate(ns_grid):
+            for j, index in enumerate(index_grid):
+                out[i][j] = self._get_neg_log_likelihood_ratio(ns, index)
+
+        sel = np.where(out==np.min(out))
+
+        if len(sel[0]) > 1:
+
+            self._best_fit_index = 3.7
+            self._best_fit_ns = 0.0
+
+        else:
+
+            self._best_fit_ns = ns_grid[sel[0]][0]
+            self._best_fit_index = index_grid[sel[1]][0]
+            
+    
     def _first_derivative_likelihood_ratio(self, ns=0, index=2.0):
         """
         First derivative of the likelihood ratio. 
