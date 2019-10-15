@@ -52,7 +52,7 @@ class PointSourceLikelihood():
         self._bg_index = 3.7
 
         self._ns_min = 0.0
-        self._ns_max = 5
+        self._ns_max = 100
         self._max_index = 3.7
 
         self._select_nearby_events()
@@ -184,34 +184,36 @@ class PointSourceLikelihood():
         return self._get_neg_log_likelihood_ratio(ns, index)
 
     
-    def _minimize_old(self):
+    def _minimize(self):
         """
         Minimize -log(likelihood_ratio) for the source hypothesis, 
         returning the best fit ns and index.
+
+        Uses the iMiuint wrapper.
         """
 
-        
-        m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=self._max_index,
-                   error_ns=0.1, error_index=0.1, errordef=0.5,
+
+        init_index = self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2 
+        init_ns = self._ns_min + (self._ns_max - self._ns_min)/2 
+
+        m = Minuit(self._get_neg_log_likelihood_ratio, ns=init_ns, index=init_index,
+                   error_ns=0.1, error_index=1, errordef=0.5,
                    limit_ns=(self._ns_min, self._ns_max),
                    limit_index=(self._energy_likelihood._min_index, self._max_index))
-        m.tol = 10
+
         m.migrad()
-
+        
         if not m.migrad_ok() or not m.matrix_accurate():
-
-            m = Minuit(self._get_neg_log_likelihood_ratio, ns=0.0, index=self._max_index, fix_index=True,
-                       error_ns=0.1, error_index=0.1, errordef=0.5,
-                       limit_ns=(self._ns_min, self._ns_max),
-                       limit_index=(self._energy_likelihood._min_index, self._max_index))
-            m.tol = 10
+        
+            # Fix the index as can be uninformative
+            m.fixed['index'] = True
             m.migrad()
-
+       
         self._best_fit_ns = m.values['ns']
         self._best_fit_index = m.values['index']
 
         
-    def _minimize(self):
+    def _minimize_grid(self):
         """
         Minimize -log(likelihood_ratio) for the source hypothesis, 
         returning the best fit ns and index.
