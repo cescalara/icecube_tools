@@ -1,6 +1,8 @@
 import numpy as np
+from scipy.optimize import fsolve
 
-from source.source_model import Source, DIFFUSE, POINT
+from source_model import Source, PointSource, DIFFUSE, POINT
+from flux_model import FluxModel, PowerLawFlux
 from effective_area import EffectiveArea
 
 """
@@ -167,3 +169,66 @@ class NeutrinoCalculator():
             N.append(n)
             
         return N
+
+
+class PhiSolver():
+    """
+    For flexible calculation of point source
+    fluxes that give a certain number of expected
+    neutrinos in a detector.
+    """
+
+    def __init__(self, effective_area, Enorm=1e5, Emin=1e2, Emax=1e9, time=1, min_cosz=-1.0, max_cosz=1.0):
+        """
+        :param effective_area: An EffectiveArea instance
+        :param Enorm: Normlisation energy of source spectrum [GeV]
+        :param Emin: Minimum energy [GeV]
+        :param Emax: Maximum energy [GeV]
+        :param min_cosz: Minimum cos(zenith)
+        :param max_cosz: Maximum cos(zenith)
+        :param time: Observation time [year]
+        """
+
+        self._effective_area = effective_area
+
+        self._Enorm = Enorm
+
+        self._Emin = Emin
+        self._Emax = Emax
+
+        self._time = time
+
+        self._min_cosz = min_cosz
+        self._max_cosz = max_cosz        
+    
+    
+    def _solve_for_phi(self, phi_norm, Nnu, dec, index):
+        """
+        For use within get_phi_norm.
+        """
+
+        power_law = PowerLawFlux(phi_norm, self._Enorm, index, lower_energy=self._Emin, upper_energy=self._Emax)
+        source = PointSource(flux_model=power_law, coord=(np.pi, np.deg2rad(dec)))
+        nu_calc = NeutrinoCalculator([source], self._effective_area)
+        return Nnu - nu_calc(time=self._time, min_cosz=self._min_cosz, max_cosz=self._max_cosz)[0]
+    
+    
+
+    def __call__(self, Nnu, dec, index):
+        """
+        Get equivalent point source flux normalisation
+        needed to produce an expected number of neutrinos, 
+        Nnu, in a detector.
+
+        :param Nnu: Expected number of neutrinos
+        :param dec: Declination of point source
+        :param index: Spectral index of point source
+        """
+
+        phi_norm = fsolve(self._solve_for_phi, x0=1e-19, args=(Nnu, dec, index))[0]
+
+        return phi_norm
+        
+        
+
+    
