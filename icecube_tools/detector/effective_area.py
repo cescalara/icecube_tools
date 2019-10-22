@@ -1,0 +1,220 @@
+import numpy as np
+from abc import ABC, abstractmethod
+
+"""
+Module for working with the public IceCube
+effective area information.
+"""
+
+R2015_AEFF_FILENAME = "effective_area.h5"
+R2018_AEFF_FILENAME = "TabulatedAeff.txt"
+
+class IceCubeAeffReader(ABC):
+    """
+    Abstract base class for a file reader to handle
+    the different types of data files provided 
+    on the IceCube website.
+    """
+
+    def __init__(self, filename):
+        """
+        Abstract base class for a file reader to handle
+        the different types of data files provided 
+        on the IceCube website.
+
+        :param filename: name of the file to be read from (string).
+        """
+
+        self._filename = filename
+
+        self.effective_area_values = None
+
+        self.true_energy_bins = None
+
+        self.cos_zenith_bins = None 
+
+        self._label_order = {'true_energy' : 0, 'cos_zenith' : 1}
+
+        self._units = {'effective_area' : 'm^2', 'true_energy' : 'GeV', 'cos_zenith' : ''}
+
+        self.read()
+        
+        super().__init__()
+
+
+    @abstractmethod
+    def read(self):
+        """
+        To be defined.
+        """
+
+        pass
+    
+
+    
+class R2015AeffReader(IceCubeAeffReader):
+    """
+    Reader for the 2015 Aug 20 release.
+    Link: https://icecube.wisc.edu/science/data/HE_NuMu_diffuse.
+    """
+
+    def __init__(self, filename, **kwargs):
+
+        if 'year' in kwargs:
+            self.year = kwargs['year']
+        else:
+            self.year = 2011
+            
+        if 'nu_type' in kwargs:
+            self.nu_type = kwargs['nu_type']
+        else:
+            self.nu_type = 'nu_mu'
+
+        super().__init__(filename)
+
+        self._label_order['reco_energy'] = 2
+
+        self._units['reco_energy'] = 'GeV'
+
+        
+    def read(self):
+        """
+        Read input from the provided HDF5 file.
+        """
+
+        import h5py
+        
+        with h5py.File(self._filename, 'r') as f:
+
+            directory = f[str(self.year) + '/' + self.nu_type + '/']
+            
+            self.effective_area_values = directory['area'][()]
+
+            self.true_energy_bins = directory['bin_edges_0'][()]
+
+            self.cos_zenith_bins = directory['bin_edges_1'][()]
+            
+            self.reco_energy_bins = directory['bin_edges_2'][()]
+
+
+            
+class R2018AeffReader(IceCubeAeffReader):
+    """
+    Reader for the 2018 Oct 18 release.
+    Link: https://icecube.wisc.edu/science/data/PS-3years.
+    """
+
+    def read(self):
+
+        import pandas as pd
+        
+        self.year = int(self._filename[-22:-18])
+        self.nu_type = 'nu_mu'
+         
+        filelayout = ['Emin', 'Emax', 'cos(z)min', 'cos(z)max', 'Aeff']
+        output = pd.read_csv(self._filename, comment = '#',
+                             delim_whitespace = True,
+                             names = filelayout).to_dict()
+        
+        true_energy_lower = set(output['Emin'].values())
+        true_energy_upper = set(output['Emax'].values())
+
+        cos_zenith_lower = set(output['cos(z)min'].values())
+        cos_zenith_upper = set(output['cos(z)max'].values())
+        
+        self.true_energy_bins = np.array( list(true_energy_upper.union(true_energy_lower)) )
+        self.true_energy_bins.sort()
+        
+        self.cos_zenith_bins = np.array( list(cos_zenith_upper.union(cos_zenith_lower)) )
+        self.cos_zenith_bins.sort()
+        
+        self.effective_area_values = np.reshape(list(output['Aeff'].values()),
+                                                (len(true_energy_lower),
+                                                 len(cos_zenith_lower)))
+        
+
+        
+class EffectiveArea():
+    """
+    IceCube effective area.
+    """
+
+    def __init__(self, filename, **kwargs):
+        """
+        IceCube effective area.
+        
+        :param filename: name of the file to be read from (string).
+        :param kwargs: kwargs to be passed to reader if relevant.
+         """
+
+        self._filename = filename
+
+        self._reader = self.get_reader(**kwargs)
+    
+        self.values = self._reader.effective_area_values
+
+        self.true_energy_bins = self._reader.true_energy_bins
+
+        self.cos_zenith_bins = self._reader.cos_zenith_bins
+
+        self._integrate_out_ancillary_params()
+
+        
+    def get_reader(self, **kwargs):
+        """
+        Define an IceCubeAeffReader based on the filename.
+        """      
+
+        if R2015_AEFF_FILENAME in self._filename:
+
+            return R2015AeffReader(self._filename, **kwargs)
+
+        elif R2018_AEFF_FILENAME in self._filename:
+
+            return R2018AeffReader(self._filename)
+
+        else:
+
+            raise ValueError(self._filename + ' is not recognised as one of the known effective area files.')
+        
+
+
+    def _integrate_out_ancillary_params(self):
+        """
+        Sometimes the effective area is given as a 
+        function of ancillary parameters, e.g. the 
+        reconstructed muon energy. To give a unified 
+        interface, these can be integrated over.
+        """
+
+        if len(np.shape(self.values)) > 2:
+
+            dim_to_int = []
+            
+            for key in self._reader._label_order:
+
+                if 'true_energy' not in key and 'cos_zenith' not in key:
+
+                    dim_to_int.append(self._reader._label_order[key])
+
+            self.values = np.sum(self.values, axis=tuple(dim_to_int))  
+
+            
+    def detection_probability(self, true_energy, true_cos_zenith, max_energy):
+        """
+        Give the relative detection probability for 
+        a given true energy and arrival direction.
+        """
+
+        scaled_values = self.values.copy()
+
+        lower_bin_edges = self.true_energy_bins[:-1]
+        scaled_values[lower_bin_edges > max_energy] = 0
+
+        scaled_values = scaled_values / np.max(scaled_values)
+
+        energy_index = np.digitize(true_energy, self.true_energy_bins) - 1
+
+        cosz_index = np.digitize(true_cos_zenith, self.cos_zenith_bins) - 1
+
+        return scaled_values[energy_index][cosz_index]
