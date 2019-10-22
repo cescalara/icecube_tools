@@ -1,9 +1,9 @@
 import numpy as np
 from scipy.optimize import fsolve
 
-from source_model import Source, PointSource, DIFFUSE, POINT
-from flux_model import FluxModel, PowerLawFlux
-from effective_area import EffectiveArea
+from .source.source_model import Source, PointSource, DIFFUSE, POINT
+from .source.flux_model import FluxModel, PowerLawFlux
+from .detector.effective_area import EffectiveArea
 
 """
 Module for calculating the number of neutrinos,

@@ -5,9 +5,9 @@ import h5py
 
 from tqdm.autonotebook import tqdm as progress_bar
 
-from detector import Detector
-from source_model import Source, DIFFUSE, POINT
-from neutrino_calculator import NeutrinoCalculator
+from .detector.detector import Detector
+from .source.source_model import Source, DIFFUSE, POINT
+from .neutrino_calculator import NeutrinoCalculator
 
 """
 Module for running neutrino production 

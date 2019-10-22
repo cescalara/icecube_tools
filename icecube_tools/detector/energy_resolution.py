@@ -3,7 +3,7 @@ from scipy.stats import lognorm
 from scipy.optimize import curve_fit
 from abc import ABC, abstractmethod
 
-from effective_area import R2015AeffReader
+from .effective_area import R2015AeffReader
 
 """
 Module for handling the energy resolution 

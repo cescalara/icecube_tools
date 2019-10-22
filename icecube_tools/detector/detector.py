@@ -1,9 +1,9 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
-from effective_area import EffectiveArea
-from energy_resolution import EnergyResolution
-from angular_resolution import AngularResolution
+from .effective_area import EffectiveArea
+from .energy_resolution import EnergyResolution
+from .angular_resolution import AngularResolution
 
 """
 Detector modules, bringing together 

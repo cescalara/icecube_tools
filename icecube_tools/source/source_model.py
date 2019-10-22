@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 
-from flux_model import FluxModel, PowerLawFlux
+from .flux_model import FluxModel, PowerLawFlux
 
 """
 Module for simple neutirno source models. 
