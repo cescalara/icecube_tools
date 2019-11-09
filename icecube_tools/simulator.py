@@ -198,6 +198,136 @@ class Simulator():
                 
 
                 
+class Braun2008Simulator():
+    """
+    Simple simulator which uses the results 
+    given in Braun+2008.
+    
+    Takes a fixed number of neutrinos as arguments 
+    rather than source models to reflect the method 
+    in the paper.
+    """
+
+    
+    def __init__(self, source, effective_area, reco_energy_sampler):
+        """
+        Simple simulator which uses the results 
+        given in Braun+2008.
+    
+        Takes a fixed number of neutrinos as arguments 
+        rather than source models to reflect the method 
+        in the paper.
+
+        :param source: Instance of Source.
+        :param effective_area: Instance of EffectiveArea
+        :param reco_energy_sampler: Instance of RecoEnergySampler
+        """
+
+        self.source = source
+
+        self.effective_area = effective_area
+
+        self.reco_energy_sampler = reco_energy_sampler
+        
+        # Hard code to match Braun+2008
+        self.max_cosz = 0.1
+
+        
+    def run(self, N):
+        """
+        Run the simulation.
+
+        :param N: Number of events to simulate.
+        """
+
+        self.N = N
+        
+        self.true_energy = []
+        self.reco_energy = []
+        self.coordinate = []
+        self.ra = []
+        self.dec = []
+        self.source_label = []
+
+        self.reco_energy_sampler.set_index(self.source.flux_model._index)
+        
+        for i in progress_bar(range(self.N), desc='Sampling'):
+
+            accepted = False
+            
+            while not accepted:
+
+                max_energy = self.source.flux_model._upper_energy
+                
+                Etrue = self.source.flux_model.sample(1)[0]
+
+                if self.source.source_type == DIFFUSE:
+
+                    ra, dec = sphere_sample()
+
+                else:
+
+                    ra, dec = self.source.coord
+                    
+                cosz = -np.sin(dec)
+
+                if cosz > self.max_cosz:
+
+                    detection_prob = 0
+
+                else:
+                
+                    detection_prob = float(self.effective_area.detection_probability(Etrue, cosz, max_energy))
+
+                accepted = np.random.choice([True, False], p=[detection_prob, 1-detection_prob])
+                
+            self.true_energy.append(Etrue)
+
+            Ereco = self.reco_energy_sampler()
+            self.reco_energy.append(Ereco)
+            
+            if self.source.source_type == DIFFUSE:
+
+                self.coordinate.append(SkyCoord(ra*u.rad, dec*u.rad, frame='icrs'))
+                self.ra.append(ra)
+                self.dec.append(dec)
+                
+            else:
+
+                reco_ra, reco_dec = self.detector.angular_resolution.sample((ra, dec))
+                self.coordinate.append(SkyCoord(reco_ra*u.rad, reco_dec*u.rad, frame='icrs'))
+                self.ra.append(reco_ra)
+                self.dec.append(reco_dec)
+
+                
+    def save(self, filename):
+        """
+        Save the output to filename.
+        """
+
+        self._filename = filename
+
+        with h5py.File(filename, 'w') as f:
+
+            f.create_dataset('true_energy', data=self.true_energy)
+
+            f.create_dataset('reco_energy', data=self.reco_energy)
+
+            f.create_dataset('ra', data=self.ra)
+
+            f.create_dataset('dec', data=self.dec)
+                
+            f.create_dataset('index', data=self.source.flux_model._index)
+
+            f.create_dataset('source_type', data=self.source.source_type)
+            
+            f.create_dataset('normalisation', data=self.source.flux_model._normalisation)
+            
+            f.create_dataset('normalisation_energy', data=self.source.flux_model._normalisation_energy)
+                
+
+
+                
 def sphere_sample(radius=1):
     """
     Sample points uniformly on a sphere.
