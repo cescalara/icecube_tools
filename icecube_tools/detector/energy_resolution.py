@@ -248,3 +248,13 @@ class NuMuEnergyResolution(EnergyResolution):
         mu, sigma = self._get_lognormal_params(Etrue)
 
         return lognorm.rvs(sigma, loc=0, scale=mu)
+
+
+
+class Braun2008EnergyResolution(EnergyResolution):
+    """
+    Simple energy resolution from Braun+2008 Fig. 4.
+    Marginalised over the true energy.
+    """
+
+    

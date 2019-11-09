@@ -8,6 +8,9 @@ effective area information.
 
 R2015_AEFF_FILENAME = "effective_area.h5"
 R2018_AEFF_FILENAME = "TabulatedAeff.txt"
+BRAUN2008_AEFF_FILENAME = "AeffBraun2008.csv"
+
+
 
 class IceCubeAeffReader(ABC):
     """
@@ -132,6 +135,30 @@ class R2018AeffReader(IceCubeAeffReader):
                                                 (len(true_energy_lower),
                                                  len(cos_zenith_lower)))
         
+class Braun2008AeffReader(IceCubeAeffReader):
+    """
+    Reader for the Braun+2008 paper effective area 
+    Fig. 3, 140-150 deg.
+    Braun, J. et al., 2008. Methods for point source 
+    analysis in high energy neutrino telescopes. 
+    Astroparticle Physics, 29(4), pp.299–305.
+    """
+
+    def read(self):
+        
+        self.nu_type = 'nu_mu'
+
+        out = np.loadtxt(self._filename, delimiter=',', comments='#')
+
+        # Assume whole sky like this
+        self.cos_zenith_bins = np.array([-1, 1])
+
+        self.true_energy_bins = out.T[0]
+
+        aeff = out.T[1]
+
+        self.effective_area_values = aeff[:-1] + np.diff(aeff)/2
+
 
         
 class EffectiveArea():
@@ -173,6 +200,10 @@ class EffectiveArea():
 
             return R2018AeffReader(self._filename)
 
+        elif BRAUN2008_AEFF_FILENAME in self._filename:
+
+            return Braun2008AeffReader(self._filename)
+        
         else:
 
             raise ValueError(self._filename + ' is not recognised as one of the known effective area files.')
@@ -215,6 +246,12 @@ class EffectiveArea():
 
         energy_index = np.digitize(true_energy, self.true_energy_bins) - 1
 
-        cosz_index = np.digitize(true_cos_zenith, self.cos_zenith_bins) - 1
+        if len(self.cos_zenith_bins) > 2:
+            
+            cosz_index = np.digitize(true_cos_zenith, self.cos_zenith_bins) - 1
 
-        return scaled_values[energy_index][cosz_index]
+            return scaled_values[energy_index][cosz_index]
+
+        else:
+
+            return scaled_values[energy_index]
