@@ -236,7 +236,7 @@ class Braun2008Simulator():
         self.reco_energy_index = 3.8
         
         
-    def run(self, N, progress_bar=True):
+    def run(self, N, show_progress=True):
         """
         Run the simulation.
 
@@ -258,7 +258,7 @@ class Braun2008Simulator():
 
         max_energy = self.source.flux_model._upper_energy
  
-        for i in progress_bar(range(self.N), desc='Sampling', disable=(not progress_bar)):
+        for i in progress_bar(range(self.N), desc='Sampling', disable=(not show_progress)):
 
             accepted = False
 
