@@ -3,7 +3,7 @@ import setuptools
 setuptools.setup(
     name = 'icecube_tools',
     packages = setuptools.find_packages(),
-    version = 'v0.3',
+    version = 'v0.4',
     description = 'Tools for the analysis of IceCube public data',
     author = 'Francesca Capel',
     author_email = 'capel.francesca@gmail.com',
