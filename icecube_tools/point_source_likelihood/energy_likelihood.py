@@ -182,3 +182,30 @@ def reweight_spectrum(energies, sim_index, new_index, bins=int(1e3)):
     energies = np.power(10, random_from_cdf)
 
     return energies
+
+
+       
+def read_input_from_file(filename):
+    """
+    Helper function to read in data digitized from plots.
+    """
+
+    import h5py
+
+    keys = ['E-2_spectrum', 'E-2.5_spectrum', 'E-3_spectrum', 'atmospheric']    
+
+    index_list = []
+    energy_list = []
+    pdf_list = []
+    
+    with h5py.File(filename, 'r') as f:
+
+        for key in keys:
+
+            index_list.append(f[key]['index'][()])
+
+            energy_list.append(f[key]['reco_energy'][()])
+
+            pdf_list.append(f[key]['pdf'][()])
+
+    return energy_list, pdf_list, index_list

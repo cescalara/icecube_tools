@@ -257,7 +257,7 @@ class Braun2008Simulator():
         v_lim = (np.cos( np.pi - np.arccos(self.max_cosz) ) + 1) / 2 
 
         max_energy = self.source.flux_model._upper_energy
-                       
+ 
         for i in progress_bar(range(self.N), desc='Sampling'):
 
             accepted = False
