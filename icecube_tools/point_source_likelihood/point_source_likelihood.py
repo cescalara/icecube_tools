@@ -42,7 +42,7 @@ class PointSourceLikelihood():
 
         self._energy_likelihood = energy_likelihood
         
-        self._band_width = 10 * self._direction_likelihood._sigma # degrees
+        self._band_width = 5 * self._direction_likelihood._sigma # degrees
 
         self._band_solid_angle = ((2 * self._band_width) / 180) * 4 * np.pi
         
@@ -52,11 +52,11 @@ class PointSourceLikelihood():
 
         self._source_coord = source_coord
 
-        self._bg_index = 3.7
+        self._bg_index = 3.8
 
         self._ns_min = 0.0
         self._ns_max = 100
-        self._max_index = 3.7
+        self._max_index = 3.8
 
         self._select_nearby_events()
 
@@ -196,7 +196,7 @@ class PointSourceLikelihood():
         """
 
 
-        init_index = self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2 
+        init_index = 2.0 #self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2 
         init_ns = self._ns_min + (self._ns_max - self._ns_min)/2 
 
         m = Minuit(self._get_neg_log_likelihood_ratio, ns=init_ns, index=init_index,
@@ -300,8 +300,9 @@ class PointSourceLikelihood():
         Calculate the test statistic for the best fit ns
         """
 
-        self._minimize_grid()
-
+        self._minimize()
+        #self._minimize_grid()
+        
         #if self._best_fit_ns == 0:
 
         #    first_der = self._first_derivative_likelihood_ratio(self._best_fit_ns, self._best_fit_index)

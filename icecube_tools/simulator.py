@@ -8,6 +8,7 @@ from tqdm.autonotebook import tqdm as progress_bar
 from .detector.detector import Detector
 from .source.source_model import Source, DIFFUSE, POINT
 from .neutrino_calculator import NeutrinoCalculator
+from .detector.angular_resolution import FixedAngularResolution
 
 """
 Module for running neutrino production 
@@ -230,8 +231,10 @@ class Braun2008Simulator():
         self.reco_energy_sampler = reco_energy_sampler
         
         # Hard code to match Braun+2008
+        self.angular_resolution = FixedAngularResolution(0.7)
         self.max_cosz = 0.1
-
+        self.reco_energy_index = 3.8
+        
         
     def run(self, N):
         """
@@ -249,35 +252,31 @@ class Braun2008Simulator():
         self.dec = []
         self.source_label = []
 
-        self.reco_energy_sampler.set_index(self.source.flux_model._index)
-        
+        self.reco_energy_sampler.set_index(self.reco_energy_index)
+
+        v_lim = (np.cos( np.pi - np.arccos(self.max_cosz) ) + 1) / 2 
+
+        max_energy = self.source.flux_model._upper_energy
+                       
         for i in progress_bar(range(self.N), desc='Sampling'):
 
             accepted = False
-            
+
             while not accepted:
 
-                max_energy = self.source.flux_model._upper_energy
-                
                 Etrue = self.source.flux_model.sample(1)[0]
-
+            
                 if self.source.source_type == DIFFUSE:
 
-                    ra, dec = sphere_sample()
+                    ra, dec = sphere_sample(v_lim=v_lim)
 
                 else:
 
                     ra, dec = self.source.coord
                     
                 cosz = -np.sin(dec)
-
-                if cosz > self.max_cosz:
-
-                    detection_prob = 0
-
-                else:
-                
-                    detection_prob = float(self.effective_area.detection_probability(Etrue, cosz, max_energy))
+                                
+                detection_prob = float(self.effective_area.detection_probability(Etrue, cosz, max_energy))
 
                 accepted = np.random.choice([True, False], p=[detection_prob, 1-detection_prob])
                 
@@ -294,7 +293,7 @@ class Braun2008Simulator():
                 
             else:
 
-                reco_ra, reco_dec = self.detector.angular_resolution.sample((ra, dec))
+                reco_ra, reco_dec = self.angular_resolution.sample((ra, dec))
                 self.coordinate.append(SkyCoord(reco_ra*u.rad, reco_dec*u.rad, frame='icrs'))
                 self.ra.append(reco_ra)
                 self.dec.append(reco_dec)
@@ -328,13 +327,13 @@ class Braun2008Simulator():
 
 
                 
-def sphere_sample(radius=1):
+def sphere_sample(radius=1, v_lim=0):
     """
     Sample points uniformly on a sphere.
     """
 
     u = np.random.uniform(0, 1)
-    v = np.random.uniform(0, 1)
+    v = np.random.uniform(v_lim, 1)
             
     phi = 2 * np.pi * u
     theta = np.arccos(2 * v - 1)
