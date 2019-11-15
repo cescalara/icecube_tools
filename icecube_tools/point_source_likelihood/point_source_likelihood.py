@@ -32,7 +32,7 @@ class PointSourceLikelihood():
         neutrino dataset - in terms of reconstructed 
         energies and arrival directions.
         
-        :param direction_likelihood: An instance of SpatialGaussianLikelihood.
+        :param direction_likelihood: An instance of SpatialLikelihood.
         :param energy_likelihood: An instance of MarginalisedEnergyLikelihood.
         :param event_coords: List of (ra, dec) tuples for reconstructed coords.
         :param energies: The reconstructed nu energies.
@@ -45,7 +45,9 @@ class PointSourceLikelihood():
         
         self._band_width = 5 * self._direction_likelihood._sigma # degrees
 
-        self._band_solid_angle = ((2 * self._band_width) / 180) * 4 * np.pi
+        dec_low = source_coord[1] - np.deg2rad(self._band_width)
+        dec_high = source_coord[1] + np.deg2rad(self._band_width)
+        self._band_solid_angle = 2 * np.pi * (np.sin(dec_high) - np.sin(dec_low))
         
         self._event_coords = event_coords
         
@@ -53,11 +55,11 @@ class PointSourceLikelihood():
 
         self._source_coord = source_coord
 
-        self._bg_index = 3.8
+        self._bg_index = 3.7
 
         self._ns_min = 0.0
         self._ns_max = 100
-        self._max_index = 3.8
+        self._max_index = 3.7
 
         self._select_nearby_events()
 
@@ -348,19 +350,21 @@ class SpatialOnlyPointSourceLikelihood():
 
         self._direction_likelihood = direction_likelihood 
   
-        self._band_width = 5 * self._direction_likelihood._sigma # degrees
+        self._band_width = 2 * self._direction_likelihood._sigma # degrees
 
-        self._band_solid_angle = ((2 * self._band_width) / 180) * 4 * np.pi
+        dec_low = source_coord[1] - np.deg2rad(self._band_width)
+        dec_high = source_coord[1] + np.deg2rad(self._band_width)
+        self._band_solid_angle = 2 * np.pi * (np.sin(dec_high) - np.sin(dec_low))
         
         self._event_coords = event_coords
         
         self._source_coord = source_coord
 
-        self._bg_index = 3.8
+        self._bg_index = 3.7
 
         self._ns_min = 0.0
         self._ns_max = 100
-        self._max_index = 3.8
+        self._max_index = 3.7
 
         self._select_nearby_events()
 
