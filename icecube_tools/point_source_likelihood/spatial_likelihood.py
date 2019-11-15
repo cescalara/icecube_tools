@@ -1,4 +1,5 @@
 import numpy as np
+from abc import ABC, abstractmethod
 
 
 """
@@ -14,7 +15,18 @@ Currently well-defined for searches with
 Northern sky muon neutrinos.
 """
 
-class SpatialGaussianLikelihood():
+class SpatialLikelihood(ABC):
+    """
+    Abstract base class for spatial likelihoods
+    """
+
+    @abstractmethod
+    def __call__(self):
+
+        pass
+    
+
+class SpatialGaussianLikelihood(SpatialLikelihood):
     """
     Spatial part of the point source likelihood.
 
@@ -70,3 +82,55 @@ class SpatialGaussianLikelihood():
         dist = np.exp( -0.5*(r / sigma_rad)**2 )
 
         return norm * dist
+
+
+    
+class EnergyDependentSpatialGaussianLikelihood(SpatialLikelihood):
+
+    
+    def __init__(self, angular_resolution_list, index_list):
+
+        
+        self._angular_resolution_list = angular_resolution_list
+
+        self._index_list = index_list
+
+
+    def _get_sigma(self, reco_energy, index):
+        
+        ang_res_at_Ereco = [ang_res._get_angular_resolution(reco_energy)
+                            for ang_res in self._angular_resolution_list]
+
+        ang_res_at_index = np.interp(index, self._index_list, ang_res_at_Ereco)
+
+
+        return ang_res_at_index
+
+    
+    def __call__(self, event_coord, source_coord, reco_energy, index):
+
+        sigma_rad = np.deg2rad(self._get_sigma(reco_energy, index))
+
+        ra, dec = event_coord
+                
+        src_ra, src_dec = source_coord
+        
+        norm = 0.5 / (np.pi * sigma_rad**2)
+
+        # Calculate the cosine of the distance of the source and the event on
+        # the sphere.
+        cos_r = np.cos(src_ra - ra) * np.cos(src_dec) * np.cos(dec) + np.sin(src_dec) * np.sin(dec)
+        
+        # Handle possible floating precision errors.
+        if cos_r < -1.0:
+            cos_r = 1.0
+        if cos_r > 1.0:
+            cos_r = 1.0
+
+        r = np.arccos(cos_r)
+         
+        dist = np.exp( -0.5*(r / sigma_rad)**2 )
+
+        return norm * dist
+        
+        

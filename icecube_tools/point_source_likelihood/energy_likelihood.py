@@ -17,7 +17,7 @@ Northern sky muon neutrinos.
 
 class MarginalisedEnergyLikelihood(ABC):
     """
-    Abstract base class for the marginalised energy lieklihood.
+    Abstract base class for the marginalised energy likelihood.
 
     L = \int d Etrue P(Ereco | Etrue) P(Etrue | index) = P(Ereco | index).
     """

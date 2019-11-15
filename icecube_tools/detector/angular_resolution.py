@@ -10,7 +10,10 @@ of IceCube based on public data.
 """
 
 R2018_ANG_RES_FILENAME = "AngRes.txt"
+R2015_ANG_RES_FILENAME = "angres_plot"
 
+TRUE_ENERGY = 0
+RECO_ENERGY = 1
 
 class IceCubeAngResReader(ABC):
     """
@@ -31,6 +34,8 @@ class IceCubeAngResReader(ABC):
         self.ang_res_values = None
 
         self.true_energy_bins = None
+
+        self.reco_energy_values = None
         
         self.read()
         
@@ -42,6 +47,21 @@ class IceCubeAngResReader(ABC):
 
         pass
 
+
+class R2015AngResReader(IceCubeAngResReader):
+    """
+    Reader for the 2015 release.
+    """
+
+    def read(self):
+
+        out = np.loadtxt(self._filename, delimiter=',', comments='#')
+
+        self.ang_res_values = out.T[1]
+
+        self.reco_energy_values = out.T[0]
+
+        
 
 class R2018AngResReader(IceCubeAngResReader):
     """
@@ -80,9 +100,16 @@ class AngularResolution():
 
         self.values = self._reader.ang_res_values
 
-        self.true_energy_bins = self._reader.true_energy_bins
+        if self._energy_type == TRUE_ENERGY:
+        
+            self.true_energy_bins = self._reader.true_energy_bins
 
+        elif self._energy_type == RECO_ENERGY:
+
+            self.reco_energy_values = self._reader.reco_energy_values
+            
         self.sigma = None
+        
 
     def get_reader(self):
         """
@@ -91,25 +118,40 @@ class AngularResolution():
 
         if R2018_ANG_RES_FILENAME in self._filename:
 
+            self._energy_type = TRUE_ENERGY
+            
             return R2018AngResReader(self._filename)
 
+        elif R2015_ANG_RES_FILENAME in self._filename:
+
+            self._energy_type = RECO_ENERGY
+
+            return R2015AngResReader(self._filename)
+            
         else:
 
             raise ValueError(self._filename + ' is not recognised as one of the known angular resolution files.')
         
 
-    def _get_angular_resolution(self, Etrue):
+    def _get_angular_resolution(self, E):
         """
         Get the median angular resolution for the 
-        given Etrue.
+        given Etrue/Ereco.
         """
 
-        true_energy_bin_cen = (self.true_energy_bins[:-1] + self.true_energy_bins[1:]) / 2
+        if self._energy_type == TRUE_ENERGY:
+        
+            true_energy_bin_cen = (self.true_energy_bins[:-1] + self.true_energy_bins[1:]) / 2
+            
+            ang_res = np.interp(np.log(E), np.log(true_energy_bin_cen), self.values)
 
-        ang_res = np.interp(np.log(Etrue), np.log(true_energy_bin_cen), self.values)
+        elif self._energy_type == RECO_ENERGY:
 
+            ang_res = np.interp(np.log(E), np.log(self.reco_energy_values), self.values)
+            
         return ang_res
 
+    
     
     def sample(self, Etrue, coord):
         """
