@@ -8,7 +8,7 @@ from tqdm.autonotebook import tqdm as progress_bar
 from .detector.detector import Detector
 from .source.source_model import Source, DIFFUSE, POINT
 from .neutrino_calculator import NeutrinoCalculator
-from .detector.angular_resolution import FixedAngularResolution
+from .detector.angular_resolution import FixedAngularResolution, AngularResolution
 
 """
 Module for running neutrino production 
@@ -210,7 +210,7 @@ class Braun2008Simulator():
     """
 
     
-    def __init__(self, source, effective_area, reco_energy_sampler):
+    def __init__(self, source, effective_area, reco_energy_sampler, angular_resolution):
         """
         Simple simulator which uses the results 
         given in Braun+2008.
@@ -231,7 +231,7 @@ class Braun2008Simulator():
         self.reco_energy_sampler = reco_energy_sampler
         
         # Hard code to match Braun+2008
-        self.angular_resolution = FixedAngularResolution(0.7)
+        self.angular_resolution = angular_resolution
         self.max_cosz = 0.1
         self.reco_energy_index = 3.8
         
@@ -293,7 +293,12 @@ class Braun2008Simulator():
                 
             else:
 
-                reco_ra, reco_dec = self.angular_resolution.sample((ra, dec))
+                if isinstance(self.angular_resolution, AngularResolution):
+                    reco_ra, reco_dec = self.angular_resolution.sample(Etrue, (ra, dec))
+                   
+                elif isinstance(self.angular_resolution, FixedAngularResolution):
+                    reco_ra, reco_dec = self.angular_resolution.sample((ra, dec))
+                    
                 self.coordinate.append(SkyCoord(reco_ra*u.rad, reco_dec*u.rad, frame='icrs'))
                 self.ra.append(reco_ra)
                 self.dec.append(reco_dec)

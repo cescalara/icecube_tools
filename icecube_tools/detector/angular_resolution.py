@@ -1,5 +1,8 @@
 import numpy as np
 from abc import ABC, abstractmethod
+from vMF import sample_vMF
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 
 """
 Module for handling the angular resolution
@@ -79,7 +82,7 @@ class AngularResolution():
 
         self.true_energy_bins = self._reader.true_energy_bins
 
-        self.sigma = sigma
+        self.sigma = None
 
     def get_reader(self):
         """
@@ -108,21 +111,34 @@ class AngularResolution():
         return ang_res
 
     
-    def sample(self, Etrue, ra, dec):
+    def sample(self, Etrue, coord):
         """
         Sample new ra, dec values given a true energy
         and direction.
         """
 
-        unit_vector = icrs_to_unit_vector(ra, dec)
+        ra, dec = coord
 
-        ang_res = self._get_angular_resolution()
+        sigma = self._get_angular_resolution(Etrue)
 
-        kappa = 7552 * np.power(np.rad2deg(ang_res))
+        sky_coord = SkyCoord(ra=ra*u.rad, dec=dec*u.rad, frame='icrs')
 
-        new_unit_vector = sample_VMF(unit_vector, kappa, 1) 
+        sky_coord.representation_type = 'cartesian'
         
-        new_ra, new_dec = unit_vector_to_icrs(new_unit_vector)
+        unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
+
+        kappa = 7552 * np.power(sigma, -2)
+
+        new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0] 
+
+        new_sky_coord = SkyCoord(x=new_unit_vector[0], y=new_unit_vector[1],
+                                 z=new_unit_vector[2], representation_type='cartesian')
+
+        new_sky_coord.representation_type = 'unitspherical'
+        
+        new_ra = new_sky_coord.ra.rad
+
+        new_dec = new_sky_coord.dec.rad
 
         return new_ra, new_dec
         
@@ -148,10 +164,25 @@ class FixedAngularResolution():
 
         ra, dec = coord
 
-        new_ra = np.random.normal(ra, np.deg2rad(self.sigma))
+        sky_coord = SkyCoord(ra=ra*u.rad, dec=dec*u.rad, frame='icrs')
 
-        new_dec = np.random.normal(dec, np.deg2rad(self.sigma))
+        sky_coord.representation_type = 'cartesian'
+        
+        unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
 
+        kappa = 7552 * np.power(self.sigma, -2)
+
+        new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0] 
+
+        new_sky_coord = SkyCoord(x=new_unit_vector[0], y=new_unit_vector[1],
+                                 z=new_unit_vector[2], representation_type='cartesian')
+
+        new_sky_coord.representation_type = 'unitspherical'
+        
+        new_ra = new_sky_coord.ra.rad
+
+        new_dec = new_sky_coord.dec.rad
+        
         return new_ra, new_dec
     
     
