@@ -57,7 +57,7 @@ class R2015AngResReader(IceCubeAngResReader):
 
         out = np.loadtxt(self._filename, delimiter=',', comments='#')
 
-        self.ang_res_values = out.T[1]
+        self.ang_res_values = out.T[1] 
 
         self.reco_energy_values = out.T[0]
 
@@ -92,13 +92,13 @@ class R2018AngResReader(IceCubeAngResReader):
 
 class AngularResolution():
 
-    def __init__(self, filename):
+    def __init__(self, filename, offset=0):
 
         self._filename = filename
         
         self._reader = self.get_reader()
 
-        self.values = self._reader.ang_res_values
+        self.values = self._reader.ang_res_values + offset
 
         if self._energy_type == TRUE_ENERGY:
         
