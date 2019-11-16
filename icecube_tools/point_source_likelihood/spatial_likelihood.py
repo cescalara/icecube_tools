@@ -107,7 +107,7 @@ class EnergyDependentSpatialGaussianLikelihood(SpatialLikelihood):
         return ang_res_at_index
 
     
-    def __call__(self, event_coord, source_coord, reco_energy, index):
+    def __call__(self, event_coord, source_coord, reco_energy, index=2.0):
 
         sigma_rad = np.deg2rad(self._get_sigma(reco_energy, index))
 
