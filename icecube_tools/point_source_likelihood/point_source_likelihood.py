@@ -43,7 +43,7 @@ class PointSourceLikelihood():
 
         self._energy_likelihood = energy_likelihood
         
-        self._band_width = 5 * self._direction_likelihood._sigma # degrees
+        self._band_width = 3 * self._direction_likelihood._sigma # degrees
 
         dec_low = source_coord[1] - np.deg2rad(self._band_width)
         dec_high = source_coord[1] + np.deg2rad(self._band_width)
