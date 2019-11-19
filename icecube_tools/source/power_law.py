@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.stats import bernoulli
+
 
 class BoundedPowerLaw(object):
     """
@@ -95,4 +97,86 @@ class BoundedPowerLaw(object):
         """
         u = np.random.uniform(0, 1, nsamples)
         return self.inv_cdf(u)
+        
+
+
+class BrokenBoundedPowerLaw():
+    """
+    Sampling from a broken power law.
+    Based on:
+    https://github.com/grburgess/brokenpl_sample/blob/master/sample_broken_power_law.ipynb
+    """
+
+    def __init__(self, x0, x1, x2, gamma1, gamma2):
+        """
+        Sampling from a broken power law.
+        Based on:
+        https://github.com/grburgess/brokenpl_sample/blob/master/sample_broken_power_law.ipynb.
+        
+        :param x0: Lower bound
+        :param x1: Break point
+        :param x2: Upper bound
+        :param gamma1: Index of first power law
+        :param gamma2: Index of the second power law
+        """
+
+        self.x0 = x0
+
+        self.x1 = x1
+
+        self.x2 = x2
+
+        self.gamma1 = gamma1
+
+        self.gamma2 = gamma2
+
+        w1, w2, total = self._integrate()
+
+        self.norm = 1.0 / total
+
+        self.weights = (w1, w2)
+        
+        
+    def _integrate(self):
+        """
+        Compute the total integral and weights of each segment.
+        """
+
+        int_first_seg = ( np.power(self.x1, self.gamma1+1.0) - np.power(self.x0, self.gamma1+1.0) ) / (self.gamma1+1.0)
+
+        int_second_seg = np.power(self.x1, self.gamma1-self.gamma2) * ( np.power(self.x2, self.gamma2+1)
+                                                                        - np.power(self.x1, self.gamma2+1) ) / (self.gamma2+1)
+        
+        total = int_first_seg + int_second_seg
+
+        w1 = int_first_seg / total
+
+        w2 = int_second_seg / total
+
+        return w1, w2, total
+
+    
+    def samples(self, N):
+        """
+        Sample from the broken power law.
+
+        :param N: number of samples.
+        """
+
+        u = np.random.uniform(0, 1, N)
+
+        output = np.empty_like(u)
+
+        idx = bernoulli.rvs(self.weights[0], size=len(u)).astype(bool)
+
+        output[idx] = np.power( u[idx] *
+                                (np.power(self.x1, self.gamma1+1.0) - np.power(self.x0, self.gamma1+1.0))
+                                + np.power(self.x0, self.gamma1+1.0), 1.0 / (self.gamma1+1.0) )
+
+        output[~idx] = np.power( u[~idx] *
+                                 (np.power(self.x2, self.gamma2+1.0) - np.power(self.x1, self.gamma2+1.0))
+                                 + np.power(self.x1, self.gamma2+1.0), 1.0 / (self.gamma2+1.0) )
+
+        return output
+        
         

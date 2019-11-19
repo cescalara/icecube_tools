@@ -62,6 +62,22 @@ class R2015AngResReader(IceCubeAngResReader):
         self.reco_energy_values = out.T[0]
 
         
+class FromPlotAngResReader(IceCubeAngResReader):
+    """
+    Reader for the plots from the Aartsen+2018 
+    point source analysis paper. 
+    """
+
+    def read(self):
+
+        out = np.loadtxt(self._filename, delimiter=',', comments='#')
+
+        self.ang_res_values = out.T[1] 
+
+        self.true_energy_values = out.T[0]
+
+        self.true_energy_bins = None
+        
 
 class R2018AngResReader(IceCubeAngResReader):
     """
@@ -88,6 +104,8 @@ class R2018AngResReader(IceCubeAngResReader):
         self.true_energy_bins.sort()
                 
         self.ang_res_values = np.array( list(output['Med. Resolution[deg]'].values()) )
+
+        self.true_energy_values = self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins)/2
         
 
 class AngularResolution():
@@ -101,9 +119,11 @@ class AngularResolution():
         self.values = self._reader.ang_res_values + offset
 
         if self._energy_type == TRUE_ENERGY:
-        
-            self.true_energy_bins = self._reader.true_energy_bins
 
+            self.true_energy_bins = self._reader.true_energy_bins
+            
+            self.true_energy_values = self._reader.true_energy_values
+            
         elif self._energy_type == RECO_ENERGY:
 
             self.reco_energy_values = self._reader.reco_energy_values
@@ -127,7 +147,13 @@ class AngularResolution():
             self._energy_type = RECO_ENERGY
 
             return R2015AngResReader(self._filename)
+
+        elif ".csv" in self._filename:
+
+            self._energy_type = TRUE_ENERGY
             
+            return FromPlotAngResReader(self._filename)
+        
         else:
 
             raise ValueError(self._filename + ' is not recognised as one of the known angular resolution files.')

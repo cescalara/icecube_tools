@@ -10,6 +10,9 @@ Module for handling the energy resolution
 of IceCube using publicly available information.
 """
 
+GIVEN_ETRUE = 0
+GIVEN_ERECO = 1
+
 class EnergyResolution(ABC):
     """
     Abstract base class for energy resolution.
@@ -81,7 +84,7 @@ class NuMuEnergyResolution(EnergyResolution):
     corresponding reader class.
     """
 
-    def __init__(self, filename, **kwargs):
+    def __init__(self, filename, conditional=GIVEN_ETRUE, **kwargs):
         """
         Muon neutrino energy resolution using public data.
         Makes use of the 2015 effective area release and its
@@ -95,6 +98,8 @@ class NuMuEnergyResolution(EnergyResolution):
         """
 
         super().__init__()
+
+        self._conditional = conditional
         
         self._reader = R2015AeffReader(filename, **kwargs)
 
@@ -104,7 +109,7 @@ class NuMuEnergyResolution(EnergyResolution):
 
         self.values = self._integrate_out_cos_zenith()
         self.values = self._get_conditional()
-        self.values = self._normalise_over_reco()
+        self.values = self._normalise()
 
         self._fit_lognormal()
         self._fit_polynomial()
@@ -124,37 +129,72 @@ class NuMuEnergyResolution(EnergyResolution):
     def _get_conditional(self):
         """
         From the joint distribution of Etrue and Ereco
-        we want the conditional of Ereco | Etrue.
+        we want the conditional of Ereco | Etrue OR Etrue | Ereco.
         """
 
-        true_energy_dist = self.values.T.sum(axis=0)
+        if self._conditional == GIVEN_ETRUE:
+            
+            true_energy_dist = self.values.T.sum(axis=0)
 
-        conditional = np.nan_to_num(self.values.T / true_energy_dist)
+            conditional = np.nan_to_num(self.values.T / true_energy_dist).T
 
-        return conditional.T
+        elif self._conditional == GIVEN_ERECO:
+
+            reco_energy_dist = self.values.sum(axis=0)
+
+            conditional = np.nan_to_num(self.values / reco_energy_dist)
+
+        else:
+
+            raise ValueError('conditional must be GIVEN_ETRUE or GIVEN_ERECO')
+                
+
+        return conditional
 
     
-    def _normalise_over_reco(self):
+    def _normalise(self):
         """
         Normalise over the reconstruted energy so
         at each Etrue bin the is a probability 
         distribution over Ereco.
         """
 
-        normalised = np.zeros( (len(self.true_energy_bins[:-1]),
-                                len(self.reco_energy_bins[:-1])) )
-        
-        for i, Etrue in enumerate(self.true_energy_bins[:-1]):
 
-            norm = 0
+        if self._conditional == GIVEN_ETRUE:
 
-            for j, Ereco in enumerate(self.reco_energy_bins[:-1]):
+            normalised = np.zeros( (len(self.true_energy_bins[:-1]),
+                                    len(self.reco_energy_bins[:-1])) )
+            
+            for i, Etrue in enumerate(self.true_energy_bins[:-1]):
 
-                delta_Ereco = self.reco_energy_bins[j+1] - Ereco
+                norm = 0
 
-                norm += self.values[i][j] * delta_Ereco
+                for j, Ereco in enumerate(self.reco_energy_bins[:-1]):
 
-            normalised[i] = self.values[i] / norm
+                    delta_Ereco = self.reco_energy_bins[j+1] - Ereco
+                    
+                    norm += self.values[i][j] * delta_Ereco
+
+                normalised[i] = self.values[i] / norm
+
+        elif self._conditional == GIVEN_ERECO:
+
+            normalised = np.zeros( (len(self.true_energy_bins[:-1]),
+                                    len(self.reco_energy_bins[:-1])) ).T
+            
+            for i, Ereco in enumerate(self.reco_energy_bins[:-1]):
+
+                norm = 0
+
+                for j, Etrue in enumerate(self.true_energy_bins[:-1]):
+
+                    delta_Etrue = self.true_energy_bins[j+1] - Etrue
+
+                    norm += self.values.T[i][j] * delta_Etrue
+
+                normalised[i] = self.values.T[i] / norm
+
+            normalised = normalised.T
 
         return normalised
 
@@ -165,29 +205,51 @@ class NuMuEnergyResolution(EnergyResolution):
         and store its parameters. 
         """
 
-        def _lognorm_wrapper(Ereco, mu, sigma):
+        def _lognorm_wrapper(E, mu, sigma):
 
-            return lognorm.pdf(Ereco, sigma, loc=0, scale=mu)
-
-        self.reco_energy_bin_cen = (self.reco_energy_bins[:-1] + self.reco_energy_bins[1:]) / 2
+            return lognorm.pdf(E, sigma, loc=0, scale=mu)
 
         self._mu = []
         self._sigma = []
+
+        if self._conditional == GIVEN_ETRUE:
+            
+            self.reco_energy_bin_cen = (self.reco_energy_bins[:-1] + self.reco_energy_bins[1:]) / 2
         
-        for i, Etrue in enumerate(self.true_energy_bins[:-1]):
+            for i, Etrue in enumerate(self.true_energy_bins[:-1]):
 
-            try:
+                try:
 
-                fit_vals, _ = curve_fit(_lognorm_wrapper, self.reco_energy_bin_cen,
-                                        np.nan_to_num(self.values[i]), p0=(Etrue, 0.5))
+                    fit_vals, _ = curve_fit(_lognorm_wrapper, self.reco_energy_bin_cen,
+                                            np.nan_to_num(self.values[i]), p0=(Etrue, 0.5))
 
-                self._mu.append(fit_vals[0])
-                self._sigma.append(fit_vals[1])
+                    self._mu.append(fit_vals[0])
+                    self._sigma.append(fit_vals[1])
                 
-            except:
+                except:
 
-                self._mu.append(np.nan)
-                self._sigma.append(np.nan)
+                    self._mu.append(np.nan)
+                    self._sigma.append(np.nan)
+
+        elif self._conditional == GIVEN_ERECO:
+
+            self.true_energy_bin_cen = (self.true_energy_bins[:-1] + self.true_energy_bins[1:]) / 2
+
+            for i, Ereco in enumerate(self.reco_energy_bins[:-1]):
+
+                try:
+
+                    fit_vals, _ = curve_fit(_lognorm_wrapper, self.true_energy_bin_cen,
+                                          np.nan_to_num(self.values.T[i]), p0=(Ereco, 0.5))
+
+                    self._mu.append(fit_vals[0])
+                    self._sigma.append(fit_vals[1])
+
+                except:
+                    
+                    self._mu.append(np.nan)
+                    self._sigma.append(np.nan)
+                    
 
                 
     def _fit_polynomial(self):
@@ -197,64 +259,74 @@ class NuMuEnergyResolution(EnergyResolution):
         little statistics.
         """
 
-        # hard coded values for excluding low statistics
-        imin = 5
-        imax = 210
-
         # polynomial degree
         degree = 5
 
-        true_energy_bin_cen = (self.true_energy_bins[:-1] + self.true_energy_bins[1:]) / 2
-
         mu_sel = np.where(np.isfinite(self._mu))
-
-        Etrue_cen_mu = true_energy_bin_cen[mu_sel]
         mu = np.array(self._mu)[mu_sel]
 
         sigma_sel = np.where(np.isfinite(self._sigma))
-
-        Etrue_cen_sigma = true_energy_bin_cen[sigma_sel]
         sigma = np.array(self._sigma)[sigma_sel]
 
-        mu_pars = np.polyfit(np.log10(Etrue_cen_mu[imin:imax]), np.log10(mu[imin:imax]), degree)
-
-        sigma_pars = np.polyfit(np.log10(Etrue_cen_sigma[imin:imax]), np.log10(sigma[imin:imax]), degree)
+        if self._conditional == GIVEN_ETRUE:
         
+            # hard coded values for excluding low statistics
+            imin = 5
+            imax = 210
+
+            true_energy_bin_cen = (self.true_energy_bins[:-1] + self.true_energy_bins[1:]) / 2
+
+            Etrue_cen_mu = true_energy_bin_cen[mu_sel]
+
+            Etrue_cen_sigma = true_energy_bin_cen[sigma_sel]
+
+            mu_pars = np.polyfit(np.log10(Etrue_cen_mu[imin:imax]), np.log10(mu[imin:imax]), degree)
+
+            sigma_pars = np.polyfit(np.log10(Etrue_cen_sigma[imin:imax]), np.log10(sigma[imin:imax]), degree)
+
+        elif self._conditional == GIVEN_ERECO:
+
+            # hard coded values for exluding low statistics
+            imin = 5
+            imax = 45
+
+            reco_energy_bin_cen = (self.reco_energy_bins[:-1] + self.reco_energy_bins[1:]) / 2
+
+            Ereco_cen_mu = reco_energy_bin_cen[mu_sel]
+                        
+            Ereco_cen_sigma = reco_energy_bin_cen[sigma_sel]
+
+            mu_pars = np.polyfit(np.log10(Ereco_cen_mu[imin:imax]), np.log10(mu[imin:imax]), degree)
+
+            sigma_pars = np.polyfit(np.log10(Ereco_cen_sigma[imin:imax]), np.log10(sigma[imin:imax]), degree)
+
         self._mu_poly = np.poly1d(mu_pars)
 
         self._sigma_poly = np.poly1d(sigma_pars)
 
         
-    def _get_lognormal_params(self, Etrue):
+    def _get_lognormal_params(self, E):
         """
         Returns params for lognormal representing 
-        P(Ereco | Etrue).
+        P(Ereco | Etrue) OR P(Etrue | Ereco).
 
-        :param Etrue: The true neutrino energy [GeV]
+        :param E: The true/reco energy if GIVEN_ETRUE/GIVEN_ERECO [GeV]
         """
 
-        mu = np.power( 10, self._mu_poly(np.log10(Etrue)) )
+        mu = np.power( 10, self._mu_poly(np.log10(E)) )
 
-        sigma = np.power( 10, self._sigma_poly(np.log10(Etrue)) )
+        sigma = np.power( 10, self._sigma_poly(np.log10(E)) )
 
         return mu, sigma
         
         
-    def sample(self, Etrue):
+    def sample(self, E):
         """
-        Sample a reconstructed energy given a true energy.
+        Sample a reco/true energy given a true/reco energy.
         """
 
-        mu, sigma = self._get_lognormal_params(Etrue)
+        mu, sigma = self._get_lognormal_params(E)
 
         return lognorm.rvs(sigma, loc=0, scale=mu)
 
 
-
-class Braun2008EnergyResolution(EnergyResolution):
-    """
-    Simple energy resolution from Braun+2008 Fig. 4.
-    Marginalised over the true energy.
-    """
-
-    
