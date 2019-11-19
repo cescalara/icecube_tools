@@ -7,6 +7,7 @@ from tqdm.autonotebook import tqdm as progress_bar
 
 from .detector.detector import Detector
 from .source.source_model import Source, DIFFUSE, POINT
+from .source.flux_model import PowerLawFlux, BrokenPowerLawFlux
 from .neutrino_calculator import NeutrinoCalculator
 from .detector.angular_resolution import FixedAngularResolution, AngularResolution
 
@@ -84,7 +85,7 @@ class Simulator():
         self._source_weights = np.array(self._Nex) / sum(self._Nex)
         
         
-    def run(self, N=None):
+    def run(self, N=None, show_progress=True):
         """
         Run a simulation for the given set of sources 
         and detector configuration.
@@ -95,6 +96,7 @@ class Simulator():
         accordingly.
 
         :param N: Set expected number of neutrinos manually.
+        :param show_progress: Show the progress bar.
         """
 
         self._get_expected_number()
@@ -106,6 +108,10 @@ class Simulator():
         else:
 
             self.N = int(N)
+
+        v_lim = (np.cos( np.pi - np.arccos(self.max_cosz) ) + 1) / 2 
+
+        max_energy = max([_.flux_model._upper_energy for _ in self.sources])
             
         self.true_energy = []
         self.reco_energy = []
@@ -114,36 +120,28 @@ class Simulator():
         self.dec = []
         self.source_label = []
         
-        for i in progress_bar(range(self.N), desc='Sampling'):
+        for i in progress_bar(range(self.N), desc='Sampling', disable=(not show_progress)):
 
             label = np.random.choice(range(len(self.sources)), p=self._source_weights)
             
             accepted = False
             
             while not accepted:
-
-                max_energy = self.sources[label].flux_model._upper_energy
-                
+    
                 Etrue = self.sources[label].flux_model.sample(1)[0]
 
                 if self.sources[label].source_type == DIFFUSE:
 
-                    ra, dec = sphere_sample()
+                    ra, dec = sphere_sample(v_lim=v_lim)
 
                 else:
 
                     ra, dec = self.sources[label].coord
                     
                 cosz = -np.sin(dec)
-
-                if cosz > self.max_cosz:
-
-                    detection_prob = 0
-
-                else:
                 
-                    detection_prob = float(self.detector.effective_area.detection_probability(Etrue, cosz, max_energy))
-
+                detection_prob = float(self.detector.effective_area.detection_probability(Etrue, cosz, max_energy))
+                
                 accepted = np.random.choice([True, False], p=[detection_prob, 1-detection_prob])
                 
             self.source_label.append(label)
@@ -160,7 +158,12 @@ class Simulator():
                 
             else:
 
-                reco_ra, reco_dec = self.detector.angular_resolution.sample((ra, dec))
+                if isinstance(self.angular_resolution, AngularResolution):
+                    reco_ra, reco_dec = self.angular_resolution.sample(Etrue, (ra, dec))
+
+                elif isinstance(self.angular_resolution, FixedAngularResolution):
+                    reco_ra, reco_dec = self.angular_resolution.sample((ra, dec))
+                    
                 self.coordinate.append(SkyCoord(reco_ra*u.rad, reco_dec*u.rad, frame='icrs'))
                 self.ra.append(reco_ra)
                 self.dec.append(reco_dec)
@@ -188,14 +191,25 @@ class Simulator():
             for i, source in enumerate(self.sources):
 
                 s = f.create_group('source_' + str(i))
-            
-                s.create_dataset('index', data=source.flux_model._index)
 
+                if isinstance(source.flux_model, PowerLawFlux):
+                
+                    s.create_dataset('index', data=source.flux_model._index)
+
+                    s.create_dataset('normalisation_energy', data=source.flux_model._normalisation_energy)
+                
+                elif isinstance(source.flux_model, BrokenPowerLawFlux):
+
+                    s.create_dataset('index1', data=source.flux_model._index1)
+
+                    s.create_dataset('index2', data=source.flux_model._index2)
+
+                    s.create_dataset('break_energy', data=source.flux_model._break_energy)
+                    
                 s.create_dataset('source_type', data=source.source_type)
 
                 s.create_dataset('normalisation', data=source.flux_model._normalisation)
 
-                s.create_dataset('normalisation_energy', data=source.flux_model._normalisation_energy)
                 
 
                 
