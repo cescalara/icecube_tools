@@ -110,8 +110,6 @@ class Simulator():
             self.N = int(N)
 
         v_lim = (np.cos( np.pi - np.arccos(self.max_cosz) ) + 1) / 2 
-
-        max_energy = max([_.flux_model._upper_energy for _ in self.sources])
             
         self.true_energy = []
         self.reco_energy = []
@@ -123,7 +121,9 @@ class Simulator():
         for i in progress_bar(range(self.N), desc='Sampling', disable=(not show_progress)):
 
             label = np.random.choice(range(len(self.sources)), p=self._source_weights)
-            
+
+            max_energy = self.sources[label].flux_model._upper_energy
+
             accepted = False
             
             while not accepted:
