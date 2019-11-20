@@ -26,7 +26,9 @@ class PointSourceLikelihood():
     Based on what is described in Braun+2008.
     """    
     
-    def __init__(self, direction_likelihood, energy_likelihood, event_coords, energies, source_coord):
+    def __init__(self, direction_likelihood, energy_likelihood, 
+                 event_coords, energies, source_coord,
+                 index_prior=None):
         """
         Calculate the point source likelihood for a given 
         neutrino dataset - in terms of reconstructed 
@@ -37,13 +39,20 @@ class PointSourceLikelihood():
         :param event_coords: List of (ra, dec) tuples for reconstructed coords.
         :param energies: The reconstructed nu energies.
         :param source_coord: (ra, dec) pf the point to test.
+        :param index_prior: Optional prior on the spectral index, instance of Prior. 
         """
 
         self._direction_likelihood = direction_likelihood 
 
         self._energy_likelihood = energy_likelihood
-        
-        self._band_width = 3 * self._direction_likelihood._sigma # degrees
+
+        if isinstance(self._direction_likelihood, EnergyDependentSpatialGaussianLikelihood):
+
+            self._band_width = 3 * self._direction_likelihood._get_sigma(1e3, 3.7)
+
+        else:
+            
+            self._band_width = 3 * self._direction_likelihood._sigma # degrees
 
         dec_low = source_coord[1] - np.deg2rad(self._band_width)
         dec_high = source_coord[1] + np.deg2rad(self._band_width)
@@ -55,11 +64,13 @@ class PointSourceLikelihood():
 
         self._source_coord = source_coord
 
+        self._index_prior = index_prior
+        
         self._bg_index = 3.7
 
         self._ns_min = 0.0
         self._ns_max = 100
-        self._max_index = 3.7
+        self._max_index = 4.0
 
         self._select_nearby_events()
 
@@ -96,7 +107,13 @@ class PointSourceLikelihood():
         
     def _signal_likelihood(self, event_coord, source_coord, energy, index):
 
-        return self._direction_likelihood(event_coord, source_coord) * self._energy_likelihood(energy, index)
+        if isinstance(self._direction_likelihood, EnergyDependentSpatialGaussianLikelihood):
+
+            return self._direction_likelihood(event_coord, source_coord, energy, index) * self._energy_likelihood(energy, index)
+            
+        else:
+            
+            return self._direction_likelihood(event_coord, source_coord) * self._energy_likelihood(energy, index)
 
 
     def _background_likelihood(self, energy):
@@ -141,7 +158,11 @@ class PointSourceLikelihood():
                 log_likelihood_ratio += np.log1p(alpha_i)
 
         log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
-            
+
+        if self._index_prior:
+
+            log_likelihood_ratio += np.log(self._index_prior(index))
+        
         return -log_likelihood_ratio
 
     
@@ -203,7 +224,7 @@ class PointSourceLikelihood():
         init_ns = self._ns_min + (self._ns_max - self._ns_min)/2 
 
         m = Minuit(self._get_neg_log_likelihood_ratio, ns=init_ns, index=init_index,
-                   error_ns=0.1, error_index=1, errordef=0.5,
+                   error_ns=1, error_index=0.1, errordef=0.5,
                    limit_ns=(self._ns_min, self._ns_max),
                    limit_index=(self._energy_likelihood._min_index, self._max_index))
 

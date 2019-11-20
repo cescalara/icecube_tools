@@ -107,9 +107,50 @@ class MarginalisedEnergyLikelihoodFromSim(MarginalisedEnergyLikelihood):
         E_index = np.digitize(np.log10(E), self._energy_bins) - 1
 
         return self._likelihood[i_index][E_index]
-        
 
     
+
+class MarginalisedEnergyLikelihoodFixed(MarginalisedEnergyLikelihood):
+    """
+    Compute the marginalised energy likelihood for a fixed case based on a simulation.
+    Eg. P(E | atmos + diffuse astro).
+    """
+    
+
+    def __init__(self, energy, min_index=1.5, max_index=4.0, min_E=1e2, max_E=1e9):
+        """
+        Compute the marginalised energy likelihood for a fixed case based on a simulation.
+        Eg. P(E | atmos + diffuse astro).
+            
+        :param energy: Reconstructed muon energies (preferably many) [GeV].
+        """
+
+        self._energy = energy
+
+        self._min_index = min_index
+        self._max_index = max_index
+
+        self._min_E = min_E
+        self._max_E = max_E
+
+        self._energy_bins = np.linspace(np.log10(min_E), np.log10(max_E)) # GeV
+
+        
+    def _precompute_histogram(self):
+        
+        hist, _ = np.histogram(np.log10(self._energy), bins=self._energy_bins, density=True)
+
+        self._likelihood = hist
+
+
+    def __call__(self, E):
+        
+        E_index = np.digitize(np.lgo10(E), self._energy_bins) - 1
+
+        return self._likelihood[E_index]
+
+    
+        
 class MarginalisedEnergyLikelihoodBraun2008(MarginalisedEnergyLikelihood):
     """
     Compute the marginalised enegry likelihood using 
