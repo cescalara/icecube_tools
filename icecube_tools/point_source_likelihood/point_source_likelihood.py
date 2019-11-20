@@ -28,7 +28,7 @@ class PointSourceLikelihood():
     
     def __init__(self, direction_likelihood, energy_likelihood, 
                  event_coords, energies, source_coord,
-                 index_prior=None):
+                 bg_energy_likelihood=None, index_prior=None):
         """
         Calculate the point source likelihood for a given 
         neutrino dataset - in terms of reconstructed 
@@ -46,6 +46,8 @@ class PointSourceLikelihood():
 
         self._energy_likelihood = energy_likelihood
 
+        self._bg_energy_likelihood = bg_energy_likelihood
+        
         if isinstance(self._direction_likelihood, EnergyDependentSpatialGaussianLikelihood):
 
             self._band_width = 3 * self._direction_likelihood._get_sigma(1e3, 3.7)
@@ -108,20 +110,69 @@ class PointSourceLikelihood():
     def _signal_likelihood(self, event_coord, source_coord, energy, index):
 
         if isinstance(self._direction_likelihood, EnergyDependentSpatialGaussianLikelihood):
-
-            return self._direction_likelihood(event_coord, source_coord, energy, index) * self._energy_likelihood(energy, index)
+        
+            likelihood =  self._direction_likelihood(event_coord, source_coord, energy, index) * self._energy_likelihood(energy, index)
             
         else:
             
-            return self._direction_likelihood(event_coord, source_coord) * self._energy_likelihood(energy, index)
+            likelihood =  self._direction_likelihood(event_coord, source_coord) * self._energy_likelihood(energy, index)
 
+        return likelihood
+    
 
     def _background_likelihood(self, energy):
 
-        return self._energy_likelihood(energy, self._bg_index) / self._band_solid_angle
+        if self._bg_energy_likelihood:
+
+            return self._bg_energy_likelihood(energy) / self._band_solid_angle
+
+        else:
+
+            return self._energy_likelihood(energy, self._bg_index) / self._band_solid_angle
  
         
     def _get_neg_log_likelihood_ratio(self, ns, index):
+        """
+        Calculate the -log(likelihood_ratio) for minimization.
+
+        Uses calculation described in:
+        https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf
+
+        :param ns: Number of source counts.
+        :param index: Spectral index of the source.
+        """
+        
+        one_plus_alpha = 1e-10 
+        alpha = one_plus_alpha - 1
+        
+        log_likelihood_ratio = 0.0
+        
+        for i in range(self.Nprime):
+            
+            signal = self._signal_likelihood(self._selected_event_coords[i],
+                                             self._source_coord, self._selected_energies[i], index)
+
+            bg = self._background_likelihood(self._selected_energies[i])
+
+            chi = (1 / self.N) * (signal/bg - 1)
+
+            alpha_i = ns * chi
+               
+            if (1 + alpha_i) < one_plus_alpha:
+
+                alpha_tilde = (alpha_i - alpha) / one_plus_alpha 
+                log_likelihood_ratio += np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde**2) 
+
+            else:
+                
+                log_likelihood_ratio += np.log1p(alpha_i)
+
+        log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)    
+        
+        return -log_likelihood_ratio
+
+            
+    def _func_to_minimize(self, ns, index):
         """
         Calculate the -log(likelihood_ratio) for minimization.
 
@@ -163,45 +214,9 @@ class PointSourceLikelihood():
 
             log_likelihood_ratio += np.log(self._index_prior(index))
         
+        
         return -log_likelihood_ratio
-
     
-    def _get_log_likelihood(self, ns=0.0, index=None):
-        """
-        Calculate -log(likelihood) where likelihood is the 
-        full point source likelihood. Negative is reutrned for
-        easy minimization.
-
-        Evaluated at the best fit ns and index, this is the 
-        maximum likelihood for the source + background hypothesis.
-        Evaluated at ns=0, index=None, this is the likelihood 
-        for the background only hypothesis.
-
-        :param ns: Number of source counts.
-        :param index: Spectral index of source.
-        """
-
-        log_likelihood = 0.0
-
-        for i in range(self.N):
-
-            if index:
-                
-                signal = self._signal_likelihood(self._selected_event_coords[i], self._source_coord, self._selected_energies[i], index)
-                S_i = (ns / self.N) * signal
-
-            else:
-
-                S_i = 0
-                
-            bg = self._background_likelihood(self._selected_energies[i])
-
-            B_i = (1 - ns/self.N) * bg
-            
-            log_likelihood += np.log(S_i + B_i)
-
-        return -log_likelihood
-
     
     def __call__(self, ns, index):
         """
@@ -220,10 +235,10 @@ class PointSourceLikelihood():
         """
 
 
-        init_index = 2.0 #self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2 
+        init_index = 2.19 #self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2 
         init_ns = self._ns_min + (self._ns_max - self._ns_min)/2 
 
-        m = Minuit(self._get_neg_log_likelihood_ratio, ns=init_ns, index=init_index,
+        m = Minuit(self._func_to_minimize, ns=init_ns, index=init_index,
                    error_ns=1, error_index=0.1, errordef=0.5,
                    limit_ns=(self._ns_min, self._ns_max),
                    limit_index=(self._energy_likelihood._min_index, self._max_index))

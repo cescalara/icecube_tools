@@ -135,6 +135,8 @@ class MarginalisedEnergyLikelihoodFixed(MarginalisedEnergyLikelihood):
 
         self._energy_bins = np.linspace(np.log10(min_E), np.log10(max_E)) # GeV
 
+        self._precompute_histogram()
+
         
     def _precompute_histogram(self):
         
@@ -145,7 +147,7 @@ class MarginalisedEnergyLikelihoodFixed(MarginalisedEnergyLikelihood):
 
     def __call__(self, E):
         
-        E_index = np.digitize(np.lgo10(E), self._energy_bins) - 1
+        E_index = np.digitize(np.log10(E), self._energy_bins) - 1
 
         return self._likelihood[E_index]
 
