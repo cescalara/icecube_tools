@@ -86,17 +86,42 @@ class SpatialGaussianLikelihood(SpatialLikelihood):
 
     
 class EnergyDependentSpatialGaussianLikelihood(SpatialLikelihood):
+    """
+    Energy dependent spatial likelihood. Uses AngularResolution 
+    specified for given spectral indicies. For example in the 2015 
+    data release angular resolution plots.
+    
+    The atmospheric spectrum is approximated as a power law
+    with a single spectral index.
+    """
 
     
     def __init__(self, angular_resolution_list, index_list):
-
+        """
+        Energy dependent spatial likelihood. Uses AngularResolution 
+        specified for given spectral indicies. For example in the 2015 
+        data release angular resolution plots.
         
+        The atmospheric spectrum is approximated as a power law
+        with a single spectral index.
+        
+        :param angular_resolution_list: List of AngularResolution instances.
+        :param index_list: List of corresponding spectral indices
+        """
+
         self._angular_resolution_list = angular_resolution_list
 
         self._index_list = index_list
 
 
     def _get_sigma(self, reco_energy, index):
+        """
+        Return the expected angular resolution for a 
+        given reconstrcuted energy and spectral index.
+
+        :param reco_energy: Reconstructed energy [GeV]
+        :param index: Spectral index
+        """
         
         ang_res_at_Ereco = [ang_res._get_angular_resolution(reco_energy)
                             for ang_res in self._angular_resolution_list]
@@ -107,7 +132,30 @@ class EnergyDependentSpatialGaussianLikelihood(SpatialLikelihood):
         return ang_res_at_index
 
     
+    def get_low_res(self):
+        """
+        Representative lower resolution 
+        at fixed low energy and bg index.
+
+        To be used in PointSourceLikelihood.
+        """
+
+        low_energy = 1e3
+
+        bg_index = 3.7
+        
+        return self._get_sigma(low_energy, bg_index)
+
+    
     def __call__(self, event_coord, source_coord, reco_energy, index=2.0):
+        """
+        Evaluate PDF for a given event.
+
+        :param event_coord: (ra, dec) coordinates of event
+        :param source_coord: (ra, dec) coordinates of source
+        :param reco_energy: Reconstructed energy [GeV]
+        :param index: Spectral index of source
+        """
 
         sigma_rad = np.deg2rad(self._get_sigma(reco_energy, index))
 

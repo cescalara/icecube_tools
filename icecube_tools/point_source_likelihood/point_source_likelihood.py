@@ -1,3 +1,4 @@
+
 import numpy as np
 from iminuit import Minuit
 
@@ -22,7 +23,8 @@ class PointSourceLikelihood():
     Calculate the point source likelihood for a given 
     neutrino dataset - in terms of reconstructed 
     energies and arrival directions.
-    Based on what is described in Braun+2008.
+    Based on what is described in Braun+2008 and 
+    Aartsen+2018.
     """    
     
     def __init__(self, direction_likelihood, energy_likelihood, 
@@ -49,7 +51,7 @@ class PointSourceLikelihood():
         
         if isinstance(self._direction_likelihood, EnergyDependentSpatialGaussianLikelihood):
 
-            self._band_width = band_width_factor * self._direction_likelihood._get_sigma(1e3, 3.7)
+            self._band_width = band_width_factor * self._direction_likelihood.get_low_res()
 
         else:
             
@@ -66,13 +68,15 @@ class PointSourceLikelihood():
         self._source_coord = source_coord
 
         self._index_prior = index_prior
-        
-        self._bg_index = 3.7
 
+        # Sensible values based on Braun+2008
+        # and Aartsen+2018 analyses
+        self._bg_index = 3.7
         self._ns_min = 0.0
         self._ns_max = 100
         self._max_index = 4.0
-
+        # min index depends on the energy likelihood used.
+        
         self._select_nearby_events()
 
         self.Ntot = len(self._energies)
@@ -132,7 +136,7 @@ class PointSourceLikelihood():
         
     def _get_neg_log_likelihood_ratio(self, ns, index):
         """
-        Calculate the -log(likelihood_ratio) for minimization.
+        Calculate the -log(likelihood_ratio).
 
         Uses calculation described in:
         https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf
@@ -177,6 +181,9 @@ class PointSourceLikelihood():
 
         Uses calculation described in:
         https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf
+
+        If there is a prior, it is added here, as this is equivalent to maximising 
+        the likelihood. 
 
         :param ns: Number of source counts.
         :param index: Spectral index of the source.
@@ -340,7 +347,8 @@ class PointSourceLikelihood():
 
         self._minimize()
         #self._minimize_grid()
-        
+
+        # For resolving the TS peak at zero
         #if self._best_fit_ns == 0:
 
         #    first_der = self._first_derivative_likelihood_ratio(self._best_fit_ns, self._best_fit_index)
