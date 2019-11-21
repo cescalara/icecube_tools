@@ -41,7 +41,10 @@ def get_detection_probability(filename, index, TS_threshold):
     Pdet_at_Nsrc = []
     for i, Nsrc in enumerate(Nsrc_list):
 
-        P = len(TS[i][TS[i] > TS_threshold]) / len(TS[i])
+        idx = np.where(~np.isnan(TS[i]))
+        ts = TS[i][idx]
+        
+        P = len(ts[ts > TS_threshold]) / len(ts)
 
         Pdet_at_Nsrc.append(P)
     
