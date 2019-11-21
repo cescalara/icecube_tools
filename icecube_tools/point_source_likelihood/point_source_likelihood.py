@@ -17,7 +17,6 @@ Currently well-defined for searches with
 Northern sky muon neutrinos.
 """
 
-
 class PointSourceLikelihood():
     """
     Calculate the point source likelihood for a given 
@@ -28,7 +27,7 @@ class PointSourceLikelihood():
     
     def __init__(self, direction_likelihood, energy_likelihood, 
                  event_coords, energies, source_coord,
-                 bg_energy_likelihood=None, index_prior=None):
+                 bg_energy_likelihood=None, index_prior=None, band_width_factor=3.0):
         """
         Calculate the point source likelihood for a given 
         neutrino dataset - in terms of reconstructed 
@@ -50,11 +49,11 @@ class PointSourceLikelihood():
         
         if isinstance(self._direction_likelihood, EnergyDependentSpatialGaussianLikelihood):
 
-            self._band_width = 3 * self._direction_likelihood._get_sigma(1e3, 3.7)
+            self._band_width = band_width_factor * self._direction_likelihood._get_sigma(1e3, 3.7)
 
         else:
             
-            self._band_width = 3 * self._direction_likelihood._sigma # degrees
+            self._band_width = band_width_factor * self._direction_likelihood._sigma # degrees
 
         dec_low = source_coord[1] - np.deg2rad(self._band_width)
         dec_high = source_coord[1] + np.deg2rad(self._band_width)
