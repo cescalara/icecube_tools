@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import poisson
+from scipy.optimize import curve_fit, fsolve
 import h5py
 
 """
@@ -127,3 +128,39 @@ def get_detection_probability_Braun2008(filename, index, TS_threshold):
         Pdet.append(P)
 
     return Nsrc_list, Pdet
+
+
+def get_TS_threshold(TS, level, above=5):
+    """
+    Return TS at specified threshold level.
+    Used to approximate the 5 sigma level.
+
+    :param TS: TS values
+    :param level: Threshold level (e.g. 5.7e-7 for 5 sigma) 
+    :param above: Fit above this value, defining the tail 
+    """
+
+    idx = np.where(~np.isnan(TS))
+    
+    values, bins = np.histogram(TS[idx], bins=50, density=True)
+
+    cumsum = np.cumsum(values)
+    cumulative = cumsum / max(cumsum)
+
+    bin_c = bins[:-1] + np.diff(bins)/2
+
+    out, cov = curve_fit(fit_func, bin_c[bin_c>above], 1-cumulative[bin_c>above])
+    
+    TS_thresh = fsolve(solve_func, x0=15, args=(out[0], out[1], level))[0]
+
+    return TS_thresh
+
+    
+def fit_func(x, a, b):
+    
+    return a * np.power(b, x)
+
+
+def solve_func(x, a, b, level):
+
+    return fit_func(x, a, b) - level

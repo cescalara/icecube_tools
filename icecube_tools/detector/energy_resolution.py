@@ -77,7 +77,7 @@ class EnergyResolution(ABC):
         pass
         
         
-class NuMuEnergyResolution(EnergyResolution):
+class EnergyResolution(EnergyResolution):
     """
     Muon neutrino energy resolution using public data.
     Makes use of the 2015 effective area release and its

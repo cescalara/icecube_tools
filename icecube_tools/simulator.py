@@ -139,14 +139,8 @@ class Simulator():
                     ra, dec = self.sources[label].coord
                     
                 cosz = -np.sin(dec)
-                
-                if cosz > self.max_cosz:
-
-                    detection_prob = 0
-
-                else:
                     
-                    detection_prob = float(self.detector.effective_area.detection_probability(Etrue, cosz, max_energy))
+                detection_prob = float(self.detector.effective_area.detection_probability(Etrue, cosz, max_energy))
                 
                 accepted = np.random.choice([True, False], p=[detection_prob, 1-detection_prob])
                 
