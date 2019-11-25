@@ -138,7 +138,7 @@ class MarginalisedEnergyLikelihoodFixed(MarginalisedEnergyLikelihood):
     """
     
 
-    def __init__(self, energy, dec, min_index=1.5, max_index=4.0,
+    def __init__(self, energy, min_index=1.5, max_index=4.0,
                  min_E=1e2, max_E=1e9, min_sind=-0.1, max_sind=1.0):
         """
         Compute the marginalised energy likelihood for a fixed case based on a simulation.
@@ -148,10 +148,6 @@ class MarginalisedEnergyLikelihoodFixed(MarginalisedEnergyLikelihood):
         """
 
         self._energy = energy
-
-        self._dec = dec
-
-        self._src_dec = None
         
         self._min_index = min_index
         self._max_index = max_index
@@ -161,26 +157,13 @@ class MarginalisedEnergyLikelihoodFixed(MarginalisedEnergyLikelihood):
 
         self._energy_bins = np.linspace(np.log10(min_E), np.log10(max_E)) # GeV
 
-        self._sin_dec_bins = np.linspace(min_sind, max_sind, 20)
-
-
-    def set_src_dec(self, src_dec):
-
-        self._src_dec = src_dec
-
         self._precompute_histogram()
 
         
     def _precompute_histogram(self):
         
 
-        sind_idx = np.digitize(np.sin(self._src_dec), self._sin_dec_bins)-1
-
-        idx = (np.sin(self._dec) >= self._sin_dec_bins[sind_idx]) & (np.sin(self._dec) < self._sin_dec_bins[sind_idx+1])
-
-        selected_energy = self._energy[idx]
-        
-        hist, _ = np.histogram(np.log10(selected_energy), bins=self._energy_bins, density=True)
+        hist, _ = np.histogram(np.log10(self._energy), bins=self._energy_bins, density=True)
 
         self._likelihood = hist
 

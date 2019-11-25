@@ -202,7 +202,7 @@ class PointSourceLikelihood():
             bg = self._background_likelihood(self._selected_energies[i])
 
             chi = (1 / self.N) * (signal/bg - 1)
-
+            
             alpha_i = ns * chi
                
             if (1 + alpha_i) < one_plus_alpha:
