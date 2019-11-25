@@ -127,8 +127,14 @@ class PointSourceLikelihood():
 
         if self._bg_energy_likelihood:
 
-            return self._bg_energy_likelihood(energy) / self._band_solid_angle
+            output = self._bg_energy_likelihood(energy) / self._band_solid_angle
 
+            if output == 0.0:
+                
+                 output = 1e-10
+            
+            return output 
+        
         else:
 
             return self._energy_likelihood(energy, self._bg_index) / self._band_solid_angle
