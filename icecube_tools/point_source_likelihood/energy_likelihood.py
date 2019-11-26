@@ -42,7 +42,7 @@ class MarginalisedEnergyLikelihoodFromSim(MarginalisedEnergyLikelihood):
     
     
     def __init__(self, energy, dec, sim_index=1.5, min_index=1.5, max_index=4.0,
-                 min_E=1e2, max_E=1e9, min_sind=-0.1, max_sind=1.0):
+                 min_E=1e2, max_E=1e9, min_sind=-0.1, max_sind=1.0, Ebins=50):
         """
         Compute the marginalised energy likelihood by using a 
         simulation of a large number of reconstructed muon 
@@ -67,7 +67,7 @@ class MarginalisedEnergyLikelihoodFromSim(MarginalisedEnergyLikelihood):
         
         self._index_bins = np.linspace(min_index, max_index)
 
-        self._energy_bins = np.linspace(np.log10(min_E), np.log10(max_E)) # GeV
+        self._energy_bins = np.linspace(np.log10(min_E), np.log10(max_E), Ebins) # GeV
 
         self._sin_dec_bins = np.linspace(min_sind, max_sind, 20)
 
@@ -139,7 +139,7 @@ class MarginalisedEnergyLikelihoodFixed(MarginalisedEnergyLikelihood):
     
 
     def __init__(self, energy, min_index=1.5, max_index=4.0,
-                 min_E=1e2, max_E=1e9, min_sind=-0.1, max_sind=1.0):
+                 min_E=1e2, max_E=1e9, min_sind=-0.1, max_sind=1.0, Ebins=50):
         """
         Compute the marginalised energy likelihood for a fixed case based on a simulation.
         Eg. P(E | atmos + diffuse astro).
@@ -155,7 +155,7 @@ class MarginalisedEnergyLikelihoodFixed(MarginalisedEnergyLikelihood):
         self._min_E = min_E
         self._max_E = max_E
 
-        self._energy_bins = np.linspace(np.log10(min_E), np.log10(max_E)) # GeV
+        self._energy_bins = np.linspace(np.log10(min_E), np.log10(max_E), Ebins) # GeV
 
         self._precompute_histogram()
 

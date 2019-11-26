@@ -153,7 +153,7 @@ def get_TS_threshold(TS, level, above=5):
     
     TS_thresh = fsolve(solve_func, x0=15, args=(out[0], out[1], level))[0]
 
-    return TS_thresh
+    return TS_thresh, out, cov
 
     
 def fit_func(x, a, b):
