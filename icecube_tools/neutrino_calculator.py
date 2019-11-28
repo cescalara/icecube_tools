@@ -214,7 +214,7 @@ class PhiSolver():
     
     
 
-    def __call__(self, Nnu, dec, index):
+    def __call__(self, Nnu, dec, index, guess=1e-19):
         """
         Get equivalent point source flux normalisation
         needed to produce an expected number of neutrinos, 
@@ -225,7 +225,7 @@ class PhiSolver():
         :param index: Spectral index of point source
         """
 
-        phi_norm = fsolve(self._solve_for_phi, x0=1e-19, args=(Nnu, dec, index))[0]
+        phi_norm = fsolve(self._solve_for_phi, x0=guess, args=(Nnu, dec, index))[0]
 
         return phi_norm
         

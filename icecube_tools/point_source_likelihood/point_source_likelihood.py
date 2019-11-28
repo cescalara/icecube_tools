@@ -551,7 +551,7 @@ class EnergyDependentSpatialPointSourceLikelihood():
     but without the energy depedence.
     """    
     
-    def __init__(self, direction_likelihood, event_coords, energies, source_coord):
+    def __init__(self, direction_likelihood, event_coords, energies, source_coord, band_width_factor=3.0):
         """
         Calculate the point source likelihood for a given 
         neutrino dataset - in terms of reconstructed 
@@ -564,7 +564,7 @@ class EnergyDependentSpatialPointSourceLikelihood():
 
         self._direction_likelihood = direction_likelihood 
   
-        self._band_width = 5 * self._direction_likelihood._get_sigma(1e2, 2.0) # degrees
+        self._band_width = band_width_factor * self._direction_likelihood.get_low_res()
 
         dec_low = source_coord[1] - np.deg2rad(self._band_width)
         dec_high = source_coord[1] + np.deg2rad(self._band_width)
@@ -576,11 +576,8 @@ class EnergyDependentSpatialPointSourceLikelihood():
 
         self._energies = energies
 
-        self._bg_index = 3.7
-
         self._ns_min = 0.0
         self._ns_max = 100
-        self._max_index = 3.7
 
         self._select_nearby_events()
 
