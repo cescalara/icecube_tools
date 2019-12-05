@@ -551,14 +551,15 @@ class EnergyDependentSpatialPointSourceLikelihood():
     but without the energy depedence.
     """    
     
-    def __init__(self, direction_likelihood, event_coords, energies, source_coord, band_width_factor=3.0):
+    def __init__(self, direction_likelihood, ras, decs, energies, source_coord, band_width_factor=3.0):
         """
         Calculate the point source likelihood for a given 
         neutrino dataset - in terms of reconstructed 
         energies and arrival directions.
         
         :param direction_likelihood: An instance of SpatialGaussianLikelihood.
-        :param event_coords: List of (ra, dec) tuples for reconstructed coords.
+        :param ras: Array of right acsensions in [rad]
+        :param decs: Array of declinations in [dec]
         :param source_coord: (ra, dec) pf the point to test.
         """
 
@@ -566,11 +567,25 @@ class EnergyDependentSpatialPointSourceLikelihood():
   
         self._band_width = band_width_factor * self._direction_likelihood.get_low_res()
 
-        dec_low = source_coord[1] - np.deg2rad(self._band_width)
-        dec_high = source_coord[1] + np.deg2rad(self._band_width)
-        self._band_solid_angle = 2 * np.pi * (np.sin(dec_high) - np.sin(dec_low))
+        self._dec_low = source_coord[1] - np.deg2rad(self._band_width)
+
+        if self._dec_low < np.arcsin(-0.1):
+            self._dec_low = np.arcsin(-0.1)
+            
+        self._dec_high = source_coord[1] + np.deg2rad(self._band_width)
+
+        if self._dec_high > np.arcsin(1.0):
+            self._dec_high = np.arcsin(1.0)
+
+        self._ra_low = source_coord[0] - np.deg2rad(self._band_width)
+
+        self._ra_high = source_coord[0] + np.deg2rad(self._band_width)
         
-        self._event_coords = event_coords
+        self._band_solid_angle = 2 * np.pi * (np.sin(self._dec_high) - np.sin(self._dec_low))
+
+        self._ras = ras
+
+        self._decs = decs
         
         self._source_coord = source_coord
 
@@ -581,30 +596,24 @@ class EnergyDependentSpatialPointSourceLikelihood():
 
         self._select_nearby_events()
 
-        self.Ntot = len(self._event_coords)
+        self.Ntot = len(self._ras)
         
 
     def _select_nearby_events(self):
 
-        ras = np.array([_[0] for _ in self._event_coords])
-
-        decs = np.array([_[1] for _ in self._event_coords])
-
         source_ra, source_dec = self._source_coord
-
-        dec_fac = np.deg2rad(self._band_width)
         
-        selected = list( set(np.where((decs >= source_dec - dec_fac) & (decs <= source_dec + dec_fac)
-                            & (ras >= source_ra - dec_fac) & (ras <= source_ra + dec_fac))[0]) )
+        selected = list( set(np.where((self._decs >= self._dec_low) & (self._decs <= self._dec_high)
+                            & (self._ras >= self._ra_low) & (self._ras <= self._ra_high))[0]) )
 
-        selected_dec_band = np.where((decs >= source_dec - dec_fac) & (decs <= source_dec + dec_fac))[0]
+        selected_dec_band = np.where((self._decs >= self._dec_low) & (self._decs <= self._dec_high))[0]
         
         self._selected = selected
-        
-        self._selected_event_coords = [(ec[0], ec[1]) for ec in self._event_coords
-                                       if (ec[1] >= source_dec - dec_fac) & (ec[1] <= source_dec + dec_fac)
-                                       & (ec[0] >= source_ra - dec_fac) & (ec[0] <= source_ra + dec_fac)]
 
+        self._selected_ras = self._ras[selected]
+
+        self._selected_decs = self._decs[selected]
+        
         self._selected_energies = self._energies[selected]
         
         self.Nprime = len(selected)
@@ -612,9 +621,9 @@ class EnergyDependentSpatialPointSourceLikelihood():
         self.N = len(selected_dec_band)
         
         
-    def _signal_likelihood(self, event_coord, source_coord, energy):
+    def _signal_likelihood(self, ra, dec, source_coord, energy):
             
-        return self._direction_likelihood(event_coord, source_coord, energy) 
+        return self._direction_likelihood((ra, dec), source_coord, energy) 
 
 
     def _background_likelihood(self):
@@ -639,7 +648,7 @@ class EnergyDependentSpatialPointSourceLikelihood():
         
         for i in range(self.Nprime):
             
-            signal = self._signal_likelihood(self._selected_event_coords[i], self._source_coord, self._energies[i])
+            signal = self._signal_likelihood(self._selected_ras[i], self._selected_decs[i], self._source_coord, self._energies[i])
 
             bg = self._background_likelihood()
 
