@@ -1,4 +1,3 @@
-
 import numpy as np
 from iminuit import Minuit
 
@@ -566,31 +565,23 @@ class EnergyDependentSpatialPointSourceLikelihood():
         self._direction_likelihood = direction_likelihood 
         
         self._band_width = band_width_factor * self._direction_likelihood.get_low_res()
-
-        sd = np.sin(source_coord[1])
-
-        sd_hi = sd + np.sin(np.deg2rad(self._band_width))
-
-        sd_low = sd - np.sin(np.deg2rad(self._band_width))
         
-        #self._dec_low = source_coord[1] - np.deg2rad(self._band_width)
-        self._dec_low = np.arcsin(sd_low)
-        
+        self._dec_low = source_coord[1] - np.deg2rad(self._band_width)
+
+        self._dec_high = source_coord[1] + np.deg2rad(self._band_width)
+
         if self._dec_low < np.arcsin(-0.1) or np.isnan(self._dec_low):
             self._dec_low = np.arcsin(-0.1)
-
-        #self._dec_high = source_coord[1] + np.deg2rad(self._band_width)
-        self._dec_high = np.arcsin(sd_hi)
         
         if self._dec_high > np.arcsin(1.0) or np.isnan(self._dec_high):
             self._dec_high = np.arcsin(1.0)
 
+        self._band_solid_angle = 2 * np.pi * (np.sin(self._dec_high) - np.sin(self._dec_low))
+            
         self._ra_low = source_coord[0] - np.deg2rad(self._band_width)
 
         self._ra_high = source_coord[0] + np.deg2rad(self._band_width)
         
-        self._band_solid_angle = 2 * np.pi * (np.sin(self._dec_high) - np.sin(self._dec_low))
-
         self._ras = ras
 
         self._decs = decs
