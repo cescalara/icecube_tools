@@ -60,8 +60,8 @@ class PointSourceLikelihood():
 
         self._dec_high = source_coord[1] + np.deg2rad(self._band_width)
 
-        #if self._dec_low < np.arcsin(-0.1) or np.isnan(self._dec_low):
-        #    self._dec_low = np.arcsin(-0.1)
+        if self._dec_low < np.arcsin(-0.1) or np.isnan(self._dec_low):
+            self._dec_low = np.arcsin(-0.1)
 
         if self._dec_high > np.arcsin(1.0) or np.isnan(self._dec_high):
             self._dec_high = np.arcsin(1.0)
@@ -581,8 +581,8 @@ class EnergyDependentSpatialPointSourceLikelihood():
 
         self._dec_high = source_coord[1] + np.deg2rad(self._band_width)
 
-        #if self._dec_low < np.arcsin(-0.1) or np.isnan(self._dec_low):
-        #    self._dec_low = np.arcsin(-0.1)
+        if self._dec_low < np.arcsin(-0.1) or np.isnan(self._dec_low):
+            self._dec_low = np.arcsin(-0.1)
         
         if self._dec_high > np.arcsin(1.0) or np.isnan(self._dec_high):
             self._dec_high = np.arcsin(1.0)
