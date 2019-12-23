@@ -88,7 +88,7 @@ class MarginalisedEnergyLikelihoodFromSim(MarginalisedEnergyLikelihood):
     
     def _precompute_histograms(self):
 
-        self._likelihood = np.zeros( (len(self._energy_bins[:-1]), len(self._energy_bins[:-1])) )
+        self._likelihood = np.zeros( (len(self._index_bins[:-1]), len(self._energy_bins[:-1])) )
 
         sind_idx = np.digitize(np.sin(self._src_dec), self._sin_dec_bins)-1
 
