@@ -142,14 +142,11 @@ def get_TS_threshold(TS, level, above=5):
 
     idx = np.where(~np.isnan(TS))
     
-    values, bins = np.histogram(TS[idx], bins=50, density=True)
+    x = np.sort(TS[idx])
 
-    cumsum = np.cumsum(values)
-    cumulative = cumsum / max(cumsum)
-
-    bin_c = bins[:-1] + np.diff(bins)/2
-
-    out, cov = curve_fit(fit_func, bin_c[bin_c>above], 1-cumulative[bin_c>above])
+    cumulative = np.array(range(len(TS[idx]))) / float(len(TS[idx]))
+    
+    out, cov = curve_fit(fit_func, x[x>above], 1-cumulative[x>above])
     
     TS_thresh = fsolve(solve_func, x0=15, args=(out[0], out[1], level))[0]
 
