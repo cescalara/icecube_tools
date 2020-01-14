@@ -195,7 +195,7 @@ class AngularResolution():
         
         unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
 
-        kappa = 7552 * np.power(sigma, -2)
+        kappa = 5000 * np.power(sigma, -2)
 
         new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0] 
 
@@ -238,7 +238,7 @@ class FixedAngularResolution():
         
         unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
 
-        kappa = 7552 * np.power(self.sigma, -2)
+        kappa = 5000 * np.power(self.sigma, -2)
 
         new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0] 
 
