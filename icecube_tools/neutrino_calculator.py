@@ -4,6 +4,7 @@ from scipy.optimize import fsolve
 from .source.source_model import Source, PointSource, DIFFUSE, POINT
 from .source.flux_model import FluxModel, PowerLawFlux
 from .detector.effective_area import EffectiveArea
+from .cosmology import luminosity_distance, Mpc_to_cm
 
 """
 Module for calculating the number of neutrinos,
@@ -231,4 +232,50 @@ class PhiSolver():
         
         
 
+    
+class zSolver():
+    """
+    To calculate the redshift corresponding to a flux normalisation, 
+    for a given L and gamma.  
+    """
+
+    
+
+    def __init__(self, Emin):
+        """
+        :param Emin: The miniminum/normalisation energy [TeV] 
+        """
+
+        self._Emin = Emin
+
+
+    def _phi_norm(self, z, L, gamma):
+
+        dl = luminosity_distance(z) * Mpc_to_cm # cm
+
+        A = L / (4 * np.pi * np.power(dl, 2)) # TeV cm^-2 s^-1
+        #B = np.power(1+z, 2-gamma) * ((gamma-2) / np.power(self._Emin, 2)) # TeV^-2
+        B = ((gamma-2) / np.power(self._Emin, 2)) # TeV^-2
+
+        return A #* B
+    
+    
+    def _solve_for_z(self, z, phi_norm, L, gamma):
+        """
+        :param z: Redshift
+        :param phi_norm: Point source flux normalisation at Emin [TeV^-1 cm^-2 s^-1 sr^-1]
+        :param L: Source luminosity [TeV s^-1]
+        :param gamma: Spectral index
+        """
+
+        phi_norm_test = self._phi_norm(z, L, gamma)
+
+        return abs(phi_norm - phi_norm_test)
+
+
+    def __call__(self, phi_norm, L, gamma, guess=0.1):
+
+        z = fsolve(self._solve_for_z, x0=guess, args=(phi_norm, L, gamma))[0]
+        
+        return z
     
