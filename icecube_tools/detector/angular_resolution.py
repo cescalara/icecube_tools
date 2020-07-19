@@ -15,6 +15,7 @@ R2015_ANG_RES_FILENAME = "angres_plot"
 TRUE_ENERGY = 0
 RECO_ENERGY = 1
 
+
 class IceCubeAngResReader(ABC):
     """
     Abstract base class for different input files
@@ -36,11 +37,10 @@ class IceCubeAngResReader(ABC):
         self.true_energy_bins = None
 
         self.reco_energy_values = None
-        
+
         self.read()
-        
+
         super().__init__()
-        
 
     @abstractmethod
     def read(self):
@@ -55,13 +55,13 @@ class R2015AngResReader(IceCubeAngResReader):
 
     def read(self):
 
-        out = np.loadtxt(self._filename, delimiter=',', comments='#')
+        out = np.loadtxt(self._filename, delimiter=",", comments="#")
 
-        self.ang_res_values = out.T[1] 
+        self.ang_res_values = out.T[1]
 
         self.reco_energy_values = out.T[0]
 
-        
+
 class FromPlotAngResReader(IceCubeAngResReader):
     """
     Reader for the plots from the Aartsen+2018 
@@ -70,14 +70,14 @@ class FromPlotAngResReader(IceCubeAngResReader):
 
     def read(self):
 
-        out = np.loadtxt(self._filename, delimiter=',', comments='#')
+        out = np.loadtxt(self._filename, delimiter=",", comments="#")
 
-        self.ang_res_values = out.T[1] 
+        self.ang_res_values = out.T[1]
 
         self.true_energy_values = out.T[0]
 
         self.true_energy_bins = None
-        
+
 
 class R2018AngResReader(IceCubeAngResReader):
     """
@@ -88,32 +88,35 @@ class R2018AngResReader(IceCubeAngResReader):
     def read(self):
 
         import pandas as pd
-        
+
         self.year = int(self._filename[-15:-11])
-        self.nu_type = 'nu_mu'
-         
-        filelayout = ['E_min [GeV]', 'E_max [GeV]', 'Med. Resolution[deg]']
-        output = pd.read_csv(self._filename, comment='#',
-                             delim_whitespace=True,
-                             names=filelayout).to_dict()
-        
-        true_energy_lower = set(output['E_min [GeV]'].values())
-        true_energy_upper = set(output['E_max [GeV]'].values())
-    
-        self.true_energy_bins = np.array( list(true_energy_upper.union(true_energy_lower)) )
+        self.nu_type = "nu_mu"
+
+        filelayout = ["E_min [GeV]", "E_max [GeV]", "Med. Resolution[deg]"]
+        output = pd.read_csv(
+            self._filename, comment="#", delim_whitespace=True, names=filelayout
+        ).to_dict()
+
+        true_energy_lower = set(output["E_min [GeV]"].values())
+        true_energy_upper = set(output["E_max [GeV]"].values())
+
+        self.true_energy_bins = np.array(
+            list(true_energy_upper.union(true_energy_lower))
+        )
         self.true_energy_bins.sort()
-                
-        self.ang_res_values = np.array( list(output['Med. Resolution[deg]'].values()) )
 
-        self.true_energy_values = self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins)/2
-        
+        self.ang_res_values = np.array(list(output["Med. Resolution[deg]"].values()))
 
-class AngularResolution():
+        self.true_energy_values = (
+            self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins) / 2
+        )
 
+
+class AngularResolution:
     def __init__(self, filename, offset=0):
 
         self._filename = filename
-        
+
         self._reader = self.get_reader()
 
         self.values = self._reader.ang_res_values + offset
@@ -121,25 +124,24 @@ class AngularResolution():
         if self._energy_type == TRUE_ENERGY:
 
             self.true_energy_bins = self._reader.true_energy_bins
-            
+
             self.true_energy_values = self._reader.true_energy_values
-            
+
         elif self._energy_type == RECO_ENERGY:
 
             self.reco_energy_values = self._reader.reco_energy_values
-            
+
         self.sigma = None
-        
 
     def get_reader(self):
         """
         Define an IceCubeAeffReader based on the filename.
-        """      
+        """
 
         if R2018_ANG_RES_FILENAME in self._filename:
 
             self._energy_type = TRUE_ENERGY
-            
+
             return R2018AngResReader(self._filename)
 
         elif R2015_ANG_RES_FILENAME in self._filename:
@@ -151,13 +153,15 @@ class AngularResolution():
         elif ".csv" in self._filename:
 
             self._energy_type = TRUE_ENERGY
-            
+
             return FromPlotAngResReader(self._filename)
-        
+
         else:
 
-            raise ValueError(self._filename + ' is not recognised as one of the known angular resolution files.')
-        
+            raise ValueError(
+                self._filename
+                + " is not recognised as one of the known angular resolution files."
+            )
 
     def _get_angular_resolution(self, E):
         """
@@ -166,19 +170,19 @@ class AngularResolution():
         """
 
         if self._energy_type == TRUE_ENERGY:
-        
-            true_energy_bin_cen = (self.true_energy_bins[:-1] + self.true_energy_bins[1:]) / 2
-            
+
+            true_energy_bin_cen = (
+                self.true_energy_bins[:-1] + self.true_energy_bins[1:]
+            ) / 2
+
             ang_res = np.interp(np.log(E), np.log(true_energy_bin_cen), self.values)
 
         elif self._energy_type == RECO_ENERGY:
 
             ang_res = np.interp(np.log(E), np.log(self.reco_energy_values), self.values)
-            
+
         return ang_res
 
-    
-    
     def sample(self, Etrue, coord):
         """
         Sample new ra, dec values given a true energy
@@ -189,30 +193,33 @@ class AngularResolution():
 
         sigma = self._get_angular_resolution(Etrue)
 
-        sky_coord = SkyCoord(ra=ra*u.rad, dec=dec*u.rad, frame='icrs')
+        sky_coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
 
-        sky_coord.representation_type = 'cartesian'
-        
+        sky_coord.representation_type = "cartesian"
+
         unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
 
-        kappa = 7552 * np.power(sigma, -2)
+        kappa = 5000 * np.power(sigma, -2)
 
-        new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0] 
+        new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0]
 
-        new_sky_coord = SkyCoord(x=new_unit_vector[0], y=new_unit_vector[1],
-                                 z=new_unit_vector[2], representation_type='cartesian')
+        new_sky_coord = SkyCoord(
+            x=new_unit_vector[0],
+            y=new_unit_vector[1],
+            z=new_unit_vector[2],
+            representation_type="cartesian",
+        )
 
-        new_sky_coord.representation_type = 'unitspherical'
-        
+        new_sky_coord.representation_type = "unitspherical"
+
         new_ra = new_sky_coord.ra.rad
 
         new_dec = new_sky_coord.dec.rad
 
         return new_ra, new_dec
-        
 
-class FixedAngularResolution():
 
+class FixedAngularResolution:
     def __init__(self, sigma=1.0):
         """
         Simple fixed angular resolution.
@@ -222,7 +229,6 @@ class FixedAngularResolution():
 
         self.sigma = sigma
 
-        
     def sample(self, coord):
         """
         Sample reconstructed coord given original position.
@@ -232,36 +238,40 @@ class FixedAngularResolution():
 
         ra, dec = coord
 
-        sky_coord = SkyCoord(ra=ra*u.rad, dec=dec*u.rad, frame='icrs')
+        sky_coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
 
-        sky_coord.representation_type = 'cartesian'
-        
+        sky_coord.representation_type = "cartesian"
+
         unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
 
-        kappa = 7552 * np.power(self.sigma, -2)
+        kappa = 5000 * np.power(self.sigma, -2)
 
-        new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0] 
+        new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0]
 
-        new_sky_coord = SkyCoord(x=new_unit_vector[0], y=new_unit_vector[1],
-                                 z=new_unit_vector[2], representation_type='cartesian')
+        new_sky_coord = SkyCoord(
+            x=new_unit_vector[0],
+            y=new_unit_vector[1],
+            z=new_unit_vector[2],
+            representation_type="cartesian",
+        )
 
-        new_sky_coord.representation_type = 'unitspherical'
-        
+        new_sky_coord.representation_type = "unitspherical"
+
         new_ra = new_sky_coord.ra.rad
 
         new_dec = new_sky_coord.dec.rad
-        
+
         return new_ra, new_dec
-    
-    
+
+
 def icrs_to_unit_vector(ra, dec):
     """
     Convert to unit vector.
     """
 
-    theta = np.pi/2 - dec
+    theta = np.pi / 2 - dec
     phi = ra
-    
+
     x = np.sin(theta) * np.cos(phi)
     y = np.sin(theta) * np.sin(phi)
     z = np.cos(theta)
@@ -282,6 +292,6 @@ def unit_vector_to_icrs(unit_vector):
     theta = np.arccos(z)
 
     ra = phi
-    dec = np.pi/2 - theta
-    
+    dec = np.pi / 2 - theta
+
     return ra, dec
