@@ -17,6 +17,7 @@ Currently well-defined for searches with
 Northern sky muon neutrinos.
 """
 
+
 class PointSourceLikelihood():
     """
     Calculate the point source likelihood for a given 

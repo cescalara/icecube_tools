@@ -254,10 +254,9 @@ class zSolver():
         dl = luminosity_distance(z) * Mpc_to_cm # cm
 
         A = L / (4 * np.pi * np.power(dl, 2)) # TeV cm^-2 s^-1
-        #B = np.power(1+z, 2-gamma) * ((gamma-2) / np.power(self._Emin, 2)) # TeV^-2
-        B = ((gamma-2) / np.power(self._Emin, 2)) # TeV^-2
+        B = np.power(1+z, 2-gamma) * ((gamma-2) / np.power(self._Emin, 2)) # TeV^-2
 
-        return A #* B
+        return A * B
     
     
     def _solve_for_z(self, z, phi_norm, L, gamma):
@@ -270,7 +269,7 @@ class zSolver():
 
         phi_norm_test = self._phi_norm(z, L, gamma)
 
-        return abs(phi_norm - phi_norm_test)
+        return phi_norm - phi_norm_test
 
 
     def __call__(self, phi_norm, L, gamma, guess=0.1):
@@ -278,4 +277,24 @@ class zSolver():
         z = fsolve(self._solve_for_z, x0=guess, args=(phi_norm, L, gamma))[0]
         
         return z
+
+    
+    def get_L(self, rate, gamma):
+        """
+        Find luminosity for a given rate and index.
+        This is useful as comparing constant L plots can be 
+        misleading.
+
+        :param rate: Total rate above Emin [s^-1]
+        :param gamma: Spectral index
+        """
+
+        A = (gamma-1) / (gamma-2)
+
+        B = np.power(self._Emin, 2-gamma) / np.power(self._Emin, 1-gamma)
+
+        return rate * A * B 
+
+    
+    
     
