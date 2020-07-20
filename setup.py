@@ -1,14 +1,14 @@
 import setuptools
 
 setuptools.setup(
-    name = 'icecube_tools',
-    packages = setuptools.find_packages(),
-    version = 'v2.5',
-    description = 'Tools for the analysis of IceCube public data',
-    author = 'Francesca Capel',
-    author_email = 'capel.francesca@gmail.com',
-    url = 'https://github.com/cescalara/icecube_tools',
-    download_url = 'https://github.com/cescalara/icecube_tools/',
-    keywords = ['neutrino', 'analysis'],
-    classifiers = [],
+    name="icecube_tools",
+    packages=setuptools.find_packages(),
+    version="v3.0",
+    description="Tools for the analysis of IceCube public data",
+    author="Francesca Capel",
+    author_email="capel.francesca@gmail.com",
+    url="https://github.com/cescalara/icecube_tools",
+    download_url="https://github.com/cescalara/icecube_tools/",
+    keywords=["neutrino", "analysis"],
+    classifiers=[],
 )
