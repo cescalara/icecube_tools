@@ -1,5 +1,4 @@
-import numpy as np
-from abc import ABC, abstractmethod
+from abc import ABC
 
 from .effective_area import EffectiveArea
 from .energy_resolution import EnergyResolution
@@ -9,6 +8,7 @@ from .angular_resolution import AngularResolution
 Detector modules, bringing together 
 effective area and energy resolution.
 """
+
 
 class Detector(ABC):
     """
@@ -20,14 +20,13 @@ class Detector(ABC):
 
         return self._effective_area
 
-    
     @effective_area.setter
     def effective_area(self, value):
 
         if not isinstance(value, EffectiveArea):
 
-            raise ValueError(str(value) + ' is not an instance of EffectiveArea')
-        
+            raise ValueError(str(value) + " is not an instance of EffectiveArea")
+
         else:
 
             self._effective_area = value
@@ -42,7 +41,7 @@ class Detector(ABC):
 
         if not isinstance(value, EnergyResolution):
 
-            raise ValueError(str(value) + ' is not an instance of EnergyResolution')
+            raise ValueError(str(value) + " is not an instance of EnergyResolution")
 
     @property
     def angular_resolution(self):
@@ -54,12 +53,12 @@ class Detector(ABC):
 
         if not isinstance(value, AngularResolution):
 
-            raise ValueError(str(value) + ' is nmot an instance of AngularResolution.')
+            raise ValueError(str(value) + " is nmot an instance of AngularResolution.")
 
         else:
 
             self._angular_resolution = value
-          
+
 
 class IceCube(Detector):
     """
@@ -78,7 +77,7 @@ class IceCube(Detector):
         self._effective_area = effective_area
 
         self._energy_resolution = energy_resolution
-        
+
         self._angular_resolution = angular_resolution
-        
+
         super().__init__()

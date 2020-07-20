@@ -1,4 +1,3 @@
-import numpy as np
 from abc import ABC, abstractmethod
 from scipy.stats import norm
 
@@ -12,8 +11,7 @@ class Prior(ABC):
     """
     Abstract base class for priors.
     """
-        
-    
+
     @abstractmethod
     def __call__(self):
 
@@ -21,14 +19,12 @@ class Prior(ABC):
 
 
 class GaussianPrior(Prior):
-
     def __init__(self, mu, sigma):
 
         self._mu = mu
 
         self._sigma = sigma
 
-        
     def __call__(self, value):
 
         return norm(loc=self._mu, scale=self._sigma).pdf(value)

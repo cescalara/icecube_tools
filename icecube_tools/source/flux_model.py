@@ -9,11 +9,12 @@ Module for simple flux models used in
 neutrino detection calculations
 """
 
+
 class FluxModel(ABC):
     """
     Abstract base class for flux models.
-    """        
-        
+    """
+
     @abstractmethod
     def spectrum(self):
 
@@ -25,14 +26,19 @@ class FluxModel(ABC):
         pass
 
 
-    
 class PowerLawFlux(FluxModel):
     """
     Power law flux models.
     """
 
-    def __init__(self, normalisation, normalisation_energy, index,
-                 lower_energy=1e2, upper_energy=np.inf):
+    def __init__(
+        self,
+        normalisation,
+        normalisation_energy,
+        index,
+        lower_energy=1e2,
+        upper_energy=np.inf,
+    ):
         """
         Power law flux models. 
 
@@ -44,7 +50,7 @@ class PowerLawFlux(FluxModel):
         """
 
         super().__init__()
-        
+
         self._normalisation = normalisation
 
         self._normalisation_energy = normalisation_energy
@@ -54,8 +60,9 @@ class PowerLawFlux(FluxModel):
         self._lower_energy = lower_energy
         self._upper_energy = upper_energy
 
-        self.power_law = BoundedPowerLaw(self._index, self._lower_energy, self._upper_energy)        
-
+        self.power_law = BoundedPowerLaw(
+            self._index, self._lower_energy, self._upper_energy
+        )
 
     def spectrum(self, energy):
         """
@@ -67,10 +74,11 @@ class PowerLawFlux(FluxModel):
             return np.nan
 
         else:
-        
-            return self._normalisation * np.power(energy / self._normalisation_energy, -self._index)
 
-    
+            return self._normalisation * np.power(
+                energy / self._normalisation_energy, -self._index
+            )
+
     def integrated_spectrum(self, lower_energy_bound, upper_energy_bound):
         """
         \int spectrum dE over finite energy bounds.
@@ -91,10 +99,14 @@ class PowerLawFlux(FluxModel):
             upper_energy_bound = self._upper_energy
         """
 
-        norm = self._normalisation / ( np.power(self._normalisation_energy, -self._index) * (1 - self._index) )
+        norm = self._normalisation / (
+            np.power(self._normalisation_energy, -self._index) * (1 - self._index)
+        )
 
-        return norm * ( np.power(upper_energy_bound, 1-self._index) - np.power(lower_energy_bound, 1-self._index) )
-
+        return norm * (
+            np.power(upper_energy_bound, 1 - self._index)
+            - np.power(lower_energy_bound, 1 - self._index)
+        )
 
     def sample(self, N):
         """
@@ -104,10 +116,9 @@ class PowerLawFlux(FluxModel):
         :param min_energy: Minimum energy to sample from [GeV].
         :param N: Number of samples.
         """
-                
+
         return self.power_law.samples(N)
 
-    
     def _rejection_sample(self, min_energy):
         """
         Sample energies from the power law.
@@ -122,7 +133,7 @@ class PowerLawFlux(FluxModel):
 
         while not accepted:
 
-            energy = np.random.uniform(min_energy, 1e3*min_energy)
+            energy = np.random.uniform(min_energy, 1e3 * min_energy)
             dist = np.random.uniform(0, dist_upper_lim)
 
             if dist < self.spectrum(energy):
@@ -132,14 +143,20 @@ class PowerLawFlux(FluxModel):
         return energy
 
 
-
 class BrokenPowerLawFlux(FluxModel):
     """
     Broken power law flux models.
     """
 
-    def __init__(self, normalisation, break_energy,
-                 index1, index2, lower_energy=1e2, upper_energy=1e8):
+    def __init__(
+        self,
+        normalisation,
+        break_energy,
+        index1,
+        index2,
+        lower_energy=1e2,
+        upper_energy=1e8,
+    ):
         """
         Broken power law flux models.
 
@@ -164,10 +181,11 @@ class BrokenPowerLawFlux(FluxModel):
         self._lower_energy = lower_energy
 
         self._upper_energy = upper_energy
-        
-        self.power_law = BrokenBoundedPowerLaw(lower_energy, break_energy, upper_energy, -index1, -index2)
 
-        
+        self.power_law = BrokenBoundedPowerLaw(
+            lower_energy, break_energy, upper_energy, -index1, -index2
+        )
+
     def spectrum(self, energy):
         """
         dN/dEdAdt or dN/dEdAdtdO depending on flux_type.
@@ -179,23 +197,22 @@ class BrokenPowerLawFlux(FluxModel):
 
         else:
 
-            norm = self._normalisation 
+            norm = self._normalisation
 
-            if (energy <  self._break_energy):
+            if energy < self._break_energy:
 
-                output = norm * np.power(energy/self._break_energy, self._index1)
+                output = norm * np.power(energy / self._break_energy, self._index1)
 
-            elif (energy == self._break_energy):
+            elif energy == self._break_energy:
 
                 output = norm
-                
-            elif (energy > self._break_energy):
 
-                output = norm * np.power(energy/self._break_energy, self._index2)
-                
+            elif energy > self._break_energy:
+
+                output = norm * np.power(energy / self._break_energy, self._index2)
+
             return output
 
-    
     def integrated_spectrum(self, lower_energy_bound, upper_energy_bound):
         """
         \int spectrum dE over finite energy bounds.
@@ -204,36 +221,52 @@ class BrokenPowerLawFlux(FluxModel):
         :param upper_energy_bound: [GeV]
         """
 
-        norm = self._normalisation 
+        norm = self._normalisation
 
-        if (lower_energy_bound < self._break_energy) and (upper_energy_bound <= self._break_energy):
+        if (lower_energy_bound < self._break_energy) and (
+            upper_energy_bound <= self._break_energy
+        ):
 
             # Integrate over lower segment
-            output = norm * ( np.power(upper_energy_bound, self._index1+1.0)
-                              - np.power(lower_energy_bound, self._index1+1.0) ) / ((self._index1+1.0) * np.power(self._break_energy, self._index1))
-            
-        elif (lower_energy_bound < self._break_energy) and (upper_energy_bound > self._break_energy):
+            output = (
+                norm
+                * (
+                    np.power(upper_energy_bound, self._index1 + 1.0)
+                    - np.power(lower_energy_bound, self._index1 + 1.0)
+                )
+                / ((self._index1 + 1.0) * np.power(self._break_energy, self._index1))
+            )
 
-            # Integrate across break 
-            lower = ( np.power(self._break_energy, self._index1+1.0)
-                      - np.power(lower_energy_bound, self._index1+1.0) ) / ((self._index1+1.0) * np.power(self._break_energy, self._index1)) 
-            
+        elif (lower_energy_bound < self._break_energy) and (
+            upper_energy_bound > self._break_energy
+        ):
 
-            upper = ( np.power(upper_energy_bound, self._index2+1.0)
-                      - np.power(self._break_energy, self._index2+1.0) ) / ((self._index2+1.0) * np.power(self._break_energy, self._index2))
+            # Integrate across break
+            lower = (
+                np.power(self._break_energy, self._index1 + 1.0)
+                - np.power(lower_energy_bound, self._index1 + 1.0)
+            ) / ((self._index1 + 1.0) * np.power(self._break_energy, self._index1))
+
+            upper = (
+                np.power(upper_energy_bound, self._index2 + 1.0)
+                - np.power(self._break_energy, self._index2 + 1.0)
+            ) / ((self._index2 + 1.0) * np.power(self._break_energy, self._index2))
 
             output = norm * (lower + upper)
-            
-        elif (lower_energy_bound >= self._break_energy) and (upper_energy_bound > self._break_energy):
+
+        elif (lower_energy_bound >= self._break_energy) and (
+            upper_energy_bound > self._break_energy
+        ):
 
             # Integrate over upper segment
-            upper =  ( np.power(upper_energy_bound, self._index2+1.0)
-                       - np.power(lower_energy_bound, self._index2+1.0) ) / ((self._index2+1.0) * np.power(self._break_energy, self._index2))
+            upper = (
+                np.power(upper_energy_bound, self._index2 + 1.0)
+                - np.power(lower_energy_bound, self._index2 + 1.0)
+            ) / ((self._index2 + 1.0) * np.power(self._break_energy, self._index2))
 
             output = norm * upper
 
         return output
-        
 
     def sample(self, N):
         """
@@ -242,5 +275,5 @@ class BrokenPowerLawFlux(FluxModel):
         
         :param N: Number of samples.
         """
-        
+
         return self.power_law.samples(N)

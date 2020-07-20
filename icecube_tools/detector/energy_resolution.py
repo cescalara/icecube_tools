@@ -13,6 +13,7 @@ of IceCube using publicly available information.
 GIVEN_ETRUE = 0
 GIVEN_ERECO = 1
 
+
 class EnergyResolution(ABC):
     """
     Abstract base class for energy resolution.
@@ -21,7 +22,6 @@ class EnergyResolution(ABC):
     neutrino energy.
     """
 
-    
     @property
     def values(self):
         """
@@ -34,54 +34,50 @@ class EnergyResolution(ABC):
 
         return self._values
 
-    
     @values.setter
     def values(self, values):
 
-        if len(np.shape(values)) >  2:
+        if len(np.shape(values)) > 2:
 
-            raise ValueError(str(values) + ' is not a 2D array.')
+            raise ValueError(str(values) + " is not a 2D array.")
 
         else:
 
             self._values = values
 
-            
     @property
     def true_energy_bins(self):
 
         return self._true_energy_bins
 
-    
     @true_energy_bins.setter
     def true_energy_bins(self, value):
 
         self._true_energy_bins = value
-
 
     @property
     def reco_energy_bins(self):
 
         return self._reco_energy_bins
 
-    
     @reco_energy_bins.setter
     def reco_energy_bins(self, value):
 
         self._reco_energy_bins = value
 
-
     @abstractmethod
     def sample(self):
 
         pass
-        
-        
+
+
 class EnergyResolution(EnergyResolution):
     """
     Muon neutrino energy resolution using public data.
     Makes use of the 2015 effective area release and its
     corresponding reader class.
+   
+    Based on implementation by C. Haack (@chrhck).
     """
 
     def __init__(self, filename, conditional=GIVEN_ETRUE, **kwargs):
@@ -89,7 +85,9 @@ class EnergyResolution(EnergyResolution):
         Muon neutrino energy resolution using public data.
         Makes use of the 2015 effective area release and its
         corresponding reader class.
-        
+
+        Based on implementation by C. Haack (@chrhck).    
+    
         :param filename: Name of file to be read in.
         :param kwargs: year and/or nu_type can be specified.
         
@@ -100,11 +98,11 @@ class EnergyResolution(EnergyResolution):
         super().__init__()
 
         self._conditional = conditional
-        
+
         self._reader = R2015AeffReader(filename, **kwargs)
 
         self.true_energy_bins = self._reader.true_energy_bins
-        
+
         self.reco_energy_bins = self._reader.reco_energy_bins
 
         self.values = self._integrate_out_cos_zenith()
@@ -113,19 +111,17 @@ class EnergyResolution(EnergyResolution):
 
         self._fit_lognormal()
         self._fit_polynomial()
-        
-        
+
     def _integrate_out_cos_zenith(self):
         """
         We are only interested in the energy
         dependence.
         """
 
-        dim_to_int = self._reader._label_order['cos_zenith']
-        
+        dim_to_int = self._reader._label_order["cos_zenith"]
+
         return np.sum(self._reader.effective_area_values, axis=dim_to_int)
 
-        
     def _get_conditional(self):
         """
         From the joint distribution of Etrue and Ereco
@@ -133,7 +129,7 @@ class EnergyResolution(EnergyResolution):
         """
 
         if self._conditional == GIVEN_ETRUE:
-            
+
             true_energy_dist = self.values.T.sum(axis=0)
 
             conditional = np.nan_to_num(self.values.T / true_energy_dist).T
@@ -146,12 +142,10 @@ class EnergyResolution(EnergyResolution):
 
         else:
 
-            raise ValueError('conditional must be GIVEN_ETRUE or GIVEN_ERECO')
-                
+            raise ValueError("conditional must be GIVEN_ETRUE or GIVEN_ERECO")
 
         return conditional
 
-    
     def _normalise(self):
         """
         Normalise over the reconstruted energy so
@@ -159,36 +153,37 @@ class EnergyResolution(EnergyResolution):
         distribution over Ereco.
         """
 
-
         if self._conditional == GIVEN_ETRUE:
 
-            normalised = np.zeros( (len(self.true_energy_bins[:-1]),
-                                    len(self.reco_energy_bins[:-1])) )
-            
+            normalised = np.zeros(
+                (len(self.true_energy_bins[:-1]), len(self.reco_energy_bins[:-1]))
+            )
+
             for i, Etrue in enumerate(self.true_energy_bins[:-1]):
 
                 norm = 0
 
                 for j, Ereco in enumerate(self.reco_energy_bins[:-1]):
 
-                    delta_Ereco = self.reco_energy_bins[j+1] - Ereco
-                    
+                    delta_Ereco = self.reco_energy_bins[j + 1] - Ereco
+
                     norm += self.values[i][j] * delta_Ereco
 
                 normalised[i] = self.values[i] / norm
 
         elif self._conditional == GIVEN_ERECO:
 
-            normalised = np.zeros( (len(self.true_energy_bins[:-1]),
-                                    len(self.reco_energy_bins[:-1])) ).T
-            
+            normalised = np.zeros(
+                (len(self.true_energy_bins[:-1]), len(self.reco_energy_bins[:-1]))
+            ).T
+
             for i, Ereco in enumerate(self.reco_energy_bins[:-1]):
 
                 norm = 0
 
                 for j, Etrue in enumerate(self.true_energy_bins[:-1]):
 
-                    delta_Etrue = self.true_energy_bins[j+1] - Etrue
+                    delta_Etrue = self.true_energy_bins[j + 1] - Etrue
 
                     norm += self.values.T[i][j] * delta_Etrue
 
@@ -198,7 +193,6 @@ class EnergyResolution(EnergyResolution):
 
         return normalised
 
-            
     def _fit_lognormal(self):
         """
         Fit a lognormal distribution for each Etrue 
@@ -213,19 +207,25 @@ class EnergyResolution(EnergyResolution):
         self._sigma = []
 
         if self._conditional == GIVEN_ETRUE:
-            
-            self.reco_energy_bin_cen = (self.reco_energy_bins[:-1] + self.reco_energy_bins[1:]) / 2
-        
+
+            self.reco_energy_bin_cen = (
+                self.reco_energy_bins[:-1] + self.reco_energy_bins[1:]
+            ) / 2
+
             for i, Etrue in enumerate(self.true_energy_bins[:-1]):
 
                 try:
 
-                    fit_vals, _ = curve_fit(_lognorm_wrapper, self.reco_energy_bin_cen,
-                                            np.nan_to_num(self.values[i]), p0=(Etrue, 0.5))
+                    fit_vals, _ = curve_fit(
+                        _lognorm_wrapper,
+                        self.reco_energy_bin_cen,
+                        np.nan_to_num(self.values[i]),
+                        p0=(Etrue, 0.5),
+                    )
 
                     self._mu.append(fit_vals[0])
                     self._sigma.append(fit_vals[1])
-                
+
                 except:
 
                     self._mu.append(np.nan)
@@ -233,25 +233,29 @@ class EnergyResolution(EnergyResolution):
 
         elif self._conditional == GIVEN_ERECO:
 
-            self.true_energy_bin_cen = (self.true_energy_bins[:-1] + self.true_energy_bins[1:]) / 2
+            self.true_energy_bin_cen = (
+                self.true_energy_bins[:-1] + self.true_energy_bins[1:]
+            ) / 2
 
             for i, Ereco in enumerate(self.reco_energy_bins[:-1]):
 
                 try:
 
-                    fit_vals, _ = curve_fit(_lognorm_wrapper, self.true_energy_bin_cen,
-                                          np.nan_to_num(self.values.T[i]), p0=(Ereco, 0.5))
+                    fit_vals, _ = curve_fit(
+                        _lognorm_wrapper,
+                        self.true_energy_bin_cen,
+                        np.nan_to_num(self.values.T[i]),
+                        p0=(Ereco, 0.5),
+                    )
 
                     self._mu.append(fit_vals[0])
                     self._sigma.append(fit_vals[1])
 
                 except:
-                    
+
                     self._mu.append(np.nan)
                     self._sigma.append(np.nan)
-                    
 
-                
     def _fit_polynomial(self):
         """
         Fit a polynomial to approximate the lognormal
@@ -269,20 +273,26 @@ class EnergyResolution(EnergyResolution):
         sigma = np.array(self._sigma)[sigma_sel]
 
         if self._conditional == GIVEN_ETRUE:
-        
+
             # hard coded values for excluding low statistics
             imin = 5
             imax = 210
 
-            true_energy_bin_cen = (self.true_energy_bins[:-1] + self.true_energy_bins[1:]) / 2
+            true_energy_bin_cen = (
+                self.true_energy_bins[:-1] + self.true_energy_bins[1:]
+            ) / 2
 
             Etrue_cen_mu = true_energy_bin_cen[mu_sel]
 
             Etrue_cen_sigma = true_energy_bin_cen[sigma_sel]
 
-            mu_pars = np.polyfit(np.log10(Etrue_cen_mu[imin:imax]), np.log10(mu[imin:imax]), degree)
+            mu_pars = np.polyfit(
+                np.log10(Etrue_cen_mu[imin:imax]), np.log10(mu[imin:imax]), degree
+            )
 
-            sigma_pars = np.polyfit(np.log10(Etrue_cen_sigma[imin:imax]), np.log10(sigma[imin:imax]), degree)
+            sigma_pars = np.polyfit(
+                np.log10(Etrue_cen_sigma[imin:imax]), np.log10(sigma[imin:imax]), degree
+            )
 
         elif self._conditional == GIVEN_ERECO:
 
@@ -290,21 +300,26 @@ class EnergyResolution(EnergyResolution):
             imin = 5
             imax = 45
 
-            reco_energy_bin_cen = (self.reco_energy_bins[:-1] + self.reco_energy_bins[1:]) / 2
+            reco_energy_bin_cen = (
+                self.reco_energy_bins[:-1] + self.reco_energy_bins[1:]
+            ) / 2
 
             Ereco_cen_mu = reco_energy_bin_cen[mu_sel]
-                        
+
             Ereco_cen_sigma = reco_energy_bin_cen[sigma_sel]
 
-            mu_pars = np.polyfit(np.log10(Ereco_cen_mu[imin:imax]), np.log10(mu[imin:imax]), degree)
+            mu_pars = np.polyfit(
+                np.log10(Ereco_cen_mu[imin:imax]), np.log10(mu[imin:imax]), degree
+            )
 
-            sigma_pars = np.polyfit(np.log10(Ereco_cen_sigma[imin:imax]), np.log10(sigma[imin:imax]), degree)
+            sigma_pars = np.polyfit(
+                np.log10(Ereco_cen_sigma[imin:imax]), np.log10(sigma[imin:imax]), degree
+            )
 
         self._mu_poly = np.poly1d(mu_pars)
 
         self._sigma_poly = np.poly1d(sigma_pars)
 
-        
     def _get_lognormal_params(self, E):
         """
         Returns params for lognormal representing 
@@ -313,13 +328,12 @@ class EnergyResolution(EnergyResolution):
         :param E: The true/reco energy if GIVEN_ETRUE/GIVEN_ERECO [GeV]
         """
 
-        mu = np.power( 10, self._mu_poly(np.log10(E)) )
+        mu = np.power(10, self._mu_poly(np.log10(E)))
 
-        sigma = np.power( 10, self._sigma_poly(np.log10(E)) )
+        sigma = np.power(10, self._sigma_poly(np.log10(E)))
 
         return mu, sigma
-        
-        
+
     def sample(self, E):
         """
         Sample a reco/true energy given a true/reco energy.
@@ -328,5 +342,3 @@ class EnergyResolution(EnergyResolution):
         mu, sigma = self._get_lognormal_params(E)
 
         return lognorm.rvs(sigma, loc=0, scale=mu)
-
-

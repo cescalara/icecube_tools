@@ -8,19 +8,19 @@ Functions for calculating the detection probabilty
 from the results of point source analysis.
 """
 
+
 def get_simulated_params(filename):
     """
     Returns the available declinations 
     and spectral indices in the file.
     """
 
-    with h5py.File(filename, 'r') as f:
+    with h5py.File(filename, "r") as f:
 
-        dec_to_sim = f['dec_to_sim'][()]
-        
-        index_to_sim = f['index_to_sim'][()]
+        dec_to_sim = f["dec_to_sim"][()]
 
-        
+        index_to_sim = f["index_to_sim"][()]
+
     return dec_to_sim, index_to_sim
 
 
@@ -37,21 +37,19 @@ def get_detection_probability(filename, index, dec, TS_threshold):
     :param TS_threshold: TS <=> 5sigma threshold
     """
 
-    with h5py.File(filename, 'r') as f:
+    with h5py.File(filename, "r") as f:
 
-        Nsrc_list = f['Nsrc_list'][()]
+        Nsrc_list = f["Nsrc_list"][()]
 
-        Ntrials = f['Ntrials'][()]
+        folder = f["dec_%.2f" % dec]
 
-        folder = f['dec_%.2f' % dec]
-        
-        subfolder = folder['index_%.2f' % index]
+        subfolder = folder["index_%.2f" % index]
 
         TS = []
 
         for Nsrc in Nsrc_list:
 
-            TS.append(subfolder['TS_'+str(Nsrc)][()])
+            TS.append(subfolder["TS_" + str(Nsrc)][()])
 
     # Find Pdet for each expected Nsrc
 
@@ -60,11 +58,11 @@ def get_detection_probability(filename, index, dec, TS_threshold):
 
         idx = np.where(~np.isnan(TS[i]))
         ts = TS[i][idx]
-        
+
         P = len(ts[ts > TS_threshold]) / len(ts)
 
         Pdet_at_Nsrc.append(P)
-    
+
     # Weight by poisson probability
 
     Pdet = []
@@ -75,7 +73,6 @@ def get_detection_probability(filename, index, dec, TS_threshold):
         Pdet.append(P)
 
     return Nsrc_list, Pdet
-
 
 
 def get_detection_probability_Braun2008(filename, index, TS_threshold):
@@ -90,21 +87,17 @@ def get_detection_probability_Braun2008(filename, index, TS_threshold):
     :param TS_threshold: TS <=> 5sigma threshold
     """
 
-    with h5py.File(filename, 'r') as f:
-        
-        index_to_sim = f['index_to_sim'][()]
+    with h5py.File(filename, "r") as f:
 
-        Nsrc_list = f['Nsrc_list'][()]
+        Nsrc_list = f["Nsrc_list"][()]
 
-        Ntrials = f['Ntrials'][()]
-
-        folder = f['index_%.2f' % index]
+        folder = f["index_%.2f" % index]
 
         TS = []
 
         for Nsrc in Nsrc_list:
 
-            TS.append(folder['TS_'+str(Nsrc)][()])
+            TS.append(folder["TS_" + str(Nsrc)][()])
 
     # Find Pdet for each expected Nsrc
 
@@ -113,11 +106,11 @@ def get_detection_probability_Braun2008(filename, index, TS_threshold):
 
         idx = np.where(~np.isnan(TS[i]))
         ts = TS[i][idx]
-        
+
         P = len(ts[ts > TS_threshold]) / len(ts)
 
         Pdet_at_Nsrc.append(P)
-    
+
     # Weight by poisson probability
 
     Pdet = []
@@ -141,20 +134,20 @@ def get_TS_threshold(TS, level, above=5):
     """
 
     idx = np.where(~np.isnan(TS))
-    
+
     x = np.sort(TS[idx])
 
     cumulative = np.array(range(len(TS[idx]))) / float(len(TS[idx]))
-    
-    out, cov = curve_fit(fit_func, x[x>above], 1-cumulative[x>above])
-    
+
+    out, cov = curve_fit(fit_func, x[x > above], 1 - cumulative[x > above])
+
     TS_thresh = fsolve(solve_func, x0=15, args=(out[0], out[1], level))[0]
 
     return TS_thresh, out, cov
 
-    
+
 def fit_func(x, a, b):
-    
+
     return a * np.power(b, x)
 
 

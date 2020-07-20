@@ -11,7 +11,6 @@ R2018_AEFF_FILENAME = "TabulatedAeff.txt"
 BRAUN2008_AEFF_FILENAME = "AeffBraun2008.csv"
 
 
-
 class IceCubeAeffReader(ABC):
     """
     Abstract base class for a file reader to handle
@@ -34,16 +33,15 @@ class IceCubeAeffReader(ABC):
 
         self.true_energy_bins = None
 
-        self.cos_zenith_bins = None 
+        self.cos_zenith_bins = None
 
-        self._label_order = {'true_energy' : 0, 'cos_zenith' : 1}
+        self._label_order = {"true_energy": 0, "cos_zenith": 1}
 
-        self._units = {'effective_area' : 'm^2', 'true_energy' : 'GeV', 'cos_zenith' : ''}
+        self._units = {"effective_area": "m^2", "true_energy": "GeV", "cos_zenith": ""}
 
         self.read()
-        
-        super().__init__()
 
+        super().__init__()
 
     @abstractmethod
     def read(self):
@@ -52,9 +50,8 @@ class IceCubeAeffReader(ABC):
         """
 
         pass
-    
 
-    
+
 class R2015AeffReader(IceCubeAeffReader):
     """
     Reader for the 2015 Aug 20 release.
@@ -63,44 +60,42 @@ class R2015AeffReader(IceCubeAeffReader):
 
     def __init__(self, filename, **kwargs):
 
-        if 'year' in kwargs:
-            self.year = kwargs['year']
+        if "year" in kwargs:
+            self.year = kwargs["year"]
         else:
             self.year = 2011
-            
-        if 'nu_type' in kwargs:
-            self.nu_type = kwargs['nu_type']
+
+        if "nu_type" in kwargs:
+            self.nu_type = kwargs["nu_type"]
         else:
-            self.nu_type = 'nu_mu'
+            self.nu_type = "nu_mu"
 
         super().__init__(filename)
 
-        self._label_order['reco_energy'] = 2
+        self._label_order["reco_energy"] = 2
 
-        self._units['reco_energy'] = 'GeV'
+        self._units["reco_energy"] = "GeV"
 
-        
     def read(self):
         """
         Read input from the provided HDF5 file.
         """
 
         import h5py
-        
-        with h5py.File(self._filename, 'r') as f:
 
-            directory = f[str(self.year) + '/' + self.nu_type + '/']
-            
-            self.effective_area_values = directory['area'][()]
+        with h5py.File(self._filename, "r") as f:
 
-            self.true_energy_bins = directory['bin_edges_0'][()]
+            directory = f[str(self.year) + "/" + self.nu_type + "/"]
 
-            self.cos_zenith_bins = directory['bin_edges_1'][()]
-            
-            self.reco_energy_bins = directory['bin_edges_2'][()]
+            self.effective_area_values = directory["area"][()]
+
+            self.true_energy_bins = directory["bin_edges_0"][()]
+
+            self.cos_zenith_bins = directory["bin_edges_1"][()]
+
+            self.reco_energy_bins = directory["bin_edges_2"][()]
 
 
-            
 class R2018AeffReader(IceCubeAeffReader):
     """
     Reader for the 2018 Oct 18 release.
@@ -110,31 +105,35 @@ class R2018AeffReader(IceCubeAeffReader):
     def read(self):
 
         import pandas as pd
-        
-        self.year = int(self._filename[-22:-18])
-        self.nu_type = 'nu_mu'
-         
-        filelayout = ['Emin', 'Emax', 'cos(z)min', 'cos(z)max', 'Aeff']
-        output = pd.read_csv(self._filename, comment = '#',
-                             delim_whitespace = True,
-                             names = filelayout).to_dict()
-        
-        true_energy_lower = set(output['Emin'].values())
-        true_energy_upper = set(output['Emax'].values())
 
-        cos_zenith_lower = set(output['cos(z)min'].values())
-        cos_zenith_upper = set(output['cos(z)max'].values())
-        
-        self.true_energy_bins = np.array( list(true_energy_upper.union(true_energy_lower)) )
+        self.year = int(self._filename[-22:-18])
+        self.nu_type = "nu_mu"
+
+        filelayout = ["Emin", "Emax", "cos(z)min", "cos(z)max", "Aeff"]
+        output = pd.read_csv(
+            self._filename, comment="#", delim_whitespace=True, names=filelayout
+        ).to_dict()
+
+        true_energy_lower = set(output["Emin"].values())
+        true_energy_upper = set(output["Emax"].values())
+
+        cos_zenith_lower = set(output["cos(z)min"].values())
+        cos_zenith_upper = set(output["cos(z)max"].values())
+
+        self.true_energy_bins = np.array(
+            list(true_energy_upper.union(true_energy_lower))
+        )
         self.true_energy_bins.sort()
-        
-        self.cos_zenith_bins = np.array( list(cos_zenith_upper.union(cos_zenith_lower)) )
+
+        self.cos_zenith_bins = np.array(list(cos_zenith_upper.union(cos_zenith_lower)))
         self.cos_zenith_bins.sort()
-        
-        self.effective_area_values = np.reshape(list(output['Aeff'].values()),
-                                                (len(true_energy_lower),
-                                                 len(cos_zenith_lower)))
-        
+
+        self.effective_area_values = np.reshape(
+            list(output["Aeff"].values()),
+            (len(true_energy_lower), len(cos_zenith_lower)),
+        )
+
+
 class Braun2008AeffReader(IceCubeAeffReader):
     """
     Reader for the Braun+2008 paper effective area 
@@ -145,10 +144,10 @@ class Braun2008AeffReader(IceCubeAeffReader):
     """
 
     def read(self):
-        
-        self.nu_type = 'nu_mu'
 
-        out = np.loadtxt(self._filename, delimiter=',', comments='#')
+        self.nu_type = "nu_mu"
+
+        out = np.loadtxt(self._filename, delimiter=",", comments="#")
 
         # Assume whole sky like this
         self.cos_zenith_bins = np.array([-1, 1])
@@ -157,11 +156,10 @@ class Braun2008AeffReader(IceCubeAeffReader):
 
         aeff = out.T[1]
 
-        self.effective_area_values = aeff[:-1] + np.diff(aeff)/2
+        self.effective_area_values = aeff[:-1] + np.diff(aeff) / 2
 
 
-        
-class EffectiveArea():
+class EffectiveArea:
     """
     IceCube effective area.
     """
@@ -177,7 +175,7 @@ class EffectiveArea():
         self._filename = filename
 
         self._reader = self.get_reader(**kwargs)
-    
+
         self.values = self._reader.effective_area_values
 
         self.true_energy_bins = self._reader.true_energy_bins
@@ -186,11 +184,10 @@ class EffectiveArea():
 
         self._integrate_out_ancillary_params()
 
-        
     def get_reader(self, **kwargs):
         """
         Define an IceCubeAeffReader based on the filename.
-        """      
+        """
 
         if R2015_AEFF_FILENAME in self._filename:
 
@@ -203,12 +200,13 @@ class EffectiveArea():
         elif BRAUN2008_AEFF_FILENAME in self._filename:
 
             return Braun2008AeffReader(self._filename)
-        
+
         else:
 
-            raise ValueError(self._filename + ' is not recognised as one of the known effective area files.')
-        
-
+            raise ValueError(
+                self._filename
+                + " is not recognised as one of the known effective area files."
+            )
 
     def _integrate_out_ancillary_params(self):
         """
@@ -221,16 +219,15 @@ class EffectiveArea():
         if len(np.shape(self.values)) > 2:
 
             dim_to_int = []
-            
+
             for key in self._reader._label_order:
 
-                if 'true_energy' not in key and 'cos_zenith' not in key:
+                if "true_energy" not in key and "cos_zenith" not in key:
 
                     dim_to_int.append(self._reader._label_order[key])
 
-            self.values = np.sum(self.values, axis=tuple(dim_to_int))  
+            self.values = np.sum(self.values, axis=tuple(dim_to_int))
 
-            
     def detection_probability(self, true_energy, true_cos_zenith, max_energy):
         """
         Give the relative detection probability for 
@@ -247,7 +244,7 @@ class EffectiveArea():
         energy_index = np.digitize(true_energy, self.true_energy_bins) - 1
 
         if len(self.cos_zenith_bins) > 2:
-            
+
             cosz_index = np.digitize(true_cos_zenith, self.cos_zenith_bins) - 1
 
             return scaled_values[energy_index][cosz_index]

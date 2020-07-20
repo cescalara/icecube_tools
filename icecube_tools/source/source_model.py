@@ -1,10 +1,6 @@
-import numpy as np
-from abc import ABC, abstractmethod
+from abc import ABC
 
-from astropy import units as u
-from astropy.coordinates import SkyCoord
-
-from .flux_model import FluxModel, PowerLawFlux
+from .flux_model import FluxModel
 
 """
 Module for simple neutirno source models. 
@@ -17,38 +13,35 @@ POINT = 1
 class Source(ABC):
     """
     Abstract base class for neutrino sources.
-    """       
+    """
 
     @property
     def source_type(self):
 
         return self._source_type
 
-    
     @source_type.setter
     def source_type(self, value):
 
         if value is not DIFFUSE and value is not POINT:
 
-            raise ValueError(str(value) + ' is not a recognised flux type')
+            raise ValueError(str(value) + " is not a recognised flux type")
 
         else:
 
             self._source_type = value
 
-    
     @property
     def flux_model(self):
 
         return self._flux_model
 
-    
     @flux_model.setter
     def flux_model(self, value):
 
         if not isinstance(value, FluxModel):
 
-            raise ValueError(str(value) + ' is not a recognised flux model')
+            raise ValueError(str(value) + " is not a recognised flux model")
 
         else:
 
@@ -72,13 +65,12 @@ class DiffuseSource(Source):
         """
 
         super().__init__()
-        
+
         self.source_type = DIFFUSE
 
         self.flux_model = flux_model
-        
 
-    
+
 class PointSource(Source):
     """
     A point source is localised to a point 
@@ -95,22 +87,20 @@ class PointSource(Source):
         :param flux_model: A FluxModel object.
         :param coordinate: (ra, dec) coord.
         """
-        
+
         super().__init__()
-        
+
         self.source_type = POINT
 
         self.flux_model = flux_model
 
         self._coord = coord
-        
-        
+
     @property
     def coord(self):
 
         return self._coord
 
-    
     @coord.setter
     def coord(self, value):
 
