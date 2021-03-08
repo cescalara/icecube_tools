@@ -80,11 +80,11 @@ class Simulator:
 
     def run(self, N=None, show_progress=True):
         """
-        Run a simulation for the given set of sources 
+        Run a simulation for the given set of sources
         and detector configuration.
-        
+
         The expected number of neutrinos will be
-        calculated for each source. If total N is forced, 
+        calculated for each source. If total N is forced,
         then the number from each source will be weighted
         accordingly.
 
@@ -110,6 +110,7 @@ class Simulator:
         self.ra = []
         self.dec = []
         self.source_label = []
+        self.ang_err = []
 
         for i in progress_bar(
             range(self.N), desc="Sampling", disable=(not show_progress)
@@ -163,6 +164,9 @@ class Simulator:
                     reco_ra, reco_dec = self.detector.angular_resolution.sample(
                         Etrue, (ra, dec)
                     )
+                    reco_ang_err = (
+                        self.detector.angular_resolution._get_angular_resolution(Etrue)
+                    )
 
                 elif isinstance(
                     self.detector.angular_resolution, FixedAngularResolution
@@ -170,12 +174,14 @@ class Simulator:
                     reco_ra, reco_dec = self.detector.angular_resolution.sample(
                         (ra, dec)
                     )
+                    reco_ang_err = self.detector.angular_resolution.sigma
 
                 self.coordinate.append(
                     SkyCoord(reco_ra * u.rad, reco_dec * u.rad, frame="icrs")
                 )
                 self.ra.append(reco_ra)
                 self.dec.append(reco_dec)
+                self.ang_err.append(reco_ang_err)
 
     def save(self, filename):
         """
@@ -193,6 +199,8 @@ class Simulator:
             f.create_dataset("ra", data=self.ra)
 
             f.create_dataset("dec", data=self.dec)
+
+            f.create_dataset("ang_err", data=self.ang_err)
 
             f.create_dataset("source_label", data=self.source_label)
 
@@ -226,21 +234,21 @@ class Simulator:
 
 class Braun2008Simulator:
     """
-    Simple simulator which uses the results 
+    Simple simulator which uses the results
     given in Braun+2008.
-    
-    Takes a fixed number of neutrinos as arguments 
-    rather than source models to reflect the method 
+
+    Takes a fixed number of neutrinos as arguments
+    rather than source models to reflect the method
     in the paper.
     """
 
     def __init__(self, source, effective_area, reco_energy_sampler, angular_resolution):
         """
-        Simple simulator which uses the results 
+        Simple simulator which uses the results
         given in Braun+2008.
-    
-        Takes a fixed number of neutrinos as arguments 
-        rather than source models to reflect the method 
+
+        Takes a fixed number of neutrinos as arguments
+        rather than source models to reflect the method
         in the paper.
 
         :param source: Instance of Source.
