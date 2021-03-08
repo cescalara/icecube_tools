@@ -158,6 +158,18 @@ class Simulator:
                 self.ra.append(ra)
                 self.dec.append(dec)
 
+                if isinstance(self.detector.angular_resolution, AngularResolution):
+                    reco_ang_err = (
+                        self.detector.angular_resolution._get_angular_resolution(Etrue)
+                    )
+
+                elif isinstance(
+                    self.detector.angular_resolution, FixedAngularResolution
+                ):
+                    reco_ang_err = self.detector.angular_resolution.sigma
+
+                self.ang_err.append(reco_ang_err)
+
             else:
 
                 if isinstance(self.detector.angular_resolution, AngularResolution):
