@@ -78,7 +78,7 @@ class Simulator:
 
         self._source_weights = np.array(self._Nex) / sum(self._Nex)
 
-    def run(self, N=None, show_progress=True):
+    def run(self, N=None, show_progress=True, seed=1234):
         """
         Run a simulation for the given set of sources
         and detector configuration.
@@ -91,6 +91,8 @@ class Simulator:
         :param N: Set expected number of neutrinos manually.
         :param show_progress: Show the progress bar.
         """
+
+        np.random.seed(seed)
 
         self._get_expected_number()
 
