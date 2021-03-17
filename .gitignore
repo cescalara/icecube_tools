@@ -149,3 +149,10 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# As using Jupytext
+*.ipynb
+
+# Testing
+examples/data
+*.sqlite
