@@ -3,30 +3,36 @@ from scipy.stats import lognorm
 from scipy.optimize import curve_fit
 from abc import ABC, abstractmethod
 
-from .effective_area import R2015AeffReader
+from icecube_tools.detector.effective_area import (
+    R2015AeffReader,
+    R2015_AEFF_FILENAME,
+)
+from icecube_tools.utils.data import IceCubeData, find_files
 
 """
-Module for handling the energy resolution 
+Module for handling the energy resolution
 of IceCube using publicly available information.
 """
 
 GIVEN_ETRUE = 0
 GIVEN_ERECO = 1
 
+_supported_dataset_ids = ["20150820"]
+
 
 class EnergyResolution(ABC):
     """
     Abstract base class for energy resolution.
-    Stores information on how the reconstructed 
-    energy in the detector relates to the true 
+    Stores information on how the reconstructed
+    energy in the detector relates to the true
     neutrino energy.
     """
 
     @property
     def values(self):
         """
-        A 2D histogram of probabilities normalised 
-        over reconstructed energy. 
+        A 2D histogram of probabilities normalised
+        over reconstructed energy.
 
         x-axis <=> true_energy
         y-axis <=> reco_energy
@@ -76,7 +82,7 @@ class EnergyResolution(EnergyResolution):
     Muon neutrino energy resolution using public data.
     Makes use of the 2015 effective area release and its
     corresponding reader class.
-   
+
     Based on implementation by C. Haack (@chrhck).
     """
 
@@ -86,11 +92,11 @@ class EnergyResolution(EnergyResolution):
         Makes use of the 2015 effective area release and its
         corresponding reader class.
 
-        Based on implementation by C. Haack (@chrhck).    
-    
+        Based on implementation by C. Haack (@chrhck).
+
         :param filename: Name of file to be read in.
         :param kwargs: year and/or nu_type can be specified.
-        
+
         See release for more info.
         Link: https://icecube.wisc.edu/science/data/HE_NuMu_diffuse.
         """
@@ -111,6 +117,33 @@ class EnergyResolution(EnergyResolution):
 
         self._fit_lognormal()
         self._fit_polynomial()
+
+    @classmethod
+    def from_dataset(cls, dataset_id, **kwargs):
+        """
+        Load energy resolution from publicly
+        available data.
+        """
+
+        data_interface = IceCubeData()
+
+        if dataset_id not in _supported_dataset_ids:
+
+            raise NotImplementedError("This dataset is not currently supported")
+
+        dataset = data_interface.find(dataset_id)
+
+        data_interface.fetch(dataset)
+
+        dataset_dir = data_interface.get_path_to(dataset[0])
+
+        if dataset_id == "20150820":
+
+            files = find_files(dataset_dir, R2015_AEFF_FILENAME)
+
+            eres_file_name = files[0]
+
+        return cls(eres_file_name)
 
     def _integrate_out_cos_zenith(self):
         """
@@ -149,7 +182,7 @@ class EnergyResolution(EnergyResolution):
     def _normalise(self):
         """
         Normalise over the reconstruted energy so
-        at each Etrue bin the is a probability 
+        at each Etrue bin the is a probability
         distribution over Ereco.
         """
 
@@ -195,8 +228,8 @@ class EnergyResolution(EnergyResolution):
 
     def _fit_lognormal(self):
         """
-        Fit a lognormal distribution for each Etrue 
-        and store its parameters. 
+        Fit a lognormal distribution for each Etrue
+        and store its parameters.
         """
 
         def _lognorm_wrapper(E, mu, sigma):
@@ -259,7 +292,7 @@ class EnergyResolution(EnergyResolution):
     def _fit_polynomial(self):
         """
         Fit a polynomial to approximate the lognormal
-        params at extreme energies where there are 
+        params at extreme energies where there are
         little statistics.
         """
 
@@ -322,7 +355,7 @@ class EnergyResolution(EnergyResolution):
 
     def _get_lognormal_params(self, E):
         """
-        Returns params for lognormal representing 
+        Returns params for lognormal representing
         P(Ereco | Etrue) OR P(Etrue | Ereco).
 
         :param E: The true/reco energy if GIVEN_ETRUE/GIVEN_ERECO [GeV]

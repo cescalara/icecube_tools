@@ -31,6 +31,7 @@ sys.path.append("../")
 
 from icecube_tools.utils.data import IceCubeData
 from icecube_tools.detector.effective_area import EffectiveArea
+from icecube_tools.detector.energy_resolution import EnergyResolution
 ```
 
 The `IceCubeData` class can be used for a quick check of the available datasets on the IceCube website. 
@@ -57,10 +58,11 @@ ax.set_ylabel("cos(zenith)")
 cbar.set_label("Aeff [m^2]")
 ```
 
-Similarly, for the `20150820` dataset...
+Similarly, for the `20150820` dataset, for which we also have the energy resolution available...
 
 ```python
 my_aeff = EffectiveArea.from_dataset("20150820")
+my_eres = EnergyResolution.from_dataset("20150820")
 ```
 
 ```python
@@ -72,6 +74,18 @@ ax.set_xscale("log")
 ax.set_xlabel("True energy [GeV]")
 ax.set_ylabel("cos(zenith)")
 cbar.set_label("Aeff [m^2]")
+```
+
+```python
+fig, ax = plt.subplots()
+h = ax.pcolor(my_eres.true_energy_bins, my_eres.reco_energy_bins, my_eres.values.T, 
+              norm=LogNorm())
+cbar = fig.colorbar(h)
+ax.set_xscale("log")
+ax.set_yscale("log")
+ax.set_xlabel("True energy [GeV]")
+ax.set_ylabel("Reconstructed energy [GeV]")
+cbar.set_label("P(Ereco|Etrue)")
 ```
 
 ```python
