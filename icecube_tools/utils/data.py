@@ -5,6 +5,7 @@ import requests_cache
 import time
 from zipfile import ZipFile
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 
 icecube_data_base_url = "https://icecube.wisc.edu/data-releases"
 data_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
@@ -117,12 +118,22 @@ class IceCubeData:
 
                     if response.ok:
 
+                        total = int(response.headers["content-length"])
+
+                        # For progress bar description
+                        short_name = dataset
+                        if len(dataset) > 40:
+                            short_name = dataset[0:40] + "..."
+
                         # Save locally
-                        with open(local_path, "wb") as f:
+                        with open(local_path, "wb") as f, tqdm(
+                            desc=short_name, total=total
+                        ) as bar:
 
                             for chunk in response.iter_content(chunk_size=1024 * 1024):
 
-                                f.write(chunk)
+                                size = f.write(chunk)
+                                bar.update(size)
 
                         # Unzip
                         with ZipFile(local_path, "r") as zip_ref:
@@ -134,10 +145,25 @@ class IceCubeData:
 
                 crawl_delay()
 
+    def fetch_all_to(self, directory):
+        """
+        Download all data to a given location
+        """
+
+        # Temporarily change data directory
+        old_dir = self.data_directory
+
+        self.data_directory = directory
+
+        self.fetch(self.datasets)
+
+        # Reset default after
+        self.data_directory = old_dir
+
 
 def crawl_delay():
     """
     Delay between sending HTML requests.
     """
 
-    time.sleep(np.random.uniform(1, 5))
+    time.sleep(np.random.uniform(5, 10))
