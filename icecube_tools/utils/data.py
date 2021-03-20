@@ -22,6 +22,7 @@ class IceCubeData:
         base_url=icecube_data_base_url,
         data_directory=data_directory,
         cache_name=".cache",
+        update=False,
     ):
         """
         Handle the interface with IceCube's public data
@@ -30,6 +31,7 @@ class IceCubeData:
         :param base_url: Base url for data releases
         :param data_directory: Where to put the data
         :param cache_name: Name of the requests cache
+        :param update: Refresh the cache if true
         """
 
         self.base_url = base_url
@@ -38,7 +40,7 @@ class IceCubeData:
 
         requests_cache.install_cache(cache_name=cache_name)
 
-        self.ls(verbose=False)
+        self.ls(verbose=False, update=update)
 
     def ls(self, verbose=True, update=False):
         """
@@ -88,13 +90,20 @@ class IceCubeData:
 
         return found_datasets
 
-    def fetch(self, datasets, overwrite=False):
+    def fetch(self, datasets, overwrite=False, write_to=None):
         """
         Downloads and unzips the given datasets.
 
         :param datasets: A list of dataset names
         :param overwrite: Overwrite existing files
+        :param write_to: Optional custom location
         """
+
+        if write_to:
+
+            old_dir = self.data_directory
+
+            self.data_directory = write_to
 
         for dataset in datasets:
 
@@ -145,20 +154,16 @@ class IceCubeData:
 
                 crawl_delay()
 
-    def fetch_all_to(self, directory):
+        if write_to:
+
+            self.data_directory = old_dir
+
+    def fetch_all_to(self, write_to, overwrite=False):
         """
         Download all data to a given location
         """
 
-        # Temporarily change data directory
-        old_dir = self.data_directory
-
-        self.data_directory = directory
-
-        self.fetch(self.datasets)
-
-        # Reset default after
-        self.data_directory = old_dir
+        self.fetch(self.datasets, write_to=write_to, overwrite=overwrite)
 
 
 def crawl_delay():
