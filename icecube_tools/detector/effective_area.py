@@ -1,6 +1,8 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
+from icecube_tools.utils.data import IceCubeData, find_files
+
 """
 Module for working with the public IceCube
 effective area information.
@@ -9,6 +11,8 @@ effective area information.
 R2015_AEFF_FILENAME = "effective_area.h5"
 R2018_AEFF_FILENAME = "TabulatedAeff.txt"
 BRAUN2008_AEFF_FILENAME = "AeffBraun2008.csv"
+
+_supported_dataset_ids = ["20150820", "20181018"]
 
 
 class IceCubeAeffReader(ABC):
@@ -252,3 +256,44 @@ class EffectiveArea:
         else:
 
             return scaled_values[energy_index]
+
+    @classmethod
+    def from_dataset(cls, dataset_id):
+        """
+        Build effective area from a public dataset.
+
+        If relevant, uses the latest effective area
+        within a dataset. Some datasets have multiple
+        effective areas.
+
+        :param dataset_id: Date of dataset release e.g. 20181018
+        """
+
+        data_interface = IceCubeData()
+
+        if dataset_id not in _supported_dataset_ids:
+
+            raise NotImplementedError("This dataset is not currently supported")
+
+        dataset = data_interface.find(dataset_id)
+
+        data_interface.fetch(dataset)
+
+        dataset_dir = data_interface.get_path_to(dataset[0])
+
+        # Find filename
+        if dataset_id == "20181018":
+
+            files = find_files(dataset_dir, R2018_AEFF_FILENAME)
+
+            # Latest dataset
+            aeff_file_name = files[1]
+
+        elif dataset_id == "20150820":
+
+            files = find_files(dataset_dir, R2015_AEFF_FILENAME)
+
+            # Latest dataset
+            aeff_file_name = files[0]
+
+        return cls(aeff_file_name)

@@ -4,6 +4,8 @@ from vMF import sample_vMF
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
+from icecube_tools.utils.data import IceCubeData, find_files
+
 """
 Module for handling the angular resolution
 of IceCube based on public data.
@@ -14,6 +16,8 @@ R2015_ANG_RES_FILENAME = "angres_plot"
 
 TRUE_ENERGY = 0
 RECO_ENERGY = 1
+
+_supported_dataset_ids = ["20181018"]
 
 
 class IceCubeAngResReader(ABC):
@@ -26,7 +30,7 @@ class IceCubeAngResReader(ABC):
         """
         Abstract base class for different input files
         from the IceCube website.
-        
+
         :param filename: Name of file to read.
         """
 
@@ -64,8 +68,8 @@ class R2015AngResReader(IceCubeAngResReader):
 
 class FromPlotAngResReader(IceCubeAngResReader):
     """
-    Reader for the plots from the Aartsen+2018 
-    point source analysis paper. 
+    Reader for the plots from the Aartsen+2018
+    point source analysis paper.
     """
 
     def read(self):
@@ -165,7 +169,7 @@ class AngularResolution:
 
     def _get_angular_resolution(self, E):
         """
-        Get the median angular resolution for the 
+        Get the median angular resolution for the
         given Etrue/Ereco.
         """
 
@@ -217,6 +221,33 @@ class AngularResolution:
         new_dec = new_sky_coord.dec.rad
 
         return new_ra, new_dec
+
+    @classmethod
+    def from_dataset(cls, dataset_id):
+        """
+        Load angular resolution from publicly
+        available data.
+        """
+
+        data_interface = IceCubeData()
+
+        if dataset_id not in _supported_dataset_ids:
+
+            raise NotImplementedError("This dataset is not currently supported")
+
+        dataset = data_interface.find(dataset_id)
+
+        data_interface.fetch(dataset)
+
+        dataset_dir = data_interface.get_path_to(dataset[0])
+
+        if dataset_id == "20181018":
+
+            files = find_files(dataset_dir, R2018_ANG_RES_FILENAME)
+
+            angres_file_name = files[2]
+
+        return cls(angres_file_name)
 
 
 class FixedAngularResolution:
