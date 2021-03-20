@@ -3,6 +3,7 @@ import os
 import requests
 import requests_cache
 import time
+import tarfile
 from zipfile import ZipFile
 from bs4 import BeautifulSoup
 from tqdm import tqdm
@@ -145,12 +146,21 @@ class IceCubeData:
                                 bar.update(size)
 
                         # Unzip
+                        dataset_dir = os.path.splitext(local_path)[0]
                         with ZipFile(local_path, "r") as zip_ref:
 
-                            zip_ref.extractall(os.path.splitext(local_path)[0])
+                            zip_ref.extractall(dataset_dir)
 
                         # Delete zipfile
                         os.remove(local_path)
+
+                        # Check for further tarfiles in the extraction
+                        tar_files = find_files(dataset_dir, ".tar")
+
+                        for tf in tar_files:
+
+                            tar = tarfile.open(tf)
+                            tar.extractall(os.path.splitext(tf)[0])
 
                 crawl_delay()
 
@@ -165,6 +175,21 @@ class IceCubeData:
 
         self.fetch(self.datasets, write_to=write_to, overwrite=overwrite)
 
+    def get_path_to(self, dataset):
+        """
+        Get path to a given dataset
+        """
+
+        if dataset not in self.datasets:
+
+            raise ValueError("Dataset is not available")
+
+        local_zip_loc = os.path.join(self.data_directory, dataset)
+
+        local_path = os.path.splitext(local_zip_loc)[0]
+
+        return local_path
+
 
 def crawl_delay():
     """
@@ -172,3 +197,24 @@ def crawl_delay():
     """
 
     time.sleep(np.random.uniform(5, 10))
+
+
+def find_files(directory, keyword):
+    """
+    Find files in a directory that contain
+    a keyword.
+    """
+
+    found_files = []
+
+    for root, dirs, files in os.walk(directory):
+
+        if files:
+
+            for f in files:
+
+                if keyword in f:
+
+                    found_files.append(os.path.join(root, f))
+
+    return found_files
