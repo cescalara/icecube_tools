@@ -153,6 +153,7 @@ Temporary Items
 # As using Jupytext
 *.ipynb
 
-# Testing
+# Downloaded data and requests cache
+icecube_tools/data
 examples/data
 *.sqlite

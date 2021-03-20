@@ -1,12 +1,13 @@
 import numpy as np
 import os
-import requests, requests_cache
+import requests
+import requests_cache
 import time
 from zipfile import ZipFile
 from bs4 import BeautifulSoup
 
 icecube_data_base_url = "https://icecube.wisc.edu/data-releases"
-data_directory = os.path.join(os.path.dirname(__file__), "data")
+data_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
 
 
 class IceCubeData:
@@ -118,8 +119,18 @@ class IceCubeData:
 
                         # Save locally
                         with open(local_path, "wb") as f:
+
                             for chunk in response.iter_content(chunk_size=1024 * 1024):
+
                                 f.write(chunk)
+
+                        # Unzip
+                        with ZipFile(local_path, "r") as zip_ref:
+
+                            zip_ref.extractall(os.path.splitext(local_path)[0])
+
+                        # Delete zipfile
+                        os.remove(local_path)
 
                 crawl_delay()
 
