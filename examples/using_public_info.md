@@ -25,13 +25,14 @@ In addition to the neutrino data itself, the IceCube collaboration provides some
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.colors import LogNorm
-import os
+
 import sys
 sys.path.append("../")
 
-from icecube_tools.utils.data import IceCubeData
+from icecube_tools.utils.data import IceCubeData, find_files
 from icecube_tools.detector.effective_area import EffectiveArea
 from icecube_tools.detector.energy_resolution import EnergyResolution
+from icecube_tools.detector.angular_resolution import AngularResolution
 ```
 
 The `IceCubeData` class can be used for a quick check of the available datasets on the IceCube website. 
@@ -41,10 +42,11 @@ my_data = IceCubeData()
 my_data.datasets
 ```
 
-We can now use the date string to identify certain datasets. Let's say we want to use the effective area from the `20181018` dataset. If you don't already have the dataset downloaded, `icecube_tools` will do this for you automatically.
+We can now use the date string to identify certain datasets. Let's say we want to use the effective area and angular resolution from the `20181018` dataset. If you don't already have the dataset downloaded, `icecube_tools` will do this for you automatically.
 
 ```python
 my_aeff = EffectiveArea.from_dataset("20181018")
+my_angres = AngularResolution.from_dataset("20181018")
 ```
 
 ```python
@@ -56,6 +58,14 @@ ax.set_xscale("log")
 ax.set_xlabel("True energy [GeV]")
 ax.set_ylabel("cos(zenith)")
 cbar.set_label("Aeff [m^2]")
+```
+
+```python
+fig, ax = plt.subplots()
+ax.plot(my_angres.true_energy_values, my_angres.values)
+ax.set_xscale("log")
+ax.set_xlabel("True energy [GeV]")
+ax.set_ylabel("Mean angular error [deg]")
 ```
 
 Similarly, for the `20150820` dataset, for which we also have the energy resolution available...
