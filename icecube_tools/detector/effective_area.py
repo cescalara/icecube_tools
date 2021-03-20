@@ -14,14 +14,14 @@ BRAUN2008_AEFF_FILENAME = "AeffBraun2008.csv"
 class IceCubeAeffReader(ABC):
     """
     Abstract base class for a file reader to handle
-    the different types of data files provided 
+    the different types of data files provided
     on the IceCube website.
     """
 
     def __init__(self, filename):
         """
         Abstract base class for a file reader to handle
-        the different types of data files provided 
+        the different types of data files provided
         on the IceCube website.
 
         :param filename: name of the file to be read from (string).
@@ -136,10 +136,10 @@ class R2018AeffReader(IceCubeAeffReader):
 
 class Braun2008AeffReader(IceCubeAeffReader):
     """
-    Reader for the Braun+2008 paper effective area 
+    Reader for the Braun+2008 paper effective area
     Fig. 3, 140-150 deg.
-    Braun, J. et al., 2008. Methods for point source 
-    analysis in high energy neutrino telescopes. 
+    Braun, J. et al., 2008. Methods for point source
+    analysis in high energy neutrino telescopes.
     Astroparticle Physics, 29(4), pp.299–305.
     """
 
@@ -167,10 +167,10 @@ class EffectiveArea:
     def __init__(self, filename, **kwargs):
         """
         IceCube effective area.
-        
+
         :param filename: name of the file to be read from (string).
         :param kwargs: kwargs to be passed to reader if relevant.
-         """
+        """
 
         self._filename = filename
 
@@ -210,9 +210,9 @@ class EffectiveArea:
 
     def _integrate_out_ancillary_params(self):
         """
-        Sometimes the effective area is given as a 
-        function of ancillary parameters, e.g. the 
-        reconstructed muon energy. To give a unified 
+        Sometimes the effective area is given as a
+        function of ancillary parameters, e.g. the
+        reconstructed muon energy. To give a unified
         interface, these can be integrated over.
         """
 
@@ -230,7 +230,7 @@ class EffectiveArea:
 
     def detection_probability(self, true_energy, true_cos_zenith, max_energy):
         """
-        Give the relative detection probability for 
+        Give the relative detection probability for
         a given true energy and arrival direction.
         """
 

@@ -1,0 +1,2 @@
+include versioneer.py
+include icecube_tools/_version.py

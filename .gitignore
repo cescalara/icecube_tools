@@ -149,3 +149,11 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# As using Jupytext
+*.ipynb
+
+# Downloaded data and requests cache
+icecube_tools/data
+examples/data
+*.sqlite
