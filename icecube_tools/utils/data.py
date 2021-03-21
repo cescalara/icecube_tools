@@ -43,6 +43,10 @@ class IceCubeData:
 
         self.ls(verbose=False, update=update)
 
+        # Make data directory if it doesn't exist
+        if not os.path.exists(self.data_directory):
+            os.makedirs(self.data_directory)
+
     def ls(self, verbose=True, update=False):
         """
         List the available datasets.
