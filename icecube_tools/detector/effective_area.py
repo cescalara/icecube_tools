@@ -1,7 +1,11 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
-from icecube_tools.utils.data import IceCubeData, find_files
+from icecube_tools.utils.data import (
+    IceCubeData,
+    find_files,
+    data_directory,
+)
 
 """
 Module for working with the public IceCube
@@ -258,7 +262,7 @@ class EffectiveArea:
             return scaled_values[energy_index]
 
     @classmethod
-    def from_dataset(cls, dataset_id):
+    def from_dataset(cls, dataset_id, fetch=False, **kwargs):
         """
         Build effective area from a public dataset.
 
@@ -267,19 +271,26 @@ class EffectiveArea:
         effective areas.
 
         :param dataset_id: Date of dataset release e.g. 20181018
+        :param fetch: If true, download dataset if not existing
         """
-
-        data_interface = IceCubeData()
 
         if dataset_id not in _supported_dataset_ids:
 
             raise NotImplementedError("This dataset is not currently supported")
 
-        dataset = data_interface.find(dataset_id)
+        if fetch:
 
-        data_interface.fetch(dataset)
+            data_interface = IceCubeData()
 
-        dataset_dir = data_interface.get_path_to(dataset[0])
+            dataset = data_interface.find(dataset_id)
+
+            data_interface.fetch(dataset)
+
+            dataset_dir = data_interface.get_path_to(dataset[0])
+
+        else:
+
+            dataset_dir = data_directory
 
         # Find filename
         if dataset_id == "20181018":
@@ -296,4 +307,4 @@ class EffectiveArea:
             # Latest dataset
             aeff_file_name = files[0]
 
-        return cls(aeff_file_name)
+        return cls(aeff_file_name, **kwargs)

@@ -7,7 +7,7 @@ from icecube_tools.detector.effective_area import (
     R2015AeffReader,
     R2015_AEFF_FILENAME,
 )
-from icecube_tools.utils.data import IceCubeData, find_files
+from icecube_tools.utils.data import IceCubeData, find_files, data_directory
 
 """
 Module for handling the energy resolution
@@ -119,23 +119,33 @@ class EnergyResolution(EnergyResolution):
         self._fit_polynomial()
 
     @classmethod
-    def from_dataset(cls, dataset_id, **kwargs):
+    def from_dataset(cls, dataset_id, fetch=False, **kwargs):
         """
         Load energy resolution from publicly
         available data.
-        """
 
-        data_interface = IceCubeData()
+        :param dataset_id: Date identifying the dataset
+        e.g. "20181018"
+        :param fetch: If true, download dataset if missing
+        """
 
         if dataset_id not in _supported_dataset_ids:
 
             raise NotImplementedError("This dataset is not currently supported")
 
-        dataset = data_interface.find(dataset_id)
+        if fetch:
 
-        data_interface.fetch(dataset)
+            data_interface = IceCubeData()
 
-        dataset_dir = data_interface.get_path_to(dataset[0])
+            dataset = data_interface.find(dataset_id)
+
+            data_interface.fetch(dataset)
+
+            dataset_dir = data_interface.get_path_to(dataset[0])
+
+        else:
+
+            dataset_dir = data_directory
 
         if dataset_id == "20150820":
 
@@ -143,7 +153,7 @@ class EnergyResolution(EnergyResolution):
 
             eres_file_name = files[0]
 
-        return cls(eres_file_name)
+        return cls(eres_file_name, **kwargs)
 
     def _integrate_out_cos_zenith(self):
         """
