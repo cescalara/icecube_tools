@@ -39,9 +39,16 @@ class IceCubeData:
 
         self.data_directory = data_directory
 
-        requests_cache.install_cache(cache_name=cache_name)
+        requests_cache.install_cache(
+            cache_name=cache_name,
+            expire_after=-1,
+        )
 
         self.ls(verbose=False, update=update)
+
+        # Make data directory if it doesn't exist
+        if not os.path.exists(self.data_directory):
+            os.makedirs(self.data_directory)
 
     def ls(self, verbose=True, update=False):
         """

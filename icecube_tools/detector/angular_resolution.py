@@ -4,7 +4,7 @@ from vMF import sample_vMF
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
-from icecube_tools.utils.data import IceCubeData, find_files
+from icecube_tools.utils.data import IceCubeData, find_files, data_directory
 from icecube_tools.utils.vMF import get_kappa, get_theta_p
 
 """
@@ -267,23 +267,32 @@ class AngularResolution:
         return self._ret_ang_err
 
     @classmethod
-    def from_dataset(cls, dataset_id, **kwargs):
+    def from_dataset(cls, dataset_id, fetch=True, **kwargs):
         """
         Load angular resolution from publicly
         available data.
-        """
 
-        data_interface = IceCubeData()
+        :dataset_id: ID date of the dataset e.g. "20181018"
+        :param fetch: If true, download dataset if missing
+        """
 
         if dataset_id not in _supported_dataset_ids:
 
             raise NotImplementedError("This dataset is not currently supported")
 
-        dataset = data_interface.find(dataset_id)
+        if fetch:
 
-        data_interface.fetch(dataset)
+            data_interface = IceCubeData()
 
-        dataset_dir = data_interface.get_path_to(dataset[0])
+            dataset = data_interface.find(dataset_id)
+
+            data_interface.fetch(dataset)
+
+            dataset_dir = data_interface.get_path_to(dataset[0])
+
+        else:
+
+            dataset_dir = data_directory
 
         if dataset_id == "20181018":
 
