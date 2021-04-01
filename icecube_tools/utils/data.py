@@ -42,7 +42,6 @@ class IceCubeData:
         requests_cache.install_cache(
             cache_name=cache_name,
             expire_after=-1,
-            backend="redis",
         )
 
         self.ls(verbose=False, update=update)
