@@ -39,7 +39,11 @@ class IceCubeData:
 
         self.data_directory = data_directory
 
-        requests_cache.install_cache(cache_name=cache_name)
+        requests_cache.install_cache(
+            cache_name=cache_name,
+            expire_after=-1,
+            backend="redis",
+        )
 
         self.ls(verbose=False, update=update)
 
