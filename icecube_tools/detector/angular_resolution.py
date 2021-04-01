@@ -267,7 +267,7 @@ class AngularResolution:
         return self._ret_ang_err
 
     @classmethod
-    def from_dataset(cls, dataset_id, fetch=False, **kwargs):
+    def from_dataset(cls, dataset_id, fetch=True, **kwargs):
         """
         Load angular resolution from publicly
         available data.

@@ -262,7 +262,7 @@ class EffectiveArea:
             return scaled_values[energy_index]
 
     @classmethod
-    def from_dataset(cls, dataset_id, fetch=False, **kwargs):
+    def from_dataset(cls, dataset_id, fetch=True, **kwargs):
         """
         Build effective area from a public dataset.
 

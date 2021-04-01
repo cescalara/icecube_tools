@@ -119,7 +119,7 @@ class EnergyResolution(EnergyResolution):
         self._fit_polynomial()
 
     @classmethod
-    def from_dataset(cls, dataset_id, fetch=False, **kwargs):
+    def from_dataset(cls, dataset_id, fetch=True, **kwargs):
         """
         Load energy resolution from publicly
         available data.
