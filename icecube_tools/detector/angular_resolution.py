@@ -232,7 +232,7 @@ class AngularResolution:
 
         ra, dec = coord
 
-        ang_err = self._get_angular_resolution(Etrue)
+        ang_err = self._get_ang_err(Etrue)
 
         sky_coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
 
