@@ -161,14 +161,14 @@ class Simulator:
                 self.dec.append(dec)
 
                 if isinstance(self.detector.angular_resolution, AngularResolution):
-                    reco_ang_err = (
-                        self.detector.angular_resolution._get_angular_resolution(Etrue)
+                    reco_ang_err = self.detector.angular_resolution.get_ret_ang_err(
+                        Etrue
                     )
 
                 elif isinstance(
                     self.detector.angular_resolution, FixedAngularResolution
                 ):
-                    reco_ang_err = self.detector.angular_resolution.sigma
+                    reco_ang_err = self.detector.angular_resolution.ret_ang_err
 
                 self.ang_err.append(reco_ang_err)
 
@@ -178,9 +178,7 @@ class Simulator:
                     reco_ra, reco_dec = self.detector.angular_resolution.sample(
                         Etrue, (ra, dec)
                     )
-                    reco_ang_err = (
-                        self.detector.angular_resolution._get_angular_resolution(Etrue)
-                    )
+                    reco_ang_err = self.detector.angular_resolution.ret_ang_err
 
                 elif isinstance(
                     self.detector.angular_resolution, FixedAngularResolution
@@ -188,7 +186,7 @@ class Simulator:
                     reco_ra, reco_dec = self.detector.angular_resolution.sample(
                         (ra, dec)
                     )
-                    reco_ang_err = self.detector.angular_resolution.sigma
+                    reco_ang_err = self.detector.angular_resolution.ret_ang_err
 
                 self.coordinate.append(
                     SkyCoord(reco_ra * u.rad, reco_dec * u.rad, frame="icrs")
