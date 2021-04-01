@@ -5,6 +5,7 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 
 from icecube_tools.utils.data import IceCubeData, find_files
+from icecube_tools.utils.vMF import get_kappa
 
 """
 Module for handling the angular resolution
@@ -42,6 +43,8 @@ class IceCubeAngResReader(ABC):
 
         self.reco_energy_values = None
 
+        self.prob_contained = None
+
         self.read()
 
         super().__init__()
@@ -65,6 +68,8 @@ class R2015AngResReader(IceCubeAngResReader):
 
         self.reco_energy_values = out.T[0]
 
+        self.prob_contained = 0.68
+
 
 class FromPlotAngResReader(IceCubeAngResReader):
     """
@@ -82,6 +87,8 @@ class FromPlotAngResReader(IceCubeAngResReader):
 
         self.true_energy_bins = None
 
+        self.prob_contained = 0.68
+
 
 class R2018AngResReader(IceCubeAngResReader):
     """
@@ -90,6 +97,8 @@ class R2018AngResReader(IceCubeAngResReader):
     """
 
     def read(self):
+
+        self.prob_contained = 0.68
 
         import pandas as pd
 
@@ -134,6 +143,8 @@ class AngularResolution:
         elif self._energy_type == RECO_ENERGY:
 
             self.reco_energy_values = self._reader.reco_energy_values
+
+        self.prob_contained = self._reader.prob_contained
 
         self.sigma = None
 
@@ -203,7 +214,7 @@ class AngularResolution:
 
         unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
 
-        kappa = 5000 * np.power(sigma, -2)
+        kappa = get_kappa(sigma, self.prob_contained)
 
         new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0]
 
@@ -251,7 +262,7 @@ class AngularResolution:
 
 
 class FixedAngularResolution:
-    def __init__(self, sigma=1.0):
+    def __init__(self, sigma=1.0, prob_contained=0.68):
         """
         Simple fixed angular resolution.
 
@@ -259,6 +270,8 @@ class FixedAngularResolution:
         """
 
         self.sigma = sigma
+
+        self.prob_contained = prob_contained
 
     def sample(self, coord):
         """
@@ -275,7 +288,7 @@ class FixedAngularResolution:
 
         unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
 
-        kappa = 5000 * np.power(self.sigma, -2)
+        kappa = get_kappa(self.sigma, self.prob_contained)
 
         new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0]
 

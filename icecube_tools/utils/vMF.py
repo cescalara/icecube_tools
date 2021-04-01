@@ -7,7 +7,7 @@ Based on Equation 11 in Soiaporn et al. 2013.
 """
 
 
-def kappa(theta_p, p=0.68):
+def get_kappa(theta_p, p=0.68):
     """
     Calculate kappa corresponding to an angular radius theta_p.
 
@@ -21,7 +21,7 @@ def kappa(theta_p, p=0.68):
     return -(2 / theta_p ** 2) * np.log(1 - p)
 
 
-def theta_p(kappa, p=0.68):
+def get_theta_p(kappa, p=0.68):
     """
     Calculate theta_p corresponding to a vMF distribution
     of width kappa and containing probability p.
