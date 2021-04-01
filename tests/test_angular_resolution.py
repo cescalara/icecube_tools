@@ -28,7 +28,7 @@ def test_angular_resolution():
     dec = np.pi / 4  # rad
     Etrue = 1e5  # GeV
 
-    ang_res.sample((ra, dec), Etrue)
+    ang_res.sample(Etrue, (ra, dec))
 
     # Return angular error
     assert ang_res.ret_ang_err == ang_res.get_ret_ang_err(Etrue)
