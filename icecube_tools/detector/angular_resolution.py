@@ -5,6 +5,7 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 
 from icecube_tools.utils.data import IceCubeData, find_files
+from icecube_tools.utils.vMF import get_kappa, get_theta_p
 
 """
 Module for handling the angular resolution
@@ -42,6 +43,8 @@ class IceCubeAngResReader(ABC):
 
         self.reco_energy_values = None
 
+        self.prob_contained = None
+
         self.read()
 
         super().__init__()
@@ -65,6 +68,8 @@ class R2015AngResReader(IceCubeAngResReader):
 
         self.reco_energy_values = out.T[0]
 
+        self.prob_contained = 0.68
+
 
 class FromPlotAngResReader(IceCubeAngResReader):
     """
@@ -82,6 +87,8 @@ class FromPlotAngResReader(IceCubeAngResReader):
 
         self.true_energy_bins = None
 
+        self.prob_contained = 0.68
+
 
 class R2018AngResReader(IceCubeAngResReader):
     """
@@ -90,6 +97,8 @@ class R2018AngResReader(IceCubeAngResReader):
     """
 
     def read(self):
+
+        self.prob_contained = 0.68
 
         import pandas as pd
 
@@ -117,7 +126,19 @@ class R2018AngResReader(IceCubeAngResReader):
 
 
 class AngularResolution:
-    def __init__(self, filename, offset=0):
+    """
+    Generic angular resolution class.
+    """
+
+    def __init__(self, filename, ret_ang_err_p=0.68, offset=0):
+        """
+        Generic angular resolution class.
+
+        :param filename: File to load from
+        :param ret_ang_err: Returned angular error will conrrespond to
+        the radius of a region containing this probability
+        :param offset: Add an offset to the read values.
+        """
 
         self._filename = filename
 
@@ -135,7 +156,11 @@ class AngularResolution:
 
             self.reco_energy_values = self._reader.reco_energy_values
 
-        self.sigma = None
+        self.ang_err_p = self._reader.prob_contained
+
+        self.ret_ang_err_p = ret_ang_err_p
+
+        self._ret_ang_err = None
 
     def get_reader(self):
         """
@@ -167,10 +192,10 @@ class AngularResolution:
                 + " is not recognised as one of the known angular resolution files."
             )
 
-    def _get_angular_resolution(self, E):
+    def _get_ang_err(self, E):
         """
-        Get the median angular resolution for the
-        given Etrue/Ereco.
+        Get the median angular error for the
+        given Etrue/Ereco, corresponding to prob_contained.
         """
 
         if self._energy_type == TRUE_ENERGY:
@@ -187,6 +212,18 @@ class AngularResolution:
 
         return ang_res
 
+    def get_ret_ang_err(self, E):
+        """
+        Get the median angualr resolution for the
+        given Etrue/Ereco, corresponsing to ret_ang_err_p.
+        """
+
+        ang_err = self._get_ang_err(E)
+
+        kappa = get_kappa(ang_err, self.ang_err_p)
+
+        return get_theta_p(kappa, self.ret_ang_err_p)
+
     def sample(self, Etrue, coord):
         """
         Sample new ra, dec values given a true energy
@@ -195,7 +232,7 @@ class AngularResolution:
 
         ra, dec = coord
 
-        sigma = self._get_angular_resolution(Etrue)
+        ang_err = self._get_ang_err(Etrue)
 
         sky_coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
 
@@ -203,7 +240,7 @@ class AngularResolution:
 
         unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
 
-        kappa = 5000 * np.power(sigma, -2)
+        kappa = get_kappa(ang_err, self.ang_err_p)
 
         new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0]
 
@@ -220,10 +257,17 @@ class AngularResolution:
 
         new_dec = new_sky_coord.dec.rad
 
+        self._ret_ang_err = get_theta_p(kappa, self.ret_ang_err_p)
+
         return new_ra, new_dec
 
+    @property
+    def ret_ang_err(self):
+
+        return self._ret_ang_err
+
     @classmethod
-    def from_dataset(cls, dataset_id):
+    def from_dataset(cls, dataset_id, **kwargs):
         """
         Load angular resolution from publicly
         available data.
@@ -247,18 +291,44 @@ class AngularResolution:
 
             angres_file_name = files[2]
 
-        return cls(angres_file_name)
+        return cls(angres_file_name, **kwargs)
 
 
 class FixedAngularResolution:
-    def __init__(self, sigma=1.0):
+    """
+    Simple fixed angular resolution.
+    """
+
+    def __init__(self, ang_err=1.0, ang_err_p=0.68, ret_ang_err_p=0.68):
         """
         Simple fixed angular resolution.
 
-        :param sigma: Resolution [deg].
+        :param ang_err: Resolution [deg].
+        :param ang_err_p: The probability contained in the passed
+        angular error region
+        :param ret_ang_err_p: The returned angular error will correspond
+        to a region containing this probability
         """
 
-        self.sigma = sigma
+        self.ang_err = ang_err
+
+        self.ang_err_p = ang_err_p
+
+        self.ret_ang_err_p
+
+        self._kappa = get_kappa(ang_err, ang_err_p)
+
+        self._ret_ang_err = get_theta_p(self._kappa, ret_ang_err_p)
+
+    @property
+    def ret_ang_err(self):
+
+        return self._ret_ang_err
+
+    @property
+    def kappa(self):
+
+        return self._kappa
 
     def sample(self, coord):
         """
@@ -275,9 +345,7 @@ class FixedAngularResolution:
 
         unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
 
-        kappa = 5000 * np.power(self.sigma, -2)
-
-        new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0]
+        new_unit_vector = sample_vMF(unit_vector, self._kappa, 1)[0]
 
         new_sky_coord = SkyCoord(
             x=new_unit_vector[0],
