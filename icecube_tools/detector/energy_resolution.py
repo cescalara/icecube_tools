@@ -20,7 +20,7 @@ GIVEN_ERECO = 1
 _supported_dataset_ids = ["20150820"]
 
 
-class EnergyResolution(ABC):
+class EnergyResolutionBase(ABC):
     """
     Abstract base class for energy resolution.
     Stores information on how the reconstructed
@@ -77,7 +77,7 @@ class EnergyResolution(ABC):
         pass
 
 
-class EnergyResolution(EnergyResolution):
+class EnergyResolution(EnergyResolutionBase):
     """
     Muon neutrino energy resolution using public data.
     Makes use of the 2015 effective area release and its
@@ -175,6 +175,9 @@ class EnergyResolution(EnergyResolution):
 
             true_energy_dist = self.values.T.sum(axis=0)
 
+            # To avoid zero division
+            true_energy_dist[true_energy_dist == 0] = 1e-10
+
             conditional = np.nan_to_num(self.values.T / true_energy_dist).T
 
         elif self._conditional == GIVEN_ERECO:
@@ -211,6 +214,10 @@ class EnergyResolution(EnergyResolution):
                     delta_Ereco = self.reco_energy_bins[j + 1] - Ereco
 
                     norm += self.values[i][j] * delta_Ereco
+
+                # Avoid zero division
+                if norm == 0:
+                    norm = 1e-10
 
                 normalised[i] = self.values[i] / norm
 
