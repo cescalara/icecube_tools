@@ -40,7 +40,7 @@ class PowerLawFlux(FluxModel):
         upper_energy=np.inf,
     ):
         """
-        Power law flux models. 
+        Power law flux models.
 
         :param normalisation: Flux normalisation [GeV^-1 cm^-2 s^-1 sr^-1] or [GeV^-1 cm^-2 s^-1] for point sources.
         :param normalisation energy: Energy at which flux is normalised [GeV].
@@ -82,7 +82,7 @@ class PowerLawFlux(FluxModel):
     def integrated_spectrum(self, lower_energy_bound, upper_energy_bound):
         """
         \int spectrum dE over finite energy bounds.
-        
+
         :param lower_energy_bound: [GeV]
         :param upper_energy_bound: [GeV]
         """
@@ -108,11 +108,29 @@ class PowerLawFlux(FluxModel):
             - np.power(lower_energy_bound, 1 - self._index)
         )
 
+    def total_flux_density(self):
+        """
+        Total flux density in units of
+        [GeV cm^-2 s^-1]
+        """
+
+        norm = self._normalisation
+        index = self._index
+        lower, upper = self._lower_energy, self._upper_energy
+
+        if index == 2:
+            # special case
+            int_norm = norm / (np.power(self._normalisation_energy, -index))
+            return int_norm * (np.log(upper / lower))
+
+        int_norm = norm / (np.power(self._normalisation_energy, -index) * (2 - index))
+        return int_norm * (np.power(upper, 2 - index) - np.power(lower, 2 - index))
+
     def sample(self, N):
         """
         Sample energies from the power law.
         Uses inverse transform sampling.
-        
+
         :param min_energy: Minimum energy to sample from [GeV].
         :param N: Number of samples.
         """
@@ -216,7 +234,7 @@ class BrokenPowerLawFlux(FluxModel):
     def integrated_spectrum(self, lower_energy_bound, upper_energy_bound):
         """
         \int spectrum dE over finite energy bounds.
-        
+
         :param lower_energy_bound: [GeV]
         :param upper_energy_bound: [GeV]
         """
@@ -272,7 +290,7 @@ class BrokenPowerLawFlux(FluxModel):
         """
         Sample energies from the power law.
         Uses inverse transform sampling.
-        
+
         :param N: Number of samples.
         """
 
