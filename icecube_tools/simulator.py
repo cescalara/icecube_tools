@@ -3,7 +3,7 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 import h5py
 
-from tqdm.autonotebook import tqdm as progress_bar
+from tqdm import tqdm as progress_bar
 
 from .detector.detector import Detector
 from .source.source_model import Source, DIFFUSE, POINT
