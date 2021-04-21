@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 icecube_data_base_url = "https://icecube.wisc.edu/data-releases"
-data_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
+data_directory = os.path.abspath(os.path.join(os.path.expanduser("~"), ".icecube_data"))
 
 
 class IceCubeData:
@@ -161,13 +161,21 @@ class IceCubeData:
                         # Delete zipfile
                         os.remove(local_path)
 
-                        # Check for further tarfiles in the extraction
+                        # Check for further compressed files in the extraction
                         tar_files = find_files(dataset_dir, ".tar")
+
+                        zip_files = find_files(dataset_dir, ".zip")
 
                         for tf in tar_files:
 
                             tar = tarfile.open(tf)
                             tar.extractall(os.path.splitext(tf)[0])
+
+                        for zf in zip_files:
+
+                            with ZipFile(zf, "r") as zip_ref:
+
+                                zip_ref.extractall(zf[:-4])
 
                 crawl_delay()
 
@@ -225,3 +233,24 @@ def find_files(directory, keyword):
                     found_files.append(os.path.join(root, f))
 
     return found_files
+
+
+def find_folders(directory, keyword):
+    """
+    Find subfolders in a directory that
+    contain a keyword.
+    """
+
+    found_folders = []
+
+    for root, dirs, files in os.walk(directory):
+
+        if dirs:
+
+            for d in dirs:
+
+                if keyword in d:
+
+                    found_folders.append(os.path.join(root, d))
+
+    return found_folders
