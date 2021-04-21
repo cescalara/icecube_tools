@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from icecube_tools.utils.data import (
     IceCubeData,
     find_files,
+    find_folders,
     data_directory,
 )
 
@@ -277,6 +278,10 @@ class EffectiveArea:
         Define an IceCubeAeffReader based on the filename.
         """
 
+        if R2013_AEFF_FILENAME in self._filename:
+
+            return R2013AeffReader(self._filename, **kwargs)
+
         if R2015_AEFF_FILENAME in self._filename:
 
             return R2015AeffReader(self._filename, **kwargs)
@@ -372,7 +377,6 @@ class EffectiveArea:
 
             dataset_dir = data_directory
 
-        # Find filename
         if dataset_id == "20181018":
 
             files = find_files(dataset_dir, R2018_AEFF_FILENAME)
@@ -386,5 +390,12 @@ class EffectiveArea:
 
             # Latest dataset
             aeff_file_name = files[0]
+
+        elif dataset_id == "20131121":
+
+            folders = find_folders(dataset_dir, R2013_AEFF_FILENAME)
+
+            # Folder containing all Aeff info
+            aeff_file_name = folders[0]
 
         return cls(aeff_file_name, **kwargs)
