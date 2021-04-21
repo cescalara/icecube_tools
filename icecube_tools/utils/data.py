@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 icecube_data_base_url = "https://icecube.wisc.edu/data-releases"
-data_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
+data_directory = os.path.abspath(os.path.join(os.path.expanduser("~"), ".icecube_data"))
 
 
 class IceCubeData:

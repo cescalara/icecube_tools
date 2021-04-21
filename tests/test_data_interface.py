@@ -5,7 +5,7 @@ my_data = IceCubeData()
 
 def test_data_scan():
 
-    assert my_data.datasets[0] == "20080911_AMANDA_7_Year_Data.zip"
+    assert my_data.datasets[1] == "20080911_AMANDA_7_Year_Data.zip"
 
 
 def test_file_download(output_directory):
