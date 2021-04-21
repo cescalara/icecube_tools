@@ -39,7 +39,7 @@ found_dataset = my_data.find("20181018")
 found_dataset
 ```
 
-The `my_data` object has been inititalised to store data in the package's default location ("icecube_tools/data"). This is where other `icecube_tools` modules will look for stored data. 
+The `my_data` object has been inititalised to store data in the package's default location ("~/.icecube_data"). This is where other `icecube_tools` modules will look for stored data. 
 
 ```python
 my_data.data_directory
