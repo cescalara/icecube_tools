@@ -85,9 +85,9 @@ class R2013AeffReader(IceCubeAeffReader):
 
             self.nu_flavors = ["numu", "nue", "nutau"]
 
-        self._cosz_range = np.linsapce(-1, 1, 21)
+        self._cosz_range = np.linspace(-1, 1, 21)
 
-        self._fname_str = "_cosZenRange_from_%.1f_to_%.1f.txt"
+        self._fname_str = "_cosZenRange_from_%+.1f_to_%+.1f.txt"
 
         super().__init__(filename)
 
@@ -111,7 +111,7 @@ class R2013AeffReader(IceCubeAeffReader):
 
                 tmp_file_name = nu_flavor + self._fname_str % (l, u)
 
-                file_name = os.path.join(self.filename, tmp_file_name)
+                file_name = os.path.join(self._filename, tmp_file_name)
 
                 tmp_read = np.loadtxt(file_name, skiprows=2).T
 
@@ -131,7 +131,7 @@ class R2013AeffReader(IceCubeAeffReader):
             self._cosz_range[1],
         )
 
-        file_name = os.path.join(self.filename, tmp_file_name)
+        file_name = os.path.join(self._filename, tmp_file_name)
 
         tmp_read = np.loadtxt(file_name, skiprows=2).T
 
