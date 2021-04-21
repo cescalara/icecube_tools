@@ -1,4 +1,5 @@
 import numpy as np
+import os
 from abc import ABC, abstractmethod
 
 from icecube_tools.utils.data import (
@@ -12,11 +13,12 @@ Module for working with the public IceCube
 effective area information.
 """
 
+R2013_AEFF_FILENAME = "effective_areas"
 R2015_AEFF_FILENAME = "effective_area.h5"
 R2018_AEFF_FILENAME = "TabulatedAeff.txt"
 BRAUN2008_AEFF_FILENAME = "AeffBraun2008.csv"
 
-_supported_dataset_ids = ["20150820", "20181018"]
+_supported_dataset_ids = ["20131121", "20150820", "20181018"]
 
 
 class IceCubeAeffReader(ABC):
@@ -58,6 +60,84 @@ class IceCubeAeffReader(ABC):
         """
 
         pass
+
+
+class R2013AeffReader(IceCubeAeffReader):
+    """
+    Reader for the 2013 Nov 21 release.
+    Link: https://icecube.wisc.edu/data-releases/2013/11/
+    search-for-contained-neutrino-events-at-energies-above
+    -30-tev-in-2-years-of-data.
+    """
+
+    def __init__(self, filename, **kwargs):
+        """
+        Here, filename is the path to the folder, as
+        the effective areas are given in a bunch of
+        separate files.
+        """
+
+        if "nu_flavors" in kwargs:
+
+            self.nu_flavors = kwargs["nu_flavors"]
+
+        else:
+
+            self.nu_flavors = ["numu", "nue", "nutau"]
+
+        self._cosz_range = np.linsapce(-1, 1, 21)
+
+        self._fname_str = "_cosZenRange_from_%.1f_to_%.1f.txt"
+
+        super().__init__(filename)
+
+    def read(self):
+
+        self.cos_zenith_bins = self._cosz_range
+
+        self.true_energy_bins = self._get_true_energy_bins()
+
+        self.effective_area_values = np.zeros(
+            (self.true_energy_bins.size - 1, self.cos_zenith_bins.size - 1)
+        )
+
+        for i, bounds in enumerate(
+            zip(self.cos_zenith_bins[:-1], self.cos_zenith_bins[1:])
+        ):
+
+            l, u = bounds
+
+            for nu_flavor in self.nu_flavors:
+
+                tmp_file_name = nu_flavor + self._fname_str % (l, u)
+
+                file_name = os.path.join(self.filename, tmp_file_name)
+
+                tmp_read = np.loadtxt(file_name, skiprows=2).T
+
+                self.effective_area_values.T[i] += tmp_read[2]
+
+            # Assume equal flavour ratio in flux
+            self.effective_area_values.T[i] /= 3
+
+    def _get_true_energy_bins(self):
+        """
+        These are the same in all files, so can
+        just read out once.
+        """
+
+        tmp_file_name = self.nu_flavors[0] + self._fname_str % (
+            self._cosz_range[0],
+            self._cosz_range[1],
+        )
+
+        file_name = os.path.join(self.filename, tmp_file_name)
+
+        tmp_read = np.loadtxt(file_name, skiprows=2).T
+
+        energy_bins = np.append(tmp_read[0], tmp_read[1][-1])
+
+        return energy_bins
 
 
 class R2015AeffReader(IceCubeAeffReader):
