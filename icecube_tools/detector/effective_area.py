@@ -346,6 +346,15 @@ class EffectiveArea:
 
         energy_index = np.digitize(true_energy, self.true_energy_bins) - 1
 
+        # Guard against overflow
+        if energy_index >= self.true_energy_bins.size - 1:
+
+            energy_index = self.true_energy_bins.size - 2
+
+        elif energy_index < 0:
+
+            energy_index = 0
+
         if len(self.cos_zenith_bins) > 2:
 
             cosz_index = np.digitize(true_cos_zenith, self.cos_zenith_bins) - 1
