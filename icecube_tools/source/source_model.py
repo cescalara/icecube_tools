@@ -63,6 +63,11 @@ class Source(ABC):
 
         return self._z
 
+    @property
+    def redshift_factor(self):
+
+        return self._flux_model.redshift_factor(self._z)
+
 
 class DiffuseSource(Source):
     """
