@@ -25,6 +25,11 @@ class FluxModel(ABC):
 
         pass
 
+    @abstractmethod
+    def redshift_factor(self, z):
+
+        pass
+
 
 class PowerLawFlux(FluxModel):
     """
@@ -160,6 +165,10 @@ class PowerLawFlux(FluxModel):
 
         return energy
 
+    def redshift_factor(self, z: float):
+
+        return np.power(1 + z, 1 - self._index)
+
 
 class BrokenPowerLawFlux(FluxModel):
     """
@@ -285,6 +294,10 @@ class BrokenPowerLawFlux(FluxModel):
             output = norm * upper
 
         return output
+
+    def redshift_factor(self, z: float):
+
+        raise NotImplementedError()
 
     def sample(self, N):
         """

@@ -86,6 +86,14 @@ class R2013AeffReader(IceCubeAeffReader):
 
             self.nu_flavors = ["numu", "nue", "nutau"]
 
+        if "scale_factor" in kwargs:
+
+            self.scale_factor = kwargs["scale_factor"]
+
+        else:
+
+            self.scale_factor = 1
+
         self._cosz_range = np.linspace(-1, 1, 21)
 
         self._fname_str = "_cosZenRange_from_%+.1f_to_%+.1f.txt"
@@ -119,7 +127,9 @@ class R2013AeffReader(IceCubeAeffReader):
                 self.effective_area_values.T[i] += tmp_read[2]
 
             # Assume equal flavour ratio in flux
-            self.effective_area_values.T[i] /= 3
+            # self.effective_area_values.T[i] /= 3
+
+        self.effective_area_values *= self.scale_factor
 
     def _get_true_energy_bins(self):
         """
@@ -335,6 +345,15 @@ class EffectiveArea:
         scaled_values = scaled_values / np.max(scaled_values)
 
         energy_index = np.digitize(true_energy, self.true_energy_bins) - 1
+
+        # Guard against overflow
+        if energy_index >= self.true_energy_bins.size - 1:
+
+            energy_index = self.true_energy_bins.size - 2
+
+        elif energy_index < 0:
+
+            energy_index = 0
 
         if len(self.cos_zenith_bins) > 2:
 

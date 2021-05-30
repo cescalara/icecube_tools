@@ -3,7 +3,7 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 import h5py
 
-from tqdm.autonotebook import tqdm as progress_bar
+from tqdm import tqdm as progress_bar
 
 from .detector.detector import Detector
 from .source.source_model import Source, DIFFUSE, POINT
@@ -107,6 +107,7 @@ class Simulator:
         v_lim = (np.cos(np.pi - np.arccos(self.max_cosz)) + 1) / 2
 
         self.true_energy = []
+        self.arrival_energy = []
         self.reco_energy = []
         self.coordinate = []
         self.ra = []
@@ -138,9 +139,11 @@ class Simulator:
 
                 cosz = -np.sin(dec)
 
+                Earr = Etrue / (1 + self.sources[label].z)
+
                 detection_prob = float(
                     self.detector.effective_area.detection_probability(
-                        Etrue, cosz, max_energy
+                        Earr, cosz, max_energy
                     )
                 )
 
@@ -150,8 +153,8 @@ class Simulator:
 
             self.source_label.append(label)
             self.true_energy.append(Etrue)
-
-            Ereco = self.detector.energy_resolution.sample(Etrue)
+            self.arrival_energy.append(Earr)
+            Ereco = self.detector.energy_resolution.sample(Earr)
             self.reco_energy.append(Ereco)
 
             if self.sources[label].source_type == DIFFUSE:
@@ -162,7 +165,7 @@ class Simulator:
 
                 if isinstance(self.detector.angular_resolution, AngularResolution):
                     reco_ang_err = self.detector.angular_resolution.get_ret_ang_err(
-                        Etrue
+                        Earr
                     )
 
                 elif isinstance(
@@ -176,7 +179,7 @@ class Simulator:
 
                 if isinstance(self.detector.angular_resolution, AngularResolution):
                     reco_ra, reco_dec = self.detector.angular_resolution.sample(
-                        Etrue, (ra, dec)
+                        Earr, (ra, dec)
                     )
                     reco_ang_err = self.detector.angular_resolution.ret_ang_err
 
@@ -205,6 +208,8 @@ class Simulator:
         with h5py.File(filename, "w") as f:
 
             f.create_dataset("true_energy", data=self.true_energy)
+
+            f.create_dataset("arrival_energy", data=self.arrival_energy)
 
             f.create_dataset("reco_energy", data=self.reco_energy)
 

@@ -25,7 +25,7 @@ class NeutrinoCalculator:
     def __init__(self, sources, effective_area):
         """
         Calculate the expected number of detected neutrinos.
-        
+
         :param sources: A list of Source instances.
         :param effective_area: An EffectiveArea instance.
         """
@@ -88,7 +88,7 @@ class NeutrinoCalculator:
 
                 dN_dt += aeff * integrated_flux
 
-        return dN_dt * self._time
+        return dN_dt * self._time * source.redshift_factor
 
     def _select_single_cos_zenith(self, source):
 
@@ -120,20 +120,20 @@ class NeutrinoCalculator:
 
             dN_dt += aeff * integrated_flux
 
-        return dN_dt * self._time
+        return dN_dt * self._time * source.redshift_factor
 
     def __call__(self, time=1, min_energy=1e2, max_energy=1e9, min_cosz=-1, max_cosz=1):
         """
-        Calculate the number of expected neutrinos, 
+        Calculate the number of expected neutrinos,
         taking into account the observation time and
         possible further constraints on the effective
         area as a function of energy and cos(zenith).
         Returns list of expected neutrino numbers for
         each source.
-      
-        !! NB: We assume Aeff is zero outside of specified 
+
+        !! NB: We assume Aeff is zero outside of specified
         energy and cos(zenith)!!
-        
+
         :param time: Observation time in years.
         :param min_energy: Aeff energy lower bound [GeV].
         :param max_energy: Aeff energy upper bound [GeV].
@@ -254,7 +254,7 @@ class PhiSolver:
     def __call__(self, Nnu, dec, index, guess=1e-19):
         """
         Get equivalent point source flux normalisation
-        needed to produce an expected number of neutrinos, 
+        needed to produce an expected number of neutrinos,
         Nnu, in a detector.
 
         :param Nnu: Expected number of neutrinos
@@ -269,13 +269,13 @@ class PhiSolver:
 
 class zSolver:
     """
-    To calculate the redshift corresponding to a flux normalisation, 
-    for a given L and gamma.  
+    To calculate the redshift corresponding to a flux normalisation,
+    for a given L and gamma.
     """
 
     def __init__(self, Emin):
         """
-        :param Emin: The miniminum/normalisation energy [TeV] 
+        :param Emin: The miniminum/normalisation energy [TeV]
         """
 
         self._Emin = Emin
@@ -312,7 +312,7 @@ class zSolver:
     def get_L(self, rate, gamma):
         """
         Find luminosity for a given rate and index.
-        This is useful as comparing constant L plots can be 
+        This is useful as comparing constant L plots can be
         misleading.
 
         :param rate: Total rate above Emin [s^-1]

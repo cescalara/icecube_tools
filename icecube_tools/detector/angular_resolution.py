@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from vMF import sample_vMF
 from astropy.coordinates import SkyCoord
 from astropy import units as u
+from scipy import stats
 
 from icecube_tools.utils.data import IceCubeData, find_files, data_directory
 from icecube_tools.utils.vMF import get_kappa, get_theta_p
@@ -130,7 +131,16 @@ class AngularResolution:
     Generic angular resolution class.
     """
 
-    def __init__(self, filename, ret_ang_err_p=0.68, offset=0):
+    def __init__(
+        self,
+        filename,
+        ret_ang_err_p=0.68,
+        offset=0,
+        scale=1,
+        scatter=None,
+        minimum=0.1,
+        maximum=10,
+    ):
         """
         Generic angular resolution class.
 
@@ -138,13 +148,17 @@ class AngularResolution:
         :param ret_ang_err: Returned angular error will conrrespond to
         the radius of a region containing this probability
         :param offset: Add an offset to the read values.
+        :param scale: Add a scale factor to the read values.
+        :param scatter: Add scatter around read values.
+        :param minimum: Specify minimum possible resolution
+        :param maxmimum: Specify maximum possible resolution
         """
 
         self._filename = filename
 
         self._reader = self.get_reader()
 
-        self.values = self._reader.ang_res_values + offset
+        self.values = (self._reader.ang_res_values + offset) * scale
 
         if self._energy_type == TRUE_ENERGY:
 
@@ -161,6 +175,12 @@ class AngularResolution:
         self.ret_ang_err_p = ret_ang_err_p
 
         self._ret_ang_err = None
+
+        self._scatter = scatter
+
+        self._minimum = minimum
+
+        self._maximum = maximum
 
     def get_reader(self):
         """
@@ -196,8 +216,12 @@ class AngularResolution:
         """
         Get the median angular error for the
         given Etrue/Ereco, corresponding to prob_contained.
+
+        If scatter, sample from a normal distribution
+        centred on the median value.
         """
 
+        # Get median value for this true energy
         if self._energy_type == TRUE_ENERGY:
 
             true_energy_bin_cen = (
@@ -209,6 +233,25 @@ class AngularResolution:
         elif self._energy_type == RECO_ENERGY:
 
             ang_res = np.interp(np.log(E), np.log(self.reco_energy_values), self.values)
+
+        # Add scatter if required
+        if self._scatter:
+
+            a = (self._minimum - ang_res) / self._scatter
+            b = (self._maximum - ang_res) / self._scatter
+
+            ang_res = stats.truncnorm(a, b, loc=ang_res, scale=self._scatter,).rvs(
+                1
+            )[0]
+
+        # Check bounds
+        if ang_res < self._minimum:
+
+            ang_res = self._minimum
+
+        if ang_res > self._maximum:
+
+            ang_res = self._maximum
 
         return ang_res
 
