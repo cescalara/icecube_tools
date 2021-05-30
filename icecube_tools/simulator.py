@@ -107,6 +107,7 @@ class Simulator:
         v_lim = (np.cos(np.pi - np.arccos(self.max_cosz)) + 1) / 2
 
         self.true_energy = []
+        self.arrival_energy = []
         self.reco_energy = []
         self.coordinate = []
         self.ra = []
@@ -150,8 +151,9 @@ class Simulator:
 
             self.source_label.append(label)
             self.true_energy.append(Etrue)
+            Earr = Etrue / (1 + self.sources[label].z)
 
-            Ereco = self.detector.energy_resolution.sample(Etrue)
+            Ereco = self.detector.energy_resolution.sample(Earr)
             self.reco_energy.append(Ereco)
 
             if self.sources[label].source_type == DIFFUSE:

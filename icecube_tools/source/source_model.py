@@ -1,4 +1,5 @@
 from abc import ABC
+from typing import Tuple
 
 from .flux_model import FluxModel
 
@@ -14,6 +15,16 @@ class Source(ABC):
     """
     Abstract base class for neutrino sources.
     """
+
+    def __init__(self, flux_model: FluxModel, z: float = 0.0):
+        """
+        :param flux_model: Shape of spectrum
+        :param z: Redshift
+        """
+
+        self._flux_model = flux_model
+
+        self._z = z
 
     @property
     def source_type(self):
@@ -47,52 +58,55 @@ class Source(ABC):
 
             self._flux_model = value
 
+    @property
+    def z(self):
+
+        return self._z
+
 
 class DiffuseSource(Source):
     """
     A diffuse source. It is assumed to be isotropic
-    over the full 4pi sky and has a spectrum described 
+    over the full 4pi sky and has a spectrum described
     by its flux model.
     """
 
-    def __init__(self, flux_model):
+    def __init__(self, flux_model: FluxModel, z: float = 0.0):
         """
         A diffuse source. It is assumed to be isotropic
-        over the full 4pi sky and has a spectrum described 
+        over the full 4pi sky and has a spectrum described
         by its flux model.
-            
-        :param flux_model: A FluxModel object. 
         """
 
-        super().__init__()
+        super().__init__(flux_model=flux_model, z=z)
 
         self.source_type = DIFFUSE
-
-        self.flux_model = flux_model
 
 
 class PointSource(Source):
     """
-    A point source is localised to a point 
-    on the sky and has a spectrum described 
+    A point source is localised to a point
+    on the sky and has a spectrum described
     by its flux model.
     """
 
-    def __init__(self, flux_model, coord):
+    def __init__(
+        self,
+        flux_model: FluxModel,
+        z: float = 0.0,
+        coord: Tuple[float, float] = (0.0, 0.0),
+    ):
         """
-        A point source is localised to a point 
-        on the sky and has a spectrum described 
+        A point source is localised to a point
+        on the sky and has a spectrum described
         by its flux model.
-        
-        :param flux_model: A FluxModel object.
+
         :param coordinate: (ra, dec) coord.
         """
 
-        super().__init__()
+        super().__init__(flux_model=flux_model, z=z)
 
         self.source_type = POINT
-
-        self.flux_model = flux_model
 
         self._coord = coord
 
@@ -102,6 +116,6 @@ class PointSource(Source):
         return self._coord
 
     @coord.setter
-    def coord(self, value):
+    def coord(self, value: Tuple[float, float]):
 
         self._coord = value
