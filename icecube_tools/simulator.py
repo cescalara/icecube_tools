@@ -139,9 +139,11 @@ class Simulator:
 
                 cosz = -np.sin(dec)
 
+                Earr = Etrue / (1 + self.sources[label].z)
+
                 detection_prob = float(
                     self.detector.effective_area.detection_probability(
-                        Etrue, cosz, max_energy
+                        Earr, cosz, max_energy
                     )
                 )
 
@@ -151,8 +153,7 @@ class Simulator:
 
             self.source_label.append(label)
             self.true_energy.append(Etrue)
-            Earr = Etrue / (1 + self.sources[label].z)
-
+            self.arrival_energy.append(Earr)
             Ereco = self.detector.energy_resolution.sample(Earr)
             self.reco_energy.append(Ereco)
 
@@ -164,7 +165,7 @@ class Simulator:
 
                 if isinstance(self.detector.angular_resolution, AngularResolution):
                     reco_ang_err = self.detector.angular_resolution.get_ret_ang_err(
-                        Etrue
+                        Earr
                     )
 
                 elif isinstance(
@@ -178,7 +179,7 @@ class Simulator:
 
                 if isinstance(self.detector.angular_resolution, AngularResolution):
                     reco_ra, reco_dec = self.detector.angular_resolution.sample(
-                        Etrue, (ra, dec)
+                        Earr, (ra, dec)
                     )
                     reco_ang_err = self.detector.angular_resolution.ret_ang_err
 
@@ -207,6 +208,8 @@ class Simulator:
         with h5py.File(filename, "w") as f:
 
             f.create_dataset("true_energy", data=self.true_energy)
+
+            f.create_dataset("arrival_energy", data=self.arrival_energy)
 
             f.create_dataset("reco_energy", data=self.reco_energy)
 
