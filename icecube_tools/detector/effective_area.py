@@ -169,6 +169,14 @@ class R2015AeffReader(IceCubeAeffReader):
         else:
             self.nu_type = "nu_mu"
 
+        if "scale_factor" in kwargs:
+
+            self.scale_factor = kwargs["scale_factor"]
+
+        else:
+
+            self.scale_factor = 1
+
         super().__init__(filename)
 
         self._label_order["reco_energy"] = 2
@@ -194,12 +202,26 @@ class R2015AeffReader(IceCubeAeffReader):
 
             self.reco_energy_bins = directory["bin_edges_2"][()]
 
+        self.effective_area_values *= self.scale_factor
+
 
 class R2018AeffReader(IceCubeAeffReader):
     """
     Reader for the 2018 Oct 18 release.
     Link: https://icecube.wisc.edu/science/data/PS-3years.
     """
+
+    def __init__(self, filename, **kwargs):
+
+        if "scale_factor" in kwargs:
+
+            self.scale_factor = kwargs["scale_factor"]
+
+        else:
+
+            self.scale_factor = 1
+
+        super().__init__(filename)
 
     def read(self):
 
@@ -231,6 +253,8 @@ class R2018AeffReader(IceCubeAeffReader):
             list(output["Aeff"].values()),
             (len(true_energy_lower), len(cos_zenith_lower)),
         )
+
+        self.effective_area_values *= self.scale_factor
 
 
 class Braun2008AeffReader(IceCubeAeffReader):
@@ -298,7 +322,7 @@ class EffectiveArea:
 
         elif R2018_AEFF_FILENAME in self._filename:
 
-            return R2018AeffReader(self._filename)
+            return R2018AeffReader(self._filename, **kwargs)
 
         elif BRAUN2008_AEFF_FILENAME in self._filename:
 
