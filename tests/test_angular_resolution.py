@@ -1,4 +1,6 @@
 import numpy as np
+from pytest import approx
+
 from icecube_tools.utils.vMF import get_kappa, get_theta_p
 from icecube_tools.detector.angular_resolution import AngularResolution
 
@@ -11,7 +13,7 @@ def test_kappa_conversion():
 
     theta_p = get_theta_p(kappa, 0.68)
 
-    assert theta_1sigma == theta_p
+    assert theta_1sigma == approx(theta_p)
 
 
 def test_angular_resolution():
