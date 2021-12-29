@@ -2,8 +2,8 @@ name: Docs
 on: [push, release]
 
 jobs:
-  notebooks:
-    name: Run notebooks
+  setup:
+    name: Setup docs
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@main
@@ -15,6 +15,7 @@ jobs:
         pip install --upgrade pip
         pip install black jupytext
         pip install nbconvert ipykernel
+        pip install sphinx nbsphinx
         python setup.py develop
     - name: Run notebooks
       run: |
@@ -26,11 +27,18 @@ jobs:
       with:
         name: notebooks-for-${{ github.sha }}
         path: docs/notebooks
+    - name: Generate API docs
+      run: |
+        sphinx-apidoc -f -o docs/api icecube_tools
+    - uses: actions/upload-artifact@v2
+      with:
+        name: api-for-${{ github.sha }}
+        path: docs/api
         
   build:
     name: Build docs
     runs-on: ubuntu-latest
-    needs: notebooks
+    needs: setup
     steps:
     - name: Setup
       run: sudo apt-get install -y pandoc
@@ -42,6 +50,10 @@ jobs:
       with:
         name: notebooks-for-${{ github.sha }}
         path: docs/notebooks
+    - uses: actions/download-artifact@master
+      with:
+        name: api-for-${{ github.sha }}
+        path: docs/api
     - name: Build and Commit
       uses: sphinx-notes/pages@master
       with:
