@@ -7,9 +7,9 @@ jupyter:
       format_version: '1.3'
       jupytext_version: 1.11.0
   kernelspec:
-    display_name: bayes
+    display_name: Python 3
     language: python
-    name: bayes
+    name: python3
 ---
 
 ## Accessing the public data
@@ -17,9 +17,6 @@ jupyter:
 IceCube has a bunch of public datasets available at [https://icecube.wisc.edu/science/data-releases/](https://icecube.wisc.edu/science/data-releases/). `icecube_tools` provides an easy interface to this repository so that you can download and organise your data through python. 
 
 ```python
-import sys
-sys.path.append("../")
-
 from icecube_tools.utils.data import IceCubeData
 ```
 
@@ -57,8 +54,8 @@ You may not want to use `icecube_tools` for other stuff, so you can also fetch t
 my_data.fetch(found_dataset, write_to="data", overwrite=True)
 ```
 
-For convenience, there is also the `fetch_all_to` method to download all the available data to a specified location. 
+For convenience, there is also the `fetch_all_to` method to download all the available data to a specified location. We comment this here as it can take a while to execute.
 
 ```python
-my_data.fetch_all_to("data")
+# my_data.fetch_all_to("data")
 ```

@@ -5,11 +5,11 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.10.2
+      jupytext_version: 1.11.2
   kernelspec:
-    display_name: bayes
+    display_name: Python 3
     language: python
-    name: bayes
+    name: python3
 ---
 
 <!-- #region -->
@@ -25,9 +25,6 @@ In addition to the neutrino data itself, the IceCube collaboration provides some
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.colors import LogNorm
-
-import sys
-sys.path.append("../")
 
 from icecube_tools.utils.data import IceCubeData, find_files
 from icecube_tools.detector.effective_area import EffectiveArea

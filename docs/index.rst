@@ -9,3 +9,6 @@ Welcome to icecube_tools's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+
+   notebooks/public_data_access.ipynb
+   notebooks/using_public_info.ipynb
