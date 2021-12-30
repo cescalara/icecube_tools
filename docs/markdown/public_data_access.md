@@ -12,15 +12,15 @@ jupyter:
     name: python3
 ---
 
-## Accessing the public data
+# Data access
 
-IceCube has a bunch of public datasets available at [https://icecube.wisc.edu/science/data-releases/](https://icecube.wisc.edu/science/data-releases/). `icecube_tools` provides an easy interface to this repository so that you can download and organise your data through python. 
+IceCube has a bunch of public datasets available at [https://icecube.wisc.edu/science/data-releases/](https://icecube.wisc.edu/science/data-releases/). `icecube_tools` provides an easy interface to this repository so that you can download and organise your data through python.
 
 ```python
 from icecube_tools.utils.data import IceCubeData
 ```
 
-The `IceCubeData` class provides this functionality. Upon initialisation, `IceCubeData` queries the website using HTTP requests to check what datasets are currently available. By default, this request is cached to avoid spamming the IceCube website. However, you can use the keyword argument `update` to override this. 
+The `IceCubeData` class provides this functionality. Upon initialisation, `IceCubeData` queries the website using HTTP requests to check what datasets are currently available. By default, this request is cached to avoid spamming the IceCube website. However, you can use the keyword argument `update` to override this.
 
 ```python
 my_data = IceCubeData(update=True)
@@ -36,7 +36,7 @@ found_dataset = my_data.find("20181018")
 found_dataset
 ```
 
-The `my_data` object has been inititalised to store data in the package's default location ("~/.icecube_data"). This is where other `icecube_tools` modules will look for stored data. 
+The `my_data` object has been inititalised to store data in the package's default location ("~/.icecube_data"). This is where other `icecube_tools` modules will look for stored data.
 
 ```python
 my_data.data_directory
