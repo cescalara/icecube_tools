@@ -31,7 +31,7 @@ jobs:
         path: docs/notebooks
     - name: Generate API docs
       run: |
-        sphinx-apidoc -f -o docs/api icecube_tools
+        sphinx-apidoc -f -e -o docs/api icecube_tools
     - uses: actions/upload-artifact@v2
       with:
         name: api-for-${{ github.sha }}
@@ -48,6 +48,13 @@ jobs:
       uses: actions/checkout@main
       with:
         fetch-depth: 0
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install .
     - uses: actions/download-artifact@master
       with:
         name: notebooks-for-${{ github.sha }}
