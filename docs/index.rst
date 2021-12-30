@@ -15,5 +15,7 @@ You can find more information on how to make use of ``icecube_tools`` in the exa
    :caption: Contents:
 
    notebooks/public_data_access.ipynb
-   notebooks/using_public_info.ipynb
+   notebooks/detector_model.ipynb
+   notebooks/source_model.ipynb
+   notebooks/simulation.ipynb
    api/api
