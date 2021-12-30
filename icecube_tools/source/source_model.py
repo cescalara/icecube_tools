@@ -4,7 +4,7 @@ from typing import Tuple
 from .flux_model import FluxModel
 
 """
-Module for simple neutirno source models. 
+Module for simple neutrino source models. 
 """
 
 DIFFUSE = 0

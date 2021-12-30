@@ -157,3 +157,7 @@ Temporary Items
 icecube_tools/data
 examples/data
 *.sqlite
+
+# Docs
+docs/api/icecube_tools*
+docs/api/modules.rst

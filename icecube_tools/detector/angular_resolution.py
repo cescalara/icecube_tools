@@ -126,10 +126,12 @@ class R2018AngResReader(IceCubeAngResReader):
         )
 
 
-class AngularResolution:
+class AngularResolution(object):
     """
     Generic angular resolution class.
     """
+
+    supported_datasets = _supported_dataset_ids
 
     def __init__(
         self,

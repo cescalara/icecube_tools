@@ -86,6 +86,8 @@ class EnergyResolution(EnergyResolutionBase):
     Based on implementation by C. Haack (@chrhck).
     """
 
+    supported_datasets = _supported_dataset_ids
+
     def __init__(self, filename, conditional=GIVEN_ETRUE, **kwargs):
         """
         Muon neutrino energy resolution using public data.

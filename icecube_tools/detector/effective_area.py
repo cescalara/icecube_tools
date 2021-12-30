@@ -282,10 +282,12 @@ class Braun2008AeffReader(IceCubeAeffReader):
         self.effective_area_values = aeff[:-1] + np.diff(aeff) / 2
 
 
-class EffectiveArea:
+class EffectiveArea(object):
     """
     IceCube effective area.
     """
+
+    supported_datasets = _supported_dataset_ids
 
     def __init__(self, filename, **kwargs):
         """

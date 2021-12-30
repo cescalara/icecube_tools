@@ -20,10 +20,10 @@ Northern sky muon neutrinos.
 
 class PointSourceLikelihood:
     """
-    Calculate the point source likelihood for a given 
-    neutrino dataset - in terms of reconstructed 
+    Calculate the point source likelihood for a given
+    neutrino dataset - in terms of reconstructed
     energies and arrival directions.
-    Based on what is described in Braun+2008 and 
+    Based on what is described in Braun+2008 and
     Aartsen+2018.
     """
 
@@ -40,16 +40,16 @@ class PointSourceLikelihood:
         band_width_factor=3.0,
     ):
         """
-        Calculate the point source likelihood for a given 
-        neutrino dataset - in terms of reconstructed 
+        Calculate the point source likelihood for a given
+        neutrino dataset - in terms of reconstructed
         energies and arrival directions.
-        
+
         :param direction_likelihood: An instance of SpatialLikelihood.
         :param energy_likelihood: An instance of MarginalisedEnergyLikelihood.
         :param event_coords: List of (ra, dec) tuples for reconstructed coords.
         :param energies: The reconstructed nu energies.
         :param source_coord: (ra, dec) pf the point to test.
-        :param index_prior: Optional prior on the spectral index, instance of Prior. 
+        :param index_prior: Optional prior on the spectral index, instance of Prior.
         """
 
         self._direction_likelihood = direction_likelihood
@@ -104,11 +104,13 @@ class PointSourceLikelihood:
         # and Aartsen+2018 analyses
         self._bg_index = 3.7
         self._ns_min = 0.0
-        self._ns_max = 100
         self._max_index = 4.0
         # min index depends on the energy likelihood used.
 
         self._select_nearby_events()
+
+        # Can't have more source events than actual events...
+        self._ns_max = self.N
 
         self.Ntot = len(self._energies)
 
@@ -235,8 +237,8 @@ class PointSourceLikelihood:
         Uses calculation described in:
         https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf
 
-        If there is a prior, it is added here, as this is equivalent to maximising 
-        the likelihood. 
+        If there is a prior, it is added here, as this is equivalent to maximising
+        the likelihood.
 
         :param ns: Number of source counts.
         :param index: Spectral index of the source.
@@ -291,7 +293,7 @@ class PointSourceLikelihood:
 
     def _minimize(self):
         """
-        Minimize -log(likelihood_ratio) for the source hypothesis, 
+        Minimize -log(likelihood_ratio) for the source hypothesis,
         returning the best fit ns and index.
 
         Uses the iMiuint wrapper.
@@ -324,11 +326,11 @@ class PointSourceLikelihood:
 
     def _minimize_grid(self):
         """
-        Minimize -log(likelihood_ratio) for the source hypothesis, 
+        Minimize -log(likelihood_ratio) for the source hypothesis,
         returning the best fit ns and index.
-        
-        This simple grid method takes roughly the same time as minuit 
-        and is more accurate... 
+
+        This simple grid method takes roughly the same time as minuit
+        and is more accurate...
         """
 
         ns_grid = np.linspace(self._ns_min, self._ns_max, 10)
@@ -355,9 +357,9 @@ class PointSourceLikelihood:
 
     def _first_derivative_likelihood_ratio(self, ns=0, index=2.0):
         """
-        First derivative of the likelihood ratio. 
+        First derivative of the likelihood ratio.
         Equation 41 in
-        https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf.  
+        https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf.
         """
 
         one_plus_alpha = 1e-10
@@ -443,20 +445,20 @@ class PointSourceLikelihood:
 
 class SpatialOnlyPointSourceLikelihood:
     """
-    Calculate the point source likelihood for a given 
-    neutrino dataset - in terms of reconstructed 
+    Calculate the point source likelihood for a given
+    neutrino dataset - in terms of reconstructed
     arrival directions.
 
-    This class is exactly as in PointSourceLikelihood, 
+    This class is exactly as in PointSourceLikelihood,
     but without the energy depedence.
     """
 
     def __init__(self, direction_likelihood, event_coords, source_coord):
         """
-        Calculate the point source likelihood for a given 
-        neutrino dataset - in terms of reconstructed 
+        Calculate the point source likelihood for a given
+        neutrino dataset - in terms of reconstructed
         energies and arrival directions.
-        
+
         :param direction_likelihood: An instance of SpatialGaussianLikelihood.
         :param event_coords: List of (ra, dec) tuples for reconstructed coords.
         :param source_coord: (ra, dec) pf the point to test.
@@ -583,7 +585,7 @@ class SpatialOnlyPointSourceLikelihood:
 
     def _minimize(self):
         """
-        Minimize -log(likelihood_ratio) for the source hypothesis, 
+        Minimize -log(likelihood_ratio) for the source hypothesis,
         returning the best fit ns and index.
 
         Uses the iMiuint wrapper.
@@ -620,11 +622,11 @@ class SpatialOnlyPointSourceLikelihood:
 
 class EnergyDependentSpatialPointSourceLikelihood:
     """
-    Calculate the point source likelihood for a given 
-    neutrino dataset - in terms of reconstructed 
+    Calculate the point source likelihood for a given
+    neutrino dataset - in terms of reconstructed
     arrival directions.
 
-    This class is exactly as in PointSourceLikelihood, 
+    This class is exactly as in PointSourceLikelihood,
     but without the energy depedence.
     """
 
@@ -638,10 +640,10 @@ class EnergyDependentSpatialPointSourceLikelihood:
         band_width_factor=3.0,
     ):
         """
-        Calculate the point source likelihood for a given 
-        neutrino dataset - in terms of reconstructed 
+        Calculate the point source likelihood for a given
+        neutrino dataset - in terms of reconstructed
         energies and arrival directions.
-        
+
         :param direction_likelihood: An instance of SpatialGaussianLikelihood.
         :param ras: Array of right acsensions in [rad]
         :param decs: Array of declinations in [dec]
@@ -778,7 +780,7 @@ class EnergyDependentSpatialPointSourceLikelihood:
 
     def _minimize(self):
         """
-        Minimize -log(likelihood_ratio) for the source hypothesis, 
+        Minimize -log(likelihood_ratio) for the source hypothesis,
         returning the best fit ns and index.
 
         Uses the iMiuint wrapper.
@@ -799,11 +801,11 @@ class EnergyDependentSpatialPointSourceLikelihood:
 
     def _minimize_grid(self):
         """
-        Minimize -log(likelihood_ratio) for the source hypothesis, 
+        Minimize -log(likelihood_ratio) for the source hypothesis,
         returning the best fit ns and index.
-        
-        This simple grid method takes roughly the same time as minuit 
-        and is more accurate... 
+
+        This simple grid method takes roughly the same time as minuit
+        and is more accurate...
         """
 
         ns_grid = np.linspace(self._ns_min, self._ns_max, 10)
@@ -911,7 +913,7 @@ class SimpleWithEnergyPointSourceLikelihood:
         """
         Simple version of point source likelihood.
         Also including the energy dependence.
-        Testing out simple algorithms for evaluating TS.  
+        Testing out simple algorithms for evaluating TS.
         """
 
         self._direction_likelihood = direction_likelihood
