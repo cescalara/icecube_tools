@@ -19,7 +19,7 @@ R2015_ANG_RES_FILENAME = "angres_plot"
 TRUE_ENERGY = 0
 RECO_ENERGY = 1
 
-_supported_dataset_ids = ["20150820", "20181018"]
+_supported_dataset_ids = ["20181018"]
 
 
 class IceCubeAngResReader(ABC):
@@ -126,7 +126,7 @@ class R2018AngResReader(IceCubeAngResReader):
         )
 
 
-class AngularResolution:
+class AngularResolution(object):
     """
     Generic angular resolution class.
     """
