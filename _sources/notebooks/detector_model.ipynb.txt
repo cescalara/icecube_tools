@@ -2,7 +2,7 @@
  "cells": [
   {
    "cell_type": "markdown",
-   "id": "b7b81dd7",
+   "id": "c151b839",
    "metadata": {},
    "source": [
     "# Detector model interface\n",
@@ -16,13 +16,13 @@
   {
    "cell_type": "code",
    "execution_count": 1,
-   "id": "0107c8a5",
+   "id": "e9491065",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:20:59.687317Z",
-     "iopub.status.busy": "2021-12-30T21:20:59.686640Z",
-     "iopub.status.idle": "2021-12-30T21:21:01.095480Z",
-     "shell.execute_reply": "2021-12-30T21:21:01.093954Z"
+     "iopub.execute_input": "2021-12-30T21:30:21.703366Z",
+     "iopub.status.busy": "2021-12-30T21:30:21.702850Z",
+     "iopub.status.idle": "2021-12-30T21:30:22.969391Z",
+     "shell.execute_reply": "2021-12-30T21:30:22.968745Z"
     }
    },
    "outputs": [],
@@ -36,7 +36,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "24c58fa5",
+   "id": "e9d4ade0",
    "metadata": {},
    "source": [
     "The `IceCubeData` class can be used for a quick check of the available datasets on the IceCube website."
@@ -45,13 +45,13 @@
   {
    "cell_type": "code",
    "execution_count": 2,
-   "id": "b21764b0",
+   "id": "9debfb7f",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:01.100355Z",
-     "iopub.status.busy": "2021-12-30T21:21:01.099821Z",
-     "iopub.status.idle": "2021-12-30T21:21:01.121397Z",
-     "shell.execute_reply": "2021-12-30T21:21:01.121840Z"
+     "iopub.execute_input": "2021-12-30T21:30:22.973689Z",
+     "iopub.status.busy": "2021-12-30T21:30:22.973163Z",
+     "iopub.status.idle": "2021-12-30T21:30:22.993596Z",
+     "shell.execute_reply": "2021-12-30T21:30:22.993124Z"
     }
    },
    "outputs": [
@@ -99,7 +99,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "6807f174",
+   "id": "a5be6e8b",
    "metadata": {},
    "source": [
     "## Effective area, angular resolution and energy resolution\n",
@@ -110,13 +110,13 @@
   {
    "cell_type": "code",
    "execution_count": 3,
-   "id": "8b298380",
+   "id": "178c1f92",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:01.126505Z",
-     "iopub.status.busy": "2021-12-30T21:21:01.125957Z",
-     "iopub.status.idle": "2021-12-30T21:21:01.980238Z",
-     "shell.execute_reply": "2021-12-30T21:21:01.979400Z"
+     "iopub.execute_input": "2021-12-30T21:30:22.997742Z",
+     "iopub.status.busy": "2021-12-30T21:30:22.996849Z",
+     "iopub.status.idle": "2021-12-30T21:30:23.700415Z",
+     "shell.execute_reply": "2021-12-30T21:30:23.699506Z"
     }
    },
    "outputs": [],
@@ -129,13 +129,13 @@
   {
    "cell_type": "code",
    "execution_count": 4,
-   "id": "f5819713",
+   "id": "640b9c72",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:01.984971Z",
-     "iopub.status.busy": "2021-12-30T21:21:01.984426Z",
-     "iopub.status.idle": "2021-12-30T21:21:02.280922Z",
-     "shell.execute_reply": "2021-12-30T21:21:02.281676Z"
+     "iopub.execute_input": "2021-12-30T21:30:23.704876Z",
+     "iopub.status.busy": "2021-12-30T21:30:23.704391Z",
+     "iopub.status.idle": "2021-12-30T21:30:23.933436Z",
+     "shell.execute_reply": "2021-12-30T21:30:23.932498Z"
     }
    },
    "outputs": [],
@@ -147,13 +147,13 @@
   {
    "cell_type": "code",
    "execution_count": 5,
-   "id": "c5d73f2e",
+   "id": "eb505d0b",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:02.302062Z",
-     "iopub.status.busy": "2021-12-30T21:21:02.300423Z",
-     "iopub.status.idle": "2021-12-30T21:21:04.108496Z",
-     "shell.execute_reply": "2021-12-30T21:21:04.109226Z"
+     "iopub.execute_input": "2021-12-30T21:30:23.941557Z",
+     "iopub.status.busy": "2021-12-30T21:30:23.938000Z",
+     "iopub.status.idle": "2021-12-30T21:30:25.610622Z",
+     "shell.execute_reply": "2021-12-30T21:30:25.610148Z"
     }
    },
    "outputs": [
@@ -185,13 +185,13 @@
   {
    "cell_type": "code",
    "execution_count": 6,
-   "id": "2e1de71b",
+   "id": "66a23730",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:04.120128Z",
-     "iopub.status.busy": "2021-12-30T21:21:04.118961Z",
-     "iopub.status.idle": "2021-12-30T21:21:04.561383Z",
-     "shell.execute_reply": "2021-12-30T21:21:04.560570Z"
+     "iopub.execute_input": "2021-12-30T21:30:25.630789Z",
+     "iopub.status.busy": "2021-12-30T21:30:25.628281Z",
+     "iopub.status.idle": "2021-12-30T21:30:26.026825Z",
+     "shell.execute_reply": "2021-12-30T21:30:26.026057Z"
     }
    },
    "outputs": [
@@ -228,7 +228,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "3fa26aec",
+   "id": "8ff88e1f",
    "metadata": {},
    "source": [
     "We can also easily check what datasets are supported by the different detector information classes:"
@@ -237,13 +237,13 @@
   {
    "cell_type": "code",
    "execution_count": 7,
-   "id": "ac1bd1af",
+   "id": "d4b70515",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:04.567283Z",
-     "iopub.status.busy": "2021-12-30T21:21:04.566307Z",
-     "iopub.status.idle": "2021-12-30T21:21:04.569006Z",
-     "shell.execute_reply": "2021-12-30T21:21:04.569438Z"
+     "iopub.execute_input": "2021-12-30T21:30:26.032028Z",
+     "iopub.status.busy": "2021-12-30T21:30:26.031568Z",
+     "iopub.status.idle": "2021-12-30T21:30:26.035824Z",
+     "shell.execute_reply": "2021-12-30T21:30:26.036194Z"
     }
    },
    "outputs": [
@@ -265,13 +265,13 @@
   {
    "cell_type": "code",
    "execution_count": 8,
-   "id": "e87738f0",
+   "id": "e93142cf",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:04.574759Z",
-     "iopub.status.busy": "2021-12-30T21:21:04.573833Z",
-     "iopub.status.idle": "2021-12-30T21:21:04.576910Z",
-     "shell.execute_reply": "2021-12-30T21:21:04.576462Z"
+     "iopub.execute_input": "2021-12-30T21:30:26.040124Z",
+     "iopub.status.busy": "2021-12-30T21:30:26.039504Z",
+     "iopub.status.idle": "2021-12-30T21:30:26.044465Z",
+     "shell.execute_reply": "2021-12-30T21:30:26.044071Z"
     }
    },
    "outputs": [
@@ -293,13 +293,13 @@
   {
    "cell_type": "code",
    "execution_count": 9,
-   "id": "34a5dd4c",
+   "id": "b8a2f2ff",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:04.582091Z",
-     "iopub.status.busy": "2021-12-30T21:21:04.581138Z",
-     "iopub.status.idle": "2021-12-30T21:21:04.583819Z",
-     "shell.execute_reply": "2021-12-30T21:21:04.584256Z"
+     "iopub.execute_input": "2021-12-30T21:30:26.048095Z",
+     "iopub.status.busy": "2021-12-30T21:30:26.047641Z",
+     "iopub.status.idle": "2021-12-30T21:30:26.052015Z",
+     "shell.execute_reply": "2021-12-30T21:30:26.051618Z"
     }
    },
    "outputs": [
@@ -320,7 +320,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "2399843b",
+   "id": "0324c307",
    "metadata": {},
    "source": [
     "If you would like to see some other datasets supported, please feel free to open an issue or contribute your own!\n",
@@ -332,13 +332,13 @@
   {
    "cell_type": "code",
    "execution_count": 10,
-   "id": "9a6aa1cd",
+   "id": "ad2bacd3",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:04.588350Z",
-     "iopub.status.busy": "2021-12-30T21:21:04.587828Z",
-     "iopub.status.idle": "2021-12-30T21:21:20.768416Z",
-     "shell.execute_reply": "2021-12-30T21:21:20.767619Z"
+     "iopub.execute_input": "2021-12-30T21:30:26.055872Z",
+     "iopub.status.busy": "2021-12-30T21:30:26.055049Z",
+     "iopub.status.idle": "2021-12-30T21:30:42.291789Z",
+     "shell.execute_reply": "2021-12-30T21:30:42.290874Z"
     }
    },
    "outputs": [
@@ -355,7 +355,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:   2%|▏         | 1048576/43711022 [00:00<00:14, 3039682.37it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:   2%|▏         | 1048576/43711022 [00:00<00:14, 2930973.90it/s]"
      ]
     },
     {
@@ -363,7 +363,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  10%|▉         | 4194304/43711022 [00:00<00:03, 10015616.71it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:   7%|▋         | 3145728/43711022 [00:00<00:05, 7069476.96it/s]"
      ]
     },
     {
@@ -371,7 +371,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  19%|█▉        | 8388608/43711022 [00:00<00:02, 16654060.25it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  12%|█▏        | 5242880/43711022 [00:00<00:04, 9448718.22it/s]"
      ]
     },
     {
@@ -379,7 +379,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  26%|██▋       | 11534336/43711022 [00:00<00:01, 20318490.87it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  17%|█▋        | 7340032/43711022 [00:00<00:03, 11176477.44it/s]"
      ]
     },
     {
@@ -387,7 +387,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  34%|███▎      | 14680064/43711022 [00:00<00:01, 20402006.88it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  22%|██▏       | 9437184/43711022 [00:00<00:02, 12549772.80it/s]"
      ]
     },
     {
@@ -395,7 +395,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  41%|████      | 17825792/43711022 [00:01<00:01, 21577445.85it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  26%|██▋       | 11534336/43711022 [00:01<00:02, 13416781.38it/s]"
      ]
     },
     {
@@ -403,7 +403,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  48%|████▊     | 20971520/43711022 [00:01<00:01, 21966246.70it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  31%|███       | 13631488/43711022 [00:01<00:02, 13654737.30it/s]"
      ]
     },
     {
@@ -411,7 +411,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  55%|█████▌    | 24117248/43711022 [00:01<00:00, 22189562.68it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  36%|███▌      | 15728640/43711022 [00:01<00:01, 14602839.43it/s]"
      ]
     },
     {
@@ -419,7 +419,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  62%|██████▏   | 27262976/43711022 [00:01<00:00, 21857008.04it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  41%|████      | 17825792/43711022 [00:01<00:01, 14608324.66it/s]"
      ]
     },
     {
@@ -427,7 +427,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  70%|██████▉   | 30408704/43711022 [00:01<00:00, 21729345.93it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  46%|████▌     | 19922944/43711022 [00:01<00:01, 12737838.93it/s]"
      ]
     },
     {
@@ -435,7 +435,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  77%|███████▋  | 33554432/43711022 [00:01<00:00, 22533801.53it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  50%|█████     | 22020096/43711022 [00:01<00:01, 13913600.01it/s]"
      ]
     },
     {
@@ -443,7 +443,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  84%|████████▍ | 36700160/43711022 [00:01<00:00, 22731518.01it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  55%|█████▌    | 24117248/43711022 [00:02<00:01, 12717088.89it/s]"
      ]
     },
     {
@@ -451,7 +451,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  91%|█████████ | 39845888/43711022 [00:01<00:00, 24403678.92it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  60%|█████▉    | 26214400/43711022 [00:02<00:01, 12088855.02it/s]"
      ]
     },
     {
@@ -459,7 +459,71 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...: 100%|██████████| 43711022/43711022 [00:02<00:00, 21225738.28it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  65%|██████▍   | 28311552/43711022 [00:02<00:01, 11489950.13it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20150820_Astrophysical_muon_neutrino_flu...:  70%|██████▉   | 30408704/43711022 [00:02<00:01, 11259318.05it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20150820_Astrophysical_muon_neutrino_flu...:  74%|███████▍  | 32505856/43711022 [00:02<00:00, 11282133.30it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20150820_Astrophysical_muon_neutrino_flu...:  79%|███████▉  | 34603008/43711022 [00:02<00:00, 11218092.77it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20150820_Astrophysical_muon_neutrino_flu...:  84%|████████▍ | 36700160/43711022 [00:03<00:00, 11117110.73it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20150820_Astrophysical_muon_neutrino_flu...:  89%|████████▉ | 38797312/43711022 [00:03<00:00, 11536016.61it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20150820_Astrophysical_muon_neutrino_flu...:  94%|█████████▎| 40894464/43711022 [00:03<00:00, 11382728.21it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20150820_Astrophysical_muon_neutrino_flu...:  98%|█████████▊| 42991616/43711022 [00:03<00:00, 10912920.36it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20150820_Astrophysical_muon_neutrino_flu...: 100%|██████████| 43711022/43711022 [00:03<00:00, 11427084.82it/s]"
      ]
     },
     {
@@ -478,13 +542,13 @@
   {
    "cell_type": "code",
    "execution_count": 11,
-   "id": "6d4862b1",
+   "id": "aade6efa",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:20.787781Z",
-     "iopub.status.busy": "2021-12-30T21:21:20.785959Z",
-     "iopub.status.idle": "2021-12-30T21:21:21.652958Z",
-     "shell.execute_reply": "2021-12-30T21:21:21.652470Z"
+     "iopub.execute_input": "2021-12-30T21:30:42.307660Z",
+     "iopub.status.busy": "2021-12-30T21:30:42.296624Z",
+     "iopub.status.idle": "2021-12-30T21:30:43.100112Z",
+     "shell.execute_reply": "2021-12-30T21:30:43.099271Z"
     }
    },
    "outputs": [
@@ -516,13 +580,13 @@
   {
    "cell_type": "code",
    "execution_count": 12,
-   "id": "750d013d",
+   "id": "0bb9ae9d",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:21.669943Z",
-     "iopub.status.busy": "2021-12-30T21:21:21.665609Z",
-     "iopub.status.idle": "2021-12-30T21:21:23.929814Z",
-     "shell.execute_reply": "2021-12-30T21:21:23.930247Z"
+     "iopub.execute_input": "2021-12-30T21:30:43.117551Z",
+     "iopub.status.busy": "2021-12-30T21:30:43.117068Z",
+     "iopub.status.idle": "2021-12-30T21:30:45.296006Z",
+     "shell.execute_reply": "2021-12-30T21:30:45.295220Z"
     }
    },
    "outputs": [
@@ -554,7 +618,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "1e1ad34c",
+   "id": "0457f360",
    "metadata": {},
    "source": [
     "## Detector model\n",
@@ -565,13 +629,13 @@
   {
    "cell_type": "code",
    "execution_count": 13,
-   "id": "4454dc92",
+   "id": "828e22b5",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:23.935007Z",
-     "iopub.status.busy": "2021-12-30T21:21:23.934450Z",
-     "iopub.status.idle": "2021-12-30T21:21:23.937755Z",
-     "shell.execute_reply": "2021-12-30T21:21:23.937302Z"
+     "iopub.execute_input": "2021-12-30T21:30:45.300296Z",
+     "iopub.status.busy": "2021-12-30T21:30:45.299815Z",
+     "iopub.status.idle": "2021-12-30T21:30:45.301900Z",
+     "shell.execute_reply": "2021-12-30T21:30:45.301518Z"
     }
    },
    "outputs": [],
@@ -582,13 +646,13 @@
   {
    "cell_type": "code",
    "execution_count": 14,
-   "id": "2c6d2694",
+   "id": "4ad03639",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:23.942420Z",
-     "iopub.status.busy": "2021-12-30T21:21:23.941259Z",
-     "iopub.status.idle": "2021-12-30T21:21:23.943045Z",
-     "shell.execute_reply": "2021-12-30T21:21:23.943479Z"
+     "iopub.execute_input": "2021-12-30T21:30:45.306028Z",
+     "iopub.status.busy": "2021-12-30T21:30:45.304982Z",
+     "iopub.status.idle": "2021-12-30T21:30:45.306550Z",
+     "shell.execute_reply": "2021-12-30T21:30:45.306912Z"
     }
    },
    "outputs": [],

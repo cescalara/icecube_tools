@@ -2,7 +2,7 @@
  "cells": [
   {
    "cell_type": "markdown",
-   "id": "2689a15c",
+   "id": "1cbc7039",
    "metadata": {},
    "source": [
     "# Point source likelihood\n",
@@ -22,13 +22,13 @@
   {
    "cell_type": "code",
    "execution_count": 1,
-   "id": "34df5767",
+   "id": "6a88f51c",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:50.719676Z",
-     "iopub.status.busy": "2021-12-30T21:21:50.718982Z",
-     "iopub.status.idle": "2021-12-30T21:21:51.639800Z",
-     "shell.execute_reply": "2021-12-30T21:21:51.638772Z"
+     "iopub.execute_input": "2021-12-30T21:31:09.600938Z",
+     "iopub.status.busy": "2021-12-30T21:31:09.600386Z",
+     "iopub.status.idle": "2021-12-30T21:31:10.366036Z",
+     "shell.execute_reply": "2021-12-30T21:31:10.365430Z"
     }
    },
    "outputs": [],
@@ -51,7 +51,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "a3fc76f6",
+   "id": "c78ef8db",
    "metadata": {},
    "source": [
     "## Spatial likelihood"
@@ -59,7 +59,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "084e2bcb",
+   "id": "8bce26f6",
    "metadata": {},
    "source": [
     "We can start with the spatial/directional term. Let's approximate our detector as having a fixed angular resolution of 1 degree. We can then define the source spatial term as a 2D Gaussian with a fixed width. The background case will simply be an isotropic distribution on the sphere."
@@ -68,13 +68,13 @@
   {
    "cell_type": "code",
    "execution_count": 2,
-   "id": "92807938",
+   "id": "6268f82c",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:51.644147Z",
-     "iopub.status.busy": "2021-12-30T21:21:51.643633Z",
-     "iopub.status.idle": "2021-12-30T21:21:51.646811Z",
-     "shell.execute_reply": "2021-12-30T21:21:51.646405Z"
+     "iopub.execute_input": "2021-12-30T21:31:10.370064Z",
+     "iopub.status.busy": "2021-12-30T21:31:10.369586Z",
+     "iopub.status.idle": "2021-12-30T21:31:10.373517Z",
+     "shell.execute_reply": "2021-12-30T21:31:10.373111Z"
     }
    },
    "outputs": [],
@@ -86,20 +86,20 @@
   {
    "cell_type": "code",
    "execution_count": 3,
-   "id": "956761fd",
+   "id": "51718bad",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:51.665237Z",
-     "iopub.status.busy": "2021-12-30T21:21:51.655564Z",
-     "iopub.status.idle": "2021-12-30T21:21:51.803727Z",
-     "shell.execute_reply": "2021-12-30T21:21:51.802873Z"
+     "iopub.execute_input": "2021-12-30T21:31:10.392353Z",
+     "iopub.status.busy": "2021-12-30T21:31:10.381227Z",
+     "iopub.status.idle": "2021-12-30T21:31:10.507075Z",
+     "shell.execute_reply": "2021-12-30T21:31:10.506700Z"
     }
    },
    "outputs": [
     {
      "data": {
       "text/plain": [
-       "<matplotlib.legend.Legend at 0x7f8a1b3d69d0>"
+       "<matplotlib.legend.Legend at 0x7f6c8a296850>"
       ]
      },
      "execution_count": 3,
@@ -138,7 +138,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "716b577e",
+   "id": "d57914b1",
    "metadata": {},
    "source": [
     "## Energy likelihood"
@@ -146,7 +146,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "b660032c",
+   "id": "f5e0401f",
    "metadata": {},
    "source": [
     "Now let's think about the energy-dependent term. The way this is handled is to marginalise over the true neutrino energies, to directly connect the reconstructed neutrino energies to the spectral index of a simple power-law source model.\n",
@@ -157,13 +157,13 @@
   {
    "cell_type": "code",
    "execution_count": 4,
-   "id": "a59da394",
+   "id": "2ba782cd",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:51.809322Z",
-     "iopub.status.busy": "2021-12-30T21:21:51.807850Z",
-     "iopub.status.idle": "2021-12-30T21:21:51.815914Z",
-     "shell.execute_reply": "2021-12-30T21:21:51.814818Z"
+     "iopub.execute_input": "2021-12-30T21:31:10.511336Z",
+     "iopub.status.busy": "2021-12-30T21:31:10.510883Z",
+     "iopub.status.idle": "2021-12-30T21:31:10.515557Z",
+     "shell.execute_reply": "2021-12-30T21:31:10.515903Z"
     }
    },
    "outputs": [],
@@ -177,20 +177,20 @@
   {
    "cell_type": "code",
    "execution_count": 5,
-   "id": "4f124ee1",
+   "id": "6173231c",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:51.833258Z",
-     "iopub.status.busy": "2021-12-30T21:21:51.821367Z",
-     "iopub.status.idle": "2021-12-30T21:21:52.870586Z",
-     "shell.execute_reply": "2021-12-30T21:21:52.869834Z"
+     "iopub.execute_input": "2021-12-30T21:31:10.533276Z",
+     "iopub.status.busy": "2021-12-30T21:31:10.530979Z",
+     "iopub.status.idle": "2021-12-30T21:31:11.414121Z",
+     "shell.execute_reply": "2021-12-30T21:31:11.414545Z"
     }
    },
    "outputs": [
     {
      "data": {
       "text/plain": [
-       "<matplotlib.legend.Legend at 0x7f8a50257760>"
+       "<matplotlib.legend.Legend at 0x7f6c8825e430>"
       ]
      },
      "execution_count": 5,
@@ -230,7 +230,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "7fd62df9",
+   "id": "236a0bdd",
    "metadata": {},
    "source": [
     "## Point source likelihood"
@@ -238,7 +238,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "cc5b644a",
+   "id": "60c2077b",
    "metadata": {},
    "source": [
     "Now we can bring together the spatial and energy terms to build a full `PointSourceLikelihood`. First, let's load some data from the simulation notebook to allow us to demonstrate."
@@ -247,13 +247,13 @@
   {
    "cell_type": "code",
    "execution_count": 6,
-   "id": "859e9122",
+   "id": "c09a9be8",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:52.876915Z",
-     "iopub.status.busy": "2021-12-30T21:21:52.876364Z",
-     "iopub.status.idle": "2021-12-30T21:21:52.881808Z",
-     "shell.execute_reply": "2021-12-30T21:21:52.880798Z"
+     "iopub.execute_input": "2021-12-30T21:31:11.419780Z",
+     "iopub.status.busy": "2021-12-30T21:31:11.418812Z",
+     "iopub.status.idle": "2021-12-30T21:31:11.422825Z",
+     "shell.execute_reply": "2021-12-30T21:31:11.423169Z"
     }
    },
    "outputs": [],
@@ -267,7 +267,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "8fc86af1",
+   "id": "04dfa1a3",
    "metadata": {},
    "source": [
     "Now lets put our likelihood structure and data in together, along with a proposed source location:"
@@ -276,13 +276,13 @@
   {
    "cell_type": "code",
    "execution_count": 7,
-   "id": "00861f79",
+   "id": "2c3a70e0",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:52.886358Z",
-     "iopub.status.busy": "2021-12-30T21:21:52.885631Z",
-     "iopub.status.idle": "2021-12-30T21:21:52.889147Z",
-     "shell.execute_reply": "2021-12-30T21:21:52.888670Z"
+     "iopub.execute_input": "2021-12-30T21:31:11.427634Z",
+     "iopub.status.busy": "2021-12-30T21:31:11.426665Z",
+     "iopub.status.idle": "2021-12-30T21:31:11.428158Z",
+     "shell.execute_reply": "2021-12-30T21:31:11.428513Z"
     }
    },
    "outputs": [],
@@ -299,7 +299,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "3979233c",
+   "id": "0b3905ca",
    "metadata": {},
    "source": [
     "The likelihood will automatically select a declination band around the proposed source location. Because of the Gaussian spatial likelihood, neutrinos far from the source will have negligible contribution. We can control the width of this band with the optional argument `band_width_factor`. Let's see how many events ended up in the band, compared to the total number:"
@@ -308,13 +308,13 @@
   {
    "cell_type": "code",
    "execution_count": 8,
-   "id": "819e3361",
+   "id": "7b64e413",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:52.893713Z",
-     "iopub.status.busy": "2021-12-30T21:21:52.893185Z",
-     "iopub.status.idle": "2021-12-30T21:21:52.897992Z",
-     "shell.execute_reply": "2021-12-30T21:21:52.897251Z"
+     "iopub.execute_input": "2021-12-30T21:31:11.432876Z",
+     "iopub.status.busy": "2021-12-30T21:31:11.432406Z",
+     "iopub.status.idle": "2021-12-30T21:31:11.434692Z",
+     "shell.execute_reply": "2021-12-30T21:31:11.435050Z"
     }
    },
    "outputs": [
@@ -336,13 +336,13 @@
   {
    "cell_type": "code",
    "execution_count": 9,
-   "id": "708690e2",
+   "id": "b92f1d9f",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:52.901609Z",
-     "iopub.status.busy": "2021-12-30T21:21:52.899999Z",
-     "iopub.status.idle": "2021-12-30T21:21:52.906068Z",
-     "shell.execute_reply": "2021-12-30T21:21:52.905248Z"
+     "iopub.execute_input": "2021-12-30T21:31:11.439055Z",
+     "iopub.status.busy": "2021-12-30T21:31:11.438592Z",
+     "iopub.status.idle": "2021-12-30T21:31:11.440827Z",
+     "shell.execute_reply": "2021-12-30T21:31:11.441209Z"
     }
    },
    "outputs": [
@@ -363,7 +363,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "364dae64",
+   "id": "f772cd3a",
    "metadata": {},
    "source": [
     "We also note that the background likelihood is implemented automatically, for more information on the options here, check out the API docs. This is just a function of energy, with a constant factor to account for the isotropic directional likelihood."
@@ -372,13 +372,13 @@
   {
    "cell_type": "code",
    "execution_count": 10,
-   "id": "c4ccbcc1",
+   "id": "169aa26f",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:52.911055Z",
-     "iopub.status.busy": "2021-12-30T21:21:52.910492Z",
-     "iopub.status.idle": "2021-12-30T21:21:53.754236Z",
-     "shell.execute_reply": "2021-12-30T21:21:53.753372Z"
+     "iopub.execute_input": "2021-12-30T21:31:11.456045Z",
+     "iopub.status.busy": "2021-12-30T21:31:11.455598Z",
+     "iopub.status.idle": "2021-12-30T21:31:12.181684Z",
+     "shell.execute_reply": "2021-12-30T21:31:12.181248Z"
     }
    },
    "outputs": [
@@ -416,7 +416,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "15364d04",
+   "id": "4e569124",
    "metadata": {},
    "source": [
     "## Point source search\n",
@@ -429,13 +429,13 @@
   {
    "cell_type": "code",
    "execution_count": 11,
-   "id": "9c8d23ed",
+   "id": "d3694ff7",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:53.757863Z",
-     "iopub.status.busy": "2021-12-30T21:21:53.756437Z",
-     "iopub.status.idle": "2021-12-30T21:21:53.777017Z",
-     "shell.execute_reply": "2021-12-30T21:21:53.777402Z"
+     "iopub.execute_input": "2021-12-30T21:31:12.185872Z",
+     "iopub.status.busy": "2021-12-30T21:31:12.185407Z",
+     "iopub.status.idle": "2021-12-30T21:31:12.203542Z",
+     "shell.execute_reply": "2021-12-30T21:31:12.202928Z"
     }
    },
    "outputs": [
@@ -456,7 +456,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "7b3be79a",
+   "id": "908782ac",
    "metadata": {},
    "source": [
     "To understand the significance of this results, we would have to calculate the test statistic for a large number of background-only simulations. These could then be used to calculate a p-value. Given there is a strong point source in the simulation we used, we can expect the test stastic to be lower if we remove the source events. Let's try this:"
@@ -465,13 +465,13 @@
   {
    "cell_type": "code",
    "execution_count": 12,
-   "id": "63b97b55",
+   "id": "1e5cd54f",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:53.784247Z",
-     "iopub.status.busy": "2021-12-30T21:21:53.783719Z",
-     "iopub.status.idle": "2021-12-30T21:21:53.840635Z",
-     "shell.execute_reply": "2021-12-30T21:21:53.839920Z"
+     "iopub.execute_input": "2021-12-30T21:31:12.210175Z",
+     "iopub.status.busy": "2021-12-30T21:31:12.209337Z",
+     "iopub.status.idle": "2021-12-30T21:31:12.257582Z",
+     "shell.execute_reply": "2021-12-30T21:31:12.257977Z"
     }
    },
    "outputs": [],
@@ -505,13 +505,13 @@
   {
    "cell_type": "code",
    "execution_count": 13,
-   "id": "644bdfae",
+   "id": "7637ac71",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2021-12-30T21:21:53.862041Z",
-     "iopub.status.busy": "2021-12-30T21:21:53.857157Z",
-     "iopub.status.idle": "2021-12-30T21:21:53.970374Z",
-     "shell.execute_reply": "2021-12-30T21:21:53.971122Z"
+     "iopub.execute_input": "2021-12-30T21:31:12.271795Z",
+     "iopub.status.busy": "2021-12-30T21:31:12.271350Z",
+     "iopub.status.idle": "2021-12-30T21:31:12.372297Z",
+     "shell.execute_reply": "2021-12-30T21:31:12.372950Z"
     }
    },
    "outputs": [
@@ -547,7 +547,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "ce3d7cc0",
+   "id": "80b28b52",
    "metadata": {},
    "source": [
     "So the more neutrinos are seen from a source, the easier that source is to detect."
@@ -556,7 +556,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "be97499c",
+   "id": "ffa93ef3",
    "metadata": {},
    "outputs": [],
    "source": []
