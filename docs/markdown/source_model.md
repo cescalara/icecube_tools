@@ -12,7 +12,7 @@ jupyter:
     name: python3
 ---
 
-# Source model
+# Source model interface
 
 `icecube_tools` has a simple source modelling interface built in that we demonstrate here. 
 

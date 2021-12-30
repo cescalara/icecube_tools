@@ -89,7 +89,7 @@ phi_norm = phi_solver(Nnu=10,
 phi_norm # GeV^-1 cm^-2 s^-1
 ```
 
-## Setup and run simulation
+## Set up and run simulation
 
 ```python
 from icecube_tools.simulator import Simulator
