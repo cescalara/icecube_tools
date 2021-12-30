@@ -23,6 +23,7 @@ jobs:
         jupytext --to ipynb --pipe black --execute docs/markdown/detector_model.md
         jupytext --to ipynb --pipe black --execute docs/markdown/source_model.md
         jupytext --to ipynb --pipe black --execute docs/markdown/simulation.md
+        jupytext --to ipynb --pipe black --execute docs/markdown/point_source_likelihood.md
         mv docs/markdown/*.ipynb docs/notebooks
     - uses: actions/upload-artifact@v2
       with:
