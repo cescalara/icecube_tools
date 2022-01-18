@@ -16,8 +16,8 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -285,7 +285,7 @@ div.nboutput.container div.output_area > div[class^='highlight']{
 }
 
 /* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
-.prompt a.copybtn {
+.prompt .copybtn {
     display: none;
 }
 
@@ -352,8 +352,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">icecube_tools.utils.data</span> <span class="kn">import</span> <span class="n">IceCubeData</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.utils.data</span> <span class="kn">import</span> <span class="n">IceCubeData</span>
 </pre></div>
 </div>
 </div>
@@ -362,8 +361,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">my_data</span> <span class="o">=</span> <span class="n">IceCubeData</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_data</span> <span class="o">=</span> <span class="n">IceCubeData</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># The available datasets</span>
 <span class="n">my_data</span><span class="o">.</span><span class="n">datasets</span>
@@ -402,6 +400,7 @@ div.rendered_html tbody tr:hover {
  &#39;20210126_PS-IC40-IC86_VII.zip&#39;,
  &#39;20210310_IceCube_data_for_the_first_Glashow_resonance_candidate.zip&#39;,
  &#39;20211217_HESE-7-5-year-data.zip&#39;,
+ &#39;20220114_Density_of_GeV_muons_in_air_showers_measured_with_IceTop.zip&#39;,
  &#39;ic22-solar-wimp-histograms.zip&#39;]
 </pre></div></div>
 </div>
@@ -410,8 +409,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">found_dataset</span> <span class="o">=</span> <span class="n">my_data</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;20181018&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">found_dataset</span> <span class="o">=</span> <span class="n">my_data</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;20181018&quot;</span><span class="p">)</span>
 <span class="n">found_dataset</span>
 </pre></div>
 </div>
@@ -430,8 +428,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">my_data</span><span class="o">.</span><span class="n">data_directory</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_data</span><span class="o">.</span><span class="n">data_directory</span>
 </pre></div>
 </div>
 </div>
@@ -449,8 +446,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">my_data</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">found_dataset</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_data</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">found_dataset</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -459,7 +455,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:01&lt;00:00, 10050261.84it/s]
+20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:00&lt;00:00, 14824404.88it/s]
 </pre></div></div>
 </div>
 <p>You may not want to use <code class="docutils literal notranslate"><span class="pre">icecube_tools</span></code> for other stuff, so you can also fetch to a specificed location with the keyword <code class="docutils literal notranslate"><span class="pre">write_to</span></code>.</p>
@@ -467,8 +463,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">my_data</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">found_dataset</span><span class="p">,</span> <span class="n">write_to</span><span class="o">=</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_data</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">found_dataset</span><span class="p">,</span> <span class="n">write_to</span><span class="o">=</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -477,7 +472,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:01&lt;00:00, 10683356.78it/s]
+20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:00&lt;00:00, 15545121.67it/s]
 </pre></div></div>
 </div>
 <p>For convenience, there is also the <code class="docutils literal notranslate"><span class="pre">fetch_all_to</span></code> method to download all the available data to a specified location. We comment this here as it can take a while to execute.</p>
@@ -485,8 +480,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># my_data.fetch_all_to(&quot;data&quot;)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># my_data.fetch_all_to(&quot;data&quot;)</span>
 </pre></div>
 </div>
 </div>
