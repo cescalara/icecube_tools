@@ -243,7 +243,8 @@ class R2021AeffReader(IceCubeAeffReader):
 
         self.nu_type = "nu_mu"    # all entries valid for muons
 
-        filelayout = ["Emin", "Emax", "cos(z)min", "cos(z)max", "Aeff"]
+        filelayout = ["Emin", "Emax", "DECmin", "DECmax", "Aeff"]
+        # Aeff values are given in cm^2, multiply by 1e-4 to get m^2
 
         output = pd.read_csv(
             self._filename, comment="#", delim_whitespace=True, names=filelayout
@@ -252,21 +253,24 @@ class R2021AeffReader(IceCubeAeffReader):
         true_energy_lower = set(output["Emin"].values())
         true_energy_upper = set(output["Emax"].values())
 
-        cos_zenith_lower = set(output["cos(z)min"].values())
-        cos_zenith_upper = set(output["cos(z)max"].values())
+        dec_lower = set(output["DECmin"].values())
+        dec_upper = set(output["DECmax"].values())
 
         self.true_energy_bins = np.array(
             list(true_energy_upper.union(true_energy_lower))
         )
         self.true_energy_bins.sort()
+        self.true_energy_bins = np.power(10, self.true_energy_bins)
 
-        self.cos_zenith_bins = np.sin(np.radians(np.array(list(cos_zenith_upper.union(cos_zenith_lower)))))
-        self.cos_zenith_bins.sort()
+        dec_bins = np.radians(np.array(list(dec_upper.union(dec_lower))))
+        dec_bins.sort()
+        self.cos_zenith_bins = np.cos(dec_bins + np.pi / 2 )    # convert DEC to z and take cosine
+
 
         self.effective_area_values = np.reshape(
-            list(output["Aeff"].values()),
-            (len(cos_zenith_lower), len(true_energy_lower)),
-        )
+            list(output["Aeff"].values() * 1e-4),
+            (len(dec_lower), len(true_energy_lower)),
+        ).T
 
         self.effective_area_values *= self.scale_factor
 
@@ -516,9 +520,6 @@ class EffectiveArea(object):
         elif dataset_id == "20210126":
 
             files = find_files(dataset_dir, R2021_AEFF_FILENAME)
-            for f in files:
-                print(f)
-            sys.exit()
             # Pick one at random?
             aeff_file_name = files[1]
 
