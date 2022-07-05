@@ -1,7 +1,6 @@
 import numpy as np
 import os
 from abc import ABC, abstractmethod
-import sys
 from icecube_tools.utils.data import (
     IceCubeData,
     find_files,
@@ -265,12 +264,13 @@ class R2021AeffReader(IceCubeAeffReader):
         dec_bins = np.radians(np.array(list(dec_upper.union(dec_lower))))
         dec_bins.sort()
         self.cos_zenith_bins = np.cos(dec_bins + np.pi / 2 )    # convert DEC to z and take cosine
-
+        self.cos_zenith_bins.sort()    # sort to conform to existing data format
 
         self.effective_area_values = np.reshape(
-            list(output["Aeff"].values() * 1e-4),
+            np.array(list(output["Aeff"].values())) * 1e-4,
             (len(dec_lower), len(true_energy_lower)),
         ).T
+        self.effective_area_values = np.flip(self.effective_area_values, axis=1)    # flip due to sort, see above
 
         self.effective_area_values *= self.scale_factor
 
