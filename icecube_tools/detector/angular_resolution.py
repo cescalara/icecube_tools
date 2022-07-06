@@ -15,11 +15,15 @@ of IceCube based on public data.
 
 R2018_ANG_RES_FILENAME = "AngRes.txt"
 R2015_ANG_RES_FILENAME = "angres_plot"
+R2021_ANG_RES_FILENAME = "IC86_II_smearing.csv"
+
+
+
 
 TRUE_ENERGY = 0
 RECO_ENERGY = 1
 
-_supported_dataset_ids = ["20181018"]
+_supported_dataset_ids = ["20181018", "20210126"]
 
 
 class IceCubeAngResReader(ABC):
@@ -126,6 +130,43 @@ class R2018AngResReader(IceCubeAngResReader):
         )
 
 
+class R2021AngResReader(IceCubeAngResReader):
+    """
+    Reader for the 2021 Jan 26 release.
+    Link: https://icecube.wisc.edu/data-releases/2021/01/all-sky-point-source-icecube-data-years-2008-2018/
+    """
+
+    def read(self):
+
+        self.prob_contained = 0.68
+
+        self.year = 2012    # subject to change
+        self.nu_type = "nu_mu"
+
+        self.output = np.loadtxt(self._filename, comments="#")
+        # put anything else that is needed in a different function
+
+        true_energy_lower = np.array(list(set(self.output[:, 0])))
+        true_energy_upper = np.array(list(set(self.output[:, 1])))
+
+        self.true_energy_bins = np.union1d(true_energy_lower, true_energy_upper)
+        self.true_energy_bins.sort()
+
+        dec_lower = np.array(list(set(self.output[:, 2])))
+        dec_higher = np.array(list(set(self.output[:, 3])))
+
+        self.declination_bins = np.union1d(dec_lower, dec_higher)
+        self.declination_bins.sort()
+
+        self.ang_res_values = 1    # placeholder, isn't used anyway
+
+        self.true_energy_values = (
+            self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins) / 2
+        )
+
+
+
+
 class AngularResolution(object):
     """
     Generic angular resolution class.
@@ -159,7 +200,7 @@ class AngularResolution(object):
         self._filename = filename
 
         self._reader = self.get_reader()
-
+        #put self.values somewhere else, not needed for every child class
         self.values = (self._reader.ang_res_values + offset) * scale
 
         if self._energy_type == TRUE_ENERGY:
@@ -200,6 +241,12 @@ class AngularResolution(object):
             self._energy_type = RECO_ENERGY
 
             return R2015AngResReader(self._filename)
+
+        elif R2021_ANG_RES_FILENAME in self._filename:
+
+            self._energy_type = TRUE_ENERGY
+
+            return R2021AngResReader(self._filename)
 
         elif ".csv" in self._filename:
 
@@ -345,8 +392,161 @@ class AngularResolution(object):
 
             angres_file_name = files[2]
 
-        return cls(angres_file_name, **kwargs)
+        elif dataset_id == "20210126":
 
+            files = find_files(dataset_dir, R2021_ANG_RES_FILENAME)
+            print(files)
+            angres_file_name = files[0]
+            return R2021AngularResolution(angres_file_name, **kwargs)
+
+        return AngularResolution(angres_file_name, **kwargs)
+
+
+class R2021AngularResolution(AngularResolution):
+    """
+    Special class to handle smearing effects given in the 2021 data release:
+    1) Deflection, what the readme calls "PSF"
+    2) Misreconstruction of tracks, what the readme calls "AngErr"
+    """
+    def __init__(self, filename, **kwargs):
+        """
+        Inherits everything from AngularResolution
+        """
+        super().__init__(
+            filename,
+            ret_ang_err_p=0.68,
+            offset=0,
+            scale=1,
+            scatter=None,
+            minimum=0.1,
+            maximum=10)
+
+
+        self.dataset = self._reader.output 
+
+        if self._energy_type == TRUE_ENERGY:
+            self.true_energy_bins = self._reader.true_energy_bins
+        else:
+            raise NotImplementedError("Reconstructed energy is not implemented.i")
+
+        self.true_energy_values = (
+            self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins) / 2
+        )
+        self.declination_bins = self._reader.declination_bins
+
+        self.ang_res_values = 1    # placeholder, isn't used anyway
+
+
+    def marginalisation(self, energy, declination, qoi):
+        """
+        Function that marginalises over the smearing data provided for the 2021 release.
+        Arguments:
+            dataset
+            energy: energy of arriving neutrino
+            declination: declination of arriving neutrino
+            qui: quantity of interest, everything else is marginalised over
+        Sticking to readme's naming convention for now.
+        """
+        
+        """
+        #Do this sometime later with something sensible at the boundaries
+        if np.isclose(energy, true_energy_bins[-1]):
+            c_e = true_energy_bins.shape[0]
+        
+        if np.isclose(declination, declination_bins[-1]):
+            c_d = declination_bins.shape[0]
+        """
+        if qoi == "ERec":
+            needed_index = 4
+        elif qoi == "PSF":
+            needed_index = 6
+        elif qoi == "AngErr":
+            needed_index = 8
+        else:
+            raise NotImplementedError("Not other quantity of interest is implemented (yet).")
+        
+        for c_e, e in enumerate(self.true_energy_bins):
+            if energy >= e and energy <= self.true_energy_bins[c_e+1]:
+                break
+        else:
+            print("Outside of energy range")
+
+        for c_d, d in enumerate(self.declination_bins):
+            if declination >= d and declination <= self.declination_bins[c_d+1]:
+                break
+        else:
+            print("Outside of declination range")
+        print(c_e, c_d)
+        #TODO: change the else statements to some error being raised
+        #also: does the same thing twice, put into function!
+        
+        #do pre-selection: lowest energy and highest declination, save into new array
+        reduced_data = self.dataset[np.intersect1d(np.argwhere(
+            np.isclose(self.dataset[:, 0], self.true_energy_bins[c_e])),
+                                np.argwhere(
+            np.isclose(self.dataset[:, 2], self.declination_bins[c_d])))]
+        
+        
+        
+        bins = np.array(sorted(list(set(reduced_data[:, needed_index]).union(
+                    set(reduced_data[:, needed_index+1])))))
+        
+        frac_counts = np.zeros(bins.shape[0]-1)
+       
+        #marginalise over uninteresting quantities
+        for c_b, b in enumerate(bins[:-1]):
+            indices = np.nonzero(np.isclose(b, reduced_data[:, needed_index]))
+
+            frac_counts[c_b] = np.sum(reduced_data[indices, -1])
+        return frac_counts, bins
+
+
+
+    def _get_ang_err(self, E):
+        """
+        Overwrite method of parent class with appropriate 2-step error sampling.
+        TO BE DONE
+        """
+        
+
+
+
+
+        """
+        # Get median value for this true energy
+        if self._energy_type == TRUE_ENERGY:
+
+            true_energy_bin_cen = (
+                self.true_energy_bins[:-1] + self.true_energy_bins[1:]
+            ) / 2
+
+            ang_res = np.interp(np.log(E), np.log(true_energy_bin_cen), self.values)
+
+        elif self._energy_type == RECO_ENERGY:
+
+            ang_res = np.interp(np.log(E), np.log(self.reco_energy_values), self.values)
+
+        # Add scatter if required
+        if self._scatter:
+
+            a = (self._minimum - ang_res) / self._scatter
+            b = (self._maximum - ang_res) / self._scatter
+
+            ang_res = stats.truncnorm(a, b, loc=ang_res, scale=self._scatter,).rvs(
+                1
+            )[0]
+
+        # Check bounds
+        if ang_res < self._minimum:
+
+            ang_res = self._minimum
+
+        if ang_res > self._maximum:
+
+            ang_res = self._maximum
+
+        return ang_res
+        """
 
 class FixedAngularResolution:
     """
