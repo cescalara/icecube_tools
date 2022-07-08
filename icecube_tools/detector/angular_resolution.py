@@ -411,7 +411,8 @@ class R2021AngularResolution(AngularResolution):
     2) Misreconstruction of tracks, what the readme calls "AngErr"
     """
     #TODO: use bins in logspace? seems like the better choice than linspace
-
+    #TODO:  cleanup print() calls and imports
+    #       
     def __init__(self, filename, **kwargs):
         """
         Inherits everything from AngularResolution
@@ -601,6 +602,12 @@ class R2021AngularResolution(AngularResolution):
         # return new_ra, new_dec
         return unit_vector, intermediate_vector, new_unit_vector
 
+
+    def create_sample(self, N, Etrue, coords):
+        """Testing function to quickly generate a bunch of test data"""
+        for i in range(N):
+            unit_vector, _, new_unit_vector = self.sample(Etrue, coords)
+            yield new_unit_vector
 
 
 class FixedAngularResolution:
