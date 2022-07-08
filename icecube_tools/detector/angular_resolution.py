@@ -144,15 +144,12 @@ class R2021AngResReader(IceCubeAngResReader):
         self.nu_type = "nu_mu"
 
         self.output = np.loadtxt(self._filename, comments="#")
-        # put anything else that is needed in a different function
 
         true_energy_lower = np.array(list(set(self.output[:, 0])))
         true_energy_upper = np.array(list(set(self.output[:, 1])))
 
         self.true_energy_bins = np.union1d(true_energy_lower, true_energy_upper)
         self.true_energy_bins.sort()
-        print("energy bins")
-        print(self.true_energy_bins)
 
         dec_lower = np.array(list(set(self.output[:, 2])))
         dec_higher = np.array(list(set(self.output[:, 3])))
@@ -162,6 +159,7 @@ class R2021AngResReader(IceCubeAngResReader):
 
         self.ang_res_values = 1    # placeholder, isn't used anyway
 
+        #is this used?
         self.true_energy_values = (
             self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins) / 2
         )
@@ -397,7 +395,7 @@ class AngularResolution(object):
         elif dataset_id == "20210126":
 
             files = find_files(dataset_dir, R2021_ANG_RES_FILENAME)
-            print(files)
+            # print(files)
             angres_file_name = files[0]
             return R2021AngularResolution(angres_file_name, **kwargs)
 
@@ -411,6 +409,7 @@ class R2021AngularResolution(AngularResolution):
     2) Misreconstruction of tracks, what the readme calls "AngErr"
     """
     #TODO: use bins in logspace? seems like the better choice than linspace
+    #      definitely use bins in logspace: e.g. PSF: erroneous scattering angles produced
     #TODO:  cleanup print() calls and imports
     #       
     def __init__(self, filename, **kwargs):
@@ -432,7 +431,7 @@ class R2021AngularResolution(AngularResolution):
         if self._energy_type == TRUE_ENERGY:
             self.true_energy_bins = self._reader.true_energy_bins
         else:
-            raise NotImplementedError("Reconstructed energy is not implemented.i")
+            raise NotImplementedError("Reconstructed energy is not implemented.")
 
         self.true_energy_values = (
             self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins) / 2
@@ -445,16 +444,21 @@ class R2021AngularResolution(AngularResolution):
 
         # Dictionary of dictionary of... for both PSF and AngErr, energy and dec bin to
         # store marginal pdfs once they are needed.
+        # Keys are indices of self._true_energy_bins[:-1] and self._declination_bins[:-1]
         self.marginal_pdfs = {"PSF":    {c: {} for c in range(self.true_energy_bins[:-1].shape[0])}, 
                               "AngErr": {c: {} for c in range(self.true_energy_bins[:-1].shape[0])}}
 
-
+        #TODO: delete after testing
+        self._kinematic_angles = []
+        self._angular_errors = []
+        self._azimuth_1 = []
+        self._azimuth_2 = []
 
     def _return_bins(self, energy, declination):
         """
         Returns the lower bin edges and their indices for given energy and declination.
         """
-        
+        #TODO improve behavious at upper energy end 
         for c_e, e in enumerate(self.true_energy_bins):
             if energy >= e and energy <= self.true_energy_bins[c_e+1]:
                 break
@@ -478,16 +482,10 @@ class R2021AngularResolution(AngularResolution):
             declination: declination of arriving neutrino
             qui: quantity of interest, everything else is marginalised over
         Sticking to readme's naming convention for now.
+
+        Careful: Samples in log-space!
         """
         
-        """
-        #Do this sometime later with something sensible at the boundaries
-        if np.isclose(energy, true_energy_bins[-1]):
-            c_e = true_energy_bins.shape[0]
-        
-        if np.isclose(declination, declination_bins[-1]):
-            c_d = declination_bins.shape[0]
-        """
         if qoi == "ERec":
             needed_index = 4
         elif qoi == "PSF":
@@ -498,18 +496,16 @@ class R2021AngularResolution(AngularResolution):
             raise ValueError("Not other quantity of interest is available.")
         
         c_e, _, c_d, _ = self._return_bins(energy, declination)
-        print(c_e, c_d)
+        
         #do pre-selection: lowest energy and highest declination, save into new array
         reduced_data = self.dataset[np.intersect1d(np.argwhere(
             np.isclose(self.dataset[:, 0], self.true_energy_bins[c_e])),
                                 np.argwhere(
             np.isclose(self.dataset[:, 2], np.rad2deg(self.declination_bins[c_d]))))]
         
-        print(reduced_data[0])
         bins = np.array(sorted(list(set(reduced_data[:, needed_index]).union(
                     set(reduced_data[:, needed_index+1])))))
         
-        print(bins.shape)
         frac_counts = np.zeros(bins.shape[0]-1)
        
         #marginalise over uninteresting quantities
@@ -517,7 +513,7 @@ class R2021AngularResolution(AngularResolution):
             indices = np.nonzero(np.isclose(b, reduced_data[:, needed_index]))
 
             frac_counts[c_b] = np.sum(reduced_data[indices, -1])
-        return frac_counts, bins
+        return frac_counts, np.log10(bins)
 
 
     def _get_ang_err(self, energy, declination, type_):
@@ -529,13 +525,12 @@ class R2021AngularResolution(AngularResolution):
         azimuth = self.uniform.rvs(1)[0]
         c_e, e, c_d, d = self._return_bins(energy, declination)
         try:
-            deflection = self.marginal_pdfs[type_][c_e][c_d].rvs(1)
+            deflection = self.marginal_pdfs[type_][c_e][c_d].rvs(size=1)[0]
         except KeyError:
             n, bins = self.marginalisation(energy, declination, type_)
             self.marginal_pdfs[type_][c_e][c_d] = stats.rv_histogram((n, bins))
-            deflection = self.marginal_pdfs[type_][c_e][c_d].rvs(1)
-
-        return deflection, azimuth
+            deflection = self.marginal_pdfs[type_][c_e][c_d].rvs(size=1)[0]   # draws log(angle) values
+        return np.power(10, deflection), azimuth
 
 
     def _do_rotation(self, vec, Etrue, ra, dec, type_):
@@ -553,7 +548,12 @@ class R2021AngularResolution(AngularResolution):
 
         #sample kinematic angle from distribution
         deflection, azimuth = self._get_ang_err(Etrue, dec, type_)
-        print(f"sampled angles: \ndeflection: {deflection}, \nazimuth: {azimuth}")
+        if type_ == "PSF":
+            self._kinematic_angles.append(deflection)
+            self._azimuth_1.append(azimuth)
+        elif type_ == "AngErr":
+            self._angular_errors.append(deflection)
+            self._azimuth_2.append(azimuth)
         rot_vec_1 = make_perp(vec)
         rot_vec_1 *= np.deg2rad(deflection) 
         rot_1 = R.from_rotvec(rot_vec_1)
@@ -569,13 +569,9 @@ class R2021AngularResolution(AngularResolution):
 
     def sample(self, Etrue, coord):
         """
-        Sample new ra, dec values given a true energy
-        and direction.
-        TO BE DONE: repeat procedure of Parent class twice:
-                     -once for PSF
-                     -once for AngErr
+        Sample new ra, dec values given a true energy and direction.
         """
-
+ 
         ra, dec = coord
         sky_coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
         sky_coord.representation_type = "cartesian"
@@ -584,7 +580,7 @@ class R2021AngularResolution(AngularResolution):
         intermediate_vector = self._do_rotation(unit_vector, Etrue, ra, dec, "PSF")
         new_unit_vector = self._do_rotation(intermediate_vector, Etrue, ra, dec, "AngErr")
 
-        #create sky coordinates from changed vector
+        #create sky coordinates from rotated/deflected vector
         new_sky_coord = SkyCoord(
             x=new_unit_vector[0],
             y=new_unit_vector[1],
@@ -599,15 +595,19 @@ class R2021AngularResolution(AngularResolution):
         new_dec = new_sky_coord.dec.rad
 
         #return signature matches simulator.py
-        # return new_ra, new_dec
-        return unit_vector, intermediate_vector, new_unit_vector
+
+        # return unit_vector, intermediate_vector, new_unit_vector
+        return new_ra, new_dec
 
 
     def create_sample(self, N, Etrue, coords):
+
         """Testing function to quickly generate a bunch of test data"""
         for i in range(N):
-            unit_vector, _, new_unit_vector = self.sample(Etrue, coords)
-            yield new_unit_vector
+            # unit_vector, intermediate, new = self.sample(Etrue, coords)
+            # yield intermediate, new
+            ra, dec = self.sample(Etrue, coords)
+            return ra, dec
 
 
 class FixedAngularResolution:
