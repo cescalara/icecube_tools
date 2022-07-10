@@ -395,14 +395,14 @@ class AngularResolution(object):
         elif dataset_id == "20210126":
 
             files = find_files(dataset_dir, R2021_ANG_RES_FILENAME)
-            # print(files)
+            print("R2021AngRes chosen")
             angres_file_name = files[0]
             return R2021AngularResolution(angres_file_name, **kwargs)
 
         return AngularResolution(angres_file_name, **kwargs)
 
 
-class R2021AngularResolution(AngularResolution):
+class R2021AngularResolution:
     """
     Special class to handle smearing effects given in the 2021 data release:
     1) Deflection, what the readme calls "PSF"
@@ -413,18 +413,11 @@ class R2021AngularResolution(AngularResolution):
     #TODO:  cleanup print() calls and imports
     #       
     def __init__(self, filename, **kwargs):
-        """
-        Inherits everything from AngularResolution
-        """
-        super().__init__(
-            filename,
-            ret_ang_err_p=0.68,
-            offset=0,
-            scale=1,
-            scatter=None,
-            minimum=0.1,
-            maximum=10)
 
+        self._energy_type = TRUE_ENERGY
+        self._filename = filename
+
+        self._reader = R2021AngResReader(self._filename) 
 
         self.dataset = self._reader.output 
 
@@ -454,11 +447,39 @@ class R2021AngularResolution(AngularResolution):
         self._azimuth_1 = []
         self._azimuth_2 = []
 
+
     def _return_bins(self, energy, declination):
         """
         Returns the lower bin edges and their indices for given energy and declination.
         """
         #TODO improve behavious at upper energy end 
+        if energy >= self.true_energy_bins[0] and energy <= self.true_energy_bins[-1]:
+            c_e = np.digitize(energy, self.true_energy_bins)
+            #Need to get the index of lower bin edge.
+            #np.digitize returns one too much, two if energy=highest bin edge
+            if c_e < self.true_energy_bins.shape[0]:
+                c_e -= 1
+            else:
+                c_e -= 2
+            e = self.true_energy_bins[c_e]
+        else:
+            raise ValueError("Energy out of bounds.")
+
+
+        if declination >= self.declination_bins[0] and declination <= self.declination_bins[-1]:
+            c_d = np.digitize(declination, self.declination_bins)
+            #Same procedure
+            if c_d < self.declination_bins.shape[0]:
+                c_d -= 1
+            else:
+                c_d -= 2
+            d = self.declination_bins[c_d]
+        else:
+            raise ValueError("Declination out of bounds.")
+
+        
+
+        """
         for c_e, e in enumerate(self.true_energy_bins):
             if energy >= e and energy <= self.true_energy_bins[c_e+1]:
                 break
@@ -470,6 +491,7 @@ class R2021AngularResolution(AngularResolution):
                 break
         else:
             print("Outside of declination range")
+        """
         return c_e, e, c_d, d
 
 
@@ -571,7 +593,9 @@ class R2021AngularResolution(AngularResolution):
         """
         Sample new ra, dec values given a true energy and direction.
         """
- 
+
+        def get_angle(vec1, vec2):
+            return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2)) 
         ra, dec = coord
         sky_coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
         sky_coord.representation_type = "cartesian"
@@ -594,21 +618,21 @@ class R2021AngularResolution(AngularResolution):
 
         new_dec = new_sky_coord.dec.rad
 
+        reco_ang_err = get_angle(new_unit_vector, unit_vector)
         #return signature matches simulator.py
 
-        # return unit_vector, intermediate_vector, new_unit_vector
-        return new_ra, new_dec
+        return unit_vector, intermediate_vector, new_unit_vector
+        # return new_ra, new_dec, reco_ang_err
 
 
     def create_sample(self, N, Etrue, coords):
 
         """Testing function to quickly generate a bunch of test data"""
         for i in range(N):
-            # unit_vector, intermediate, new = self.sample(Etrue, coords)
-            # yield intermediate, new
-            ra, dec = self.sample(Etrue, coords)
-            return ra, dec
-
+            unit_vector, intermediate, new = self.sample(Etrue, coords)
+            yield intermediate, new
+            # ra, dec, reco_ang_err = self.sample(Etrue, coords)
+            # return ra, dec, reco_ang_err
 
 class FixedAngularResolution:
     """
