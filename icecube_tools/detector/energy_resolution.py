@@ -1,11 +1,18 @@
 import numpy as np
 from scipy.stats import lognorm
+from scipy import stats
 from scipy.optimize import curve_fit
 from abc import ABC, abstractmethod
 
 from icecube_tools.detector.effective_area import (
     R2015AeffReader,
     R2015_AEFF_FILENAME,
+    #R2021AeffReader,
+    #R2021_AEFF_FILENAME
+)
+from icecube_tools.detector.angular_resolution import (
+    R2021AngResReader,
+    R2021_ANG_RES_FILENAME,
 )
 from icecube_tools.utils.data import IceCubeData, find_files, data_directory
 
@@ -17,7 +24,7 @@ of IceCube using publicly available information.
 GIVEN_ETRUE = 0
 GIVEN_ERECO = 1
 
-_supported_dataset_ids = ["20150820"]
+_supported_dataset_ids = ["20150820", "20210126"]
 
 
 class EnergyResolutionBase(ABC):
@@ -155,7 +162,14 @@ class EnergyResolution(EnergyResolutionBase):
 
             eres_file_name = files[0]
 
-        return cls(eres_file_name, **kwargs)
+            return cls(eres_file_name, **kwargs)
+
+        elif dataset_id == "20210126":
+
+            files = find_files(dataset_dir, R2021_ANG_RES_FILENAME)
+            eres_file_name = files[0]
+
+            return R2021EnergyResolution(eres_file_name, **kwargs)
 
     def _integrate_out_cos_zenith(self):
         """
@@ -394,3 +408,117 @@ class EnergyResolution(EnergyResolutionBase):
         mu, sigma = self._get_lognormal_params(E)
 
         return lognorm.rvs(sigma, loc=0, scale=mu)
+
+
+class R2021EnergyResolution(EnergyResolutionBase):
+    """
+    Class to handle energy resolution of 2021 data release.
+    """
+    def __init__(self, filename, conditional=GIVEN_ETRUE, **kwargs):
+
+        self._filename = filename
+
+        self._reader = R2021AngResReader(filename, **kwargs)
+
+        self._true_energy_bins = self._reader.true_energy_bins
+
+        self.declination_bins = self._reader.declination_bins
+
+        self.dataset = self._reader.output
+        #store marginal pdfs of reco energy for each true energy bin in a dict
+        self.reco_energy_pdfs = {e: {} for e in range(self._true_energy_bins.shape[0])}
+
+        self._values = []
+
+        super().__init__()
+
+
+    def marginalisation(self, energy, declination, qoi="ERec"):
+        """
+        Function that marginalises over the smearing data provided for the 2021 release.
+        Arguments:
+            dataset
+            energy: energy of arriving neutrino
+            declination: declination of arriving neutrino
+            qui: quantity of interest, everything else is marginalised over
+        Sticking to readme's naming convention for now.
+
+        Careful: Samples in log-space! For energy already from irf file.
+        """
+        
+        if qoi == "ERec":
+            needed_index = 4
+        else:
+            raise ValueError("Not other quantity of interest is available.")
+        
+        c_e, _, c_d, _ = self._return_bins(energy, declination)
+        
+        #do pre-selection: lowest energy and highest declination, save into new array
+        reduced_data = self.dataset[np.intersect1d(np.argwhere(
+            np.isclose(self.dataset[:, 0], self.true_energy_bins[c_e])),
+                                np.argwhere(
+            np.isclose(self.dataset[:, 2], np.rad2deg(self.declination_bins[c_d]))))]
+        
+        bins = np.array(sorted(list(set(reduced_data[:, needed_index]).union(
+                    set(reduced_data[:, needed_index+1])))))
+        
+        frac_counts = np.zeros(bins.shape[0]-1)
+       
+        #marginalise over uninteresting quantities
+        for c_b, b in enumerate(bins[:-1]):
+            indices = np.nonzero(np.isclose(b, reduced_data[:, needed_index]))
+            frac_counts[c_b] = np.sum(reduced_data[indices, -1])
+        return frac_counts, bins
+
+
+    def _return_bins(self, energy, declination):
+        """
+        Returns the lower bin edges and their indices for given energy and declination.
+        """
+        #TODO improve behavious at upper energy end 
+        if energy >= self.true_energy_bins[0] and energy <= self.true_energy_bins[-1]:
+            c_e = np.digitize(energy, self.true_energy_bins)
+            #Need to get the index of lower bin edge.
+            #np.digitize returns one too much, two if energy=highest bin edge
+            if c_e < self.true_energy_bins.shape[0]:
+                c_e -= 1
+            else:
+                c_e -= 2
+            e = self.true_energy_bins[c_e]
+        else:
+            raise ValueError("Energy out of bounds.")
+
+        if declination >= self.declination_bins[0] and declination <= self.declination_bins[-1]:
+            c_d = np.digitize(declination, self.declination_bins)
+            #Same procedure
+            if c_d < self.declination_bins.shape[0]:
+                c_d -= 1
+            else:
+                c_d -= 2
+            d = self.declination_bins[c_d]
+        else:
+            raise ValueError("Declination out of bounds.")
+
+        return c_e, e, c_d, d
+
+
+    def sample(self, energy, declination):
+        """
+        Sample reconstructed energy given true energy and declination.
+        """
+        c_e, e, c_d, d = self._return_bins(energy, declination)
+
+        try:
+            Erec = self.reco_energy_pdfs[c_e][c_d].rvs(size=1)[0]
+        except KeyError:
+            n, bins = self.marginalisation(energy, declination)
+            self.reco_energy_pdfs[c_e][c_d] = stats.rv_histogram((n, bins))
+            Erec = self.reco_energy_pdfs[c_e][c_d].rvs(size=1)[0]   # draws log(angle) values
+        return np.power(10, Erec)
+
+
+
+
+
+
+

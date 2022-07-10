@@ -395,7 +395,6 @@ class AngularResolution(object):
         elif dataset_id == "20210126":
 
             files = find_files(dataset_dir, R2021_ANG_RES_FILENAME)
-            print("R2021AngRes chosen")
             angres_file_name = files[0]
             return R2021AngularResolution(angres_file_name, **kwargs)
 
@@ -508,9 +507,7 @@ class R2021AngularResolution:
         Careful: Samples in log-space!
         """
         
-        if qoi == "ERec":
-            needed_index = 4
-        elif qoi == "PSF":
+        if qoi == "PSF":
             needed_index = 6
         elif qoi == "AngErr":
             needed_index = 8
@@ -626,8 +623,10 @@ class R2021AngularResolution:
 
 
     def create_sample(self, N, Etrue, coords):
-
-        """Testing function to quickly generate a bunch of test data"""
+        """
+        Testing function to quickly generate a bunch of test data
+        And I just wanted to show off that I know how to use yield.
+        """
         for i in range(N):
             unit_vector, intermediate, new = self.sample(Etrue, coords)
             yield intermediate, new
