@@ -404,8 +404,8 @@ class AngularResolution(object):
 class R2021AngularResolution:
     """
     Special class to handle smearing effects given in the 2021 data release:
-    1) Deflection, what the readme calls "PSF"
-    2) Misreconstruction of tracks, what the readme calls "AngErr"
+    1) kinematic angle, what the readme calls "PSF"
+    2) misreconstruction of tracks, what the readme calls "AngErr"
     """
     #TODO: use bins in logspace? seems like the better choice than linspace
     #      definitely use bins in logspace: e.g. PSF: erroneous scattering angles produced
@@ -451,7 +451,6 @@ class R2021AngularResolution:
         """
         Returns the lower bin edges and their indices for given energy and declination.
         """
-        #TODO improve behavious at upper energy end 
         if energy >= self.true_energy_bins[0] and energy <= self.true_energy_bins[-1]:
             c_e = np.digitize(energy, self.true_energy_bins)
             #Need to get the index of lower bin edge.
@@ -494,7 +493,7 @@ class R2021AngularResolution:
         return c_e, e, c_d, d
 
 
-    def marginalisation(self, energy, declination, qoi):
+    def _marginalisation(self, c_e, c_d, qoi):
         """
         Function that marginalises over the smearing data provided for the 2021 release.
         Arguments:
@@ -513,8 +512,6 @@ class R2021AngularResolution:
             needed_index = 8
         else:
             raise ValueError("Not other quantity of interest is available.")
-        
-        c_e, _, c_d, _ = self._return_bins(energy, declination)
         
         #do pre-selection: lowest energy and highest declination, save into new array
         reduced_data = self.dataset[np.intersect1d(np.argwhere(
@@ -535,24 +532,30 @@ class R2021AngularResolution:
         return frac_counts, np.log10(bins)
 
 
-    def _get_ang_err(self, energy, declination, type_):
+    def _make_distribution(self, c_e, c_d, type_):
+        """
+        Create and store distribution of quantity of interest.
+        """
+        n, bins = self._marginalisation(self.true_energy_bins[c_e], self.declination_bins[c_d], type_)
+        self.marginal_pdfs[type_][c_e][c_d] = stats.rv_histogram((n, bins))
+
+    def _get_ang_err(self, c_e, c_d, type_):
         """
         Overwrite method of parent class with appropriate 2-step error sampling.
         TO BE DONE
         """
 
         azimuth = self.uniform.rvs(1)[0]
-        c_e, e, c_d, d = self._return_bins(energy, declination)
         try:
             deflection = self.marginal_pdfs[type_][c_e][c_d].rvs(size=1)[0]
         except KeyError:
-            n, bins = self.marginalisation(energy, declination, type_)
+            n, bins = self._marginalisation(c_e, c_d, type_)
             self.marginal_pdfs[type_][c_e][c_d] = stats.rv_histogram((n, bins))
             deflection = self.marginal_pdfs[type_][c_e][c_d].rvs(size=1)[0]   # draws log(angle) values
         return np.power(10, deflection), azimuth
 
 
-    def _do_rotation(self, vec, Etrue, ra, dec, type_):
+    def _do_rotation(self, vec, c_e, c_d, type_):
         """
         Function called to sample deflections from appropriate distributions and
         rotate a coordinate vector by that amount.
@@ -560,23 +563,34 @@ class R2021AngularResolution:
         
         def make_perp(vec):
             perp = np.zeros(3)
-            perp[0] = - vec[1]
-            perp[1] = vec[0]
-            perp /= np.linalg.norm(perp)
+            if not np.all(np.isclose(vec[:2], 0.)):
+                perp[0] = - vec[1]
+                perp[1] = vec[0]
+                perp /= np.linalg.norm(perp)
+            else:
+                perp[1] = 1.
+            # print(perp)
             return perp
 
         #sample kinematic angle from distribution
-        deflection, azimuth = self._get_ang_err(Etrue, dec, type_)
+        deflection, azimuth = self._get_ang_err(c_e, c_d, type_)
+        print(deflection)
+        # azimuth = 0.
+        # print(deflection, azimuth)
         if type_ == "PSF":
             self._kinematic_angles.append(deflection)
             self._azimuth_1.append(azimuth)
         elif type_ == "AngErr":
             self._angular_errors.append(deflection)
             self._azimuth_2.append(azimuth)
+        #first rotation vector is perpendicular to incident direction vector
         rot_vec_1 = make_perp(vec)
+        #length is given by rotation angle, sampled from dist, converted to radians
         rot_vec_1 *= np.deg2rad(deflection) 
+        #create rotation object from vector
         rot_1 = R.from_rotvec(rot_vec_1)
-
+        #second rotation is around incident direction, length again sampled from uniform dist
+        #azimuth already in radians
         rot_vec_2 = vec * azimuth
         rot_2 = R.from_rotvec(rot_vec_2)
 
@@ -592,15 +606,17 @@ class R2021AngularResolution:
         """
 
         def get_angle(vec1, vec2):
-            return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2)) 
+            return np.rad2deg(np.arccos(np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))))
         ra, dec = coord
         sky_coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
         sky_coord.representation_type = "cartesian"
         unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
 
-        intermediate_vector = self._do_rotation(unit_vector, Etrue, ra, dec, "PSF")
-        new_unit_vector = self._do_rotation(intermediate_vector, Etrue, ra, dec, "AngErr")
+        c_e, e, c_d, d = self._return_bins(Etrue, dec)
 
+        #for testing: only use one at a time
+        intermediate_vector = self._do_rotation(unit_vector, c_e, c_d, "PSF")
+        new_unit_vector = self._do_rotation(intermediate_vector, c_e, c_d, "AngErr")
         #create sky coordinates from rotated/deflected vector
         new_sky_coord = SkyCoord(
             x=new_unit_vector[0],
@@ -614,12 +630,12 @@ class R2021AngularResolution:
         new_ra = new_sky_coord.ra.rad
 
         new_dec = new_sky_coord.dec.rad
-
+        print(np.rad2deg(np.pi/2 - new_dec))
         reco_ang_err = get_angle(new_unit_vector, unit_vector)
         #return signature matches simulator.py
 
-        return unit_vector, intermediate_vector, new_unit_vector
-        # return new_ra, new_dec, reco_ang_err
+        # return unit_vector, intermediate_vector, new_unit_vector
+        return new_ra, new_dec, reco_ang_err
 
 
     def create_sample(self, N, Etrue, coords):
