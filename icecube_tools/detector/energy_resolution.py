@@ -433,7 +433,7 @@ class R2021EnergyResolution(EnergyResolutionBase):
         super().__init__()
 
 
-    def marginalisation(self, energy, declination, qoi="ERec"):
+    def _marginalisation(self, c_e, c_d, qoi="ERec"):
         """
         Function that marginalises over the smearing data provided for the 2021 release.
         Arguments:
@@ -450,8 +450,6 @@ class R2021EnergyResolution(EnergyResolutionBase):
             needed_index = 4
         else:
             raise ValueError("Not other quantity of interest is available.")
-        
-        c_e, _, c_d, _ = self._return_bins(energy, declination)
         
         #do pre-selection: lowest energy and highest declination, save into new array
         reduced_data = self.dataset[np.intersect1d(np.argwhere(
@@ -511,14 +509,8 @@ class R2021EnergyResolution(EnergyResolutionBase):
         try:
             Erec = self.reco_energy_pdfs[c_e][c_d].rvs(size=1)[0]
         except KeyError:
-            n, bins = self.marginalisation(energy, declination)
+            n, bins = self._marginalisation(c_e, c_d)
             self.reco_energy_pdfs[c_e][c_d] = stats.rv_histogram((n, bins))
             Erec = self.reco_energy_pdfs[c_e][c_d].rvs(size=1)[0]   # draws log(angle) values
         return np.power(10, Erec)
-
-
-
-
-
-
 

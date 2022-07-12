@@ -9,7 +9,8 @@ from .detector.detector import Detector
 from .source.source_model import Source, DIFFUSE, POINT
 from .source.flux_model import PowerLawFlux, BrokenPowerLawFlux
 from .neutrino_calculator import NeutrinoCalculator
-from .detector.angular_resolution import FixedAngularResolution, AngularResolution
+from .detector.angular_resolution import FixedAngularResolution, AngularResolution, R2021AngularResolution
+from .detector.energy_resolution import R2021EnergyResolution
 
 """
 Module for running neutrino production 
@@ -36,6 +37,7 @@ class Simulator:
         self.max_cosz = 1
 
         self.time = 1  # year
+
 
     @property
     def sources(self):
@@ -154,7 +156,10 @@ class Simulator:
             self.source_label.append(label)
             self.true_energy.append(Etrue)
             self.arrival_energy.append(Earr)
-            Ereco = self.detector.energy_resolution.sample(Earr)
+            if isinstance(self.detector.energy_resolution, R2021EnergyResolution):
+                Ereco = self.detector.energy_resolution.sample(np.log10(Earr), dec)
+            else:
+                Ereco = self.detector.energy_resolution.sample(Earr)
             self.reco_energy.append(Ereco)
 
             if self.sources[label].source_type == DIFFUSE:
@@ -168,14 +173,24 @@ class Simulator:
                         Earr
                     )
 
+                    self.ang_err.append(reco_ang_err)
+
                 elif isinstance(
                     self.detector.angular_resolution, FixedAngularResolution
                 ):
                     reco_ang_err = self.detector.angular_resolution.ret_ang_err
 
-                self.ang_err.append(reco_ang_err)
+                    self.ang_err.append(reco_ang_err)
+
+                elif isinstance(
+                    self.detector.angular_resolution, R2021AngularResolution
+                ):
+                    _, _, reco_ang_err  = self.detector.angular_resolution.sample(np.log10(Earr), (ra, dec))
+
+                    self.ang_err.append(reco_ang_err)
 
             else:
+
 
                 if isinstance(self.detector.angular_resolution, AngularResolution):
                     reco_ra, reco_dec = self.detector.angular_resolution.sample(
@@ -190,6 +205,13 @@ class Simulator:
                         (ra, dec)
                     )
                     reco_ang_err = self.detector.angular_resolution.ret_ang_err
+
+                elif isinstance(
+                    self.detector.angular_resolution, R2021AngularResolution
+                ):
+                    reco_ra, reco_dec, reco_ang_err = self.detector.angular_resolution.sample(
+                        np.log10(Earr), (ra, dec))
+
 
                 self.coordinate.append(
                     SkyCoord(reco_ra * u.rad, reco_dec * u.rad, frame="icrs")
