@@ -414,7 +414,12 @@ class R2021EnergyResolution(EnergyResolutionBase):
     """
     Class to handle energy resolution of 2021 data release.
     """
+
     def __init__(self, filename, conditional=GIVEN_ETRUE, **kwargs):
+        """
+        Energy resolution class for handling 10 year data released 2021.
+        :param filename: Name of the file to be read in
+        """
 
         self._filename = filename
 
@@ -436,14 +441,10 @@ class R2021EnergyResolution(EnergyResolutionBase):
     def _marginalisation(self, c_e, c_d, qoi="ERec"):
         """
         Function that marginalises over the smearing data provided for the 2021 release.
-        Arguments:
-            dataset
-            energy: energy of arriving neutrino
-            declination: declination of arriving neutrino
-            qui: quantity of interest, everything else is marginalised over
-        Sticking to readme's naming convention for now.
-
-        Careful: Samples in log-space! For energy already from irf file.
+        Careful: Samples are drawn in logspace and converted to linspace upon return.
+        :param int c_e: Index of energy bin
+        :param int c_d: Index of declination bin
+        :return: n, bins of the created distribution/histogram
         """
         
         if qoi == "ERec":
@@ -472,8 +473,13 @@ class R2021EnergyResolution(EnergyResolutionBase):
     def _return_bins(self, energy, declination):
         """
         Returns the lower bin edges and their indices for given energy and declination.
+        :param float energy: Energy in GeV
+        :param float declination: Declination in rad
+        :return: Index of energy, energy at lower bin edge, index of declination, declination at lower bin edge
+        :raises ValueError: if energy is outside of IRF-file range
+        :raises ValueError: if declination is outside of $[-\pi/2, \pi/2]$
         """
-        #TODO improve behavious at upper energy end 
+
         if energy >= self.true_energy_bins[0] and energy <= self.true_energy_bins[-1]:
             c_e = np.digitize(energy, self.true_energy_bins)
             #Need to get the index of lower bin edge.
@@ -503,7 +509,11 @@ class R2021EnergyResolution(EnergyResolutionBase):
     def sample(self, energy, declination):
         """
         Sample reconstructed energy given true energy and declination.
+        :param energy: True $\log_{10}(E/\mathrm{GeV})$ to be sampled
+        :param declination: True declination in radians to be sampled
+        :return: Energy in GeV
         """
+
         c_e, e, c_d, d = self._return_bins(energy, declination)
 
         try:

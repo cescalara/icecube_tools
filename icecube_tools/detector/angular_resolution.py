@@ -407,11 +407,12 @@ class R2021AngularResolution:
     1) kinematic angle, what the readme calls "PSF"
     2) misreconstruction of tracks, what the readme calls "AngErr"
     """
-    #TODO: use bins in logspace? seems like the better choice than linspace
-    #      definitely use bins in logspace: e.g. PSF: erroneous scattering angles produced
-    #TODO:  cleanup print() calls and imports
-    #       
+    
     def __init__(self, filename, **kwargs):
+        """
+        Special class to handle smearing effects given in the 2021 data release.
+        :param filename: Filename to be read in
+        """
 
         self._energy_type = TRUE_ENERGY
         self._filename = filename
@@ -450,7 +451,13 @@ class R2021AngularResolution:
     def _return_bins(self, energy, declination):
         """
         Returns the lower bin edges and their indices for given energy and declination.
+        :param float energy: Energy in GeV
+        :param float declination: Declination in rad
+        :return: Index of energy, energy at lower bin edge, index of declination, declination at lower bin edge
+        :raises ValueError: if energy is outside of IRF-file range
+        :raises ValueError: if declination is outside of $[-\pi/2, \pi/2]$
         """
+        
         if energy >= self.true_energy_bins[0] and energy <= self.true_energy_bins[-1]:
             c_e = np.digitize(energy, self.true_energy_bins)
             #Need to get the index of lower bin edge.
@@ -474,38 +481,20 @@ class R2021AngularResolution:
             d = self.declination_bins[c_d]
         else:
             raise ValueError("Declination out of bounds.")
-
         
-
-        """
-        for c_e, e in enumerate(self.true_energy_bins):
-            if energy >= e and energy <= self.true_energy_bins[c_e+1]:
-                break
-        else:
-            print("Outside of energy range")
-
-        for c_d, d in enumerate(self.declination_bins):
-            if declination >= d and declination <= self.declination_bins[c_d+1]:
-                break
-        else:
-            print("Outside of declination range")
-        """
         return c_e, e, c_d, d
 
 
-    def _marginalisation(self, c_e, c_d, qoi):
+    def _marginalisation(self, c_e, c_d, qoi): 
         """
         Function that marginalises over the smearing data provided for the 2021 release.
-        Arguments:
-            dataset
-            energy: energy of arriving neutrino
-            declination: declination of arriving neutrino
-            qui: quantity of interest, everything else is marginalised over
-        Sticking to readme's naming convention for now.
-
-        Careful: Samples in log-space!
+        Careful: Samples are drawn in logspace and converted to linspace upon return.
+        :param int c_e: Index of energy bin
+        :param int c_d: Index of declination bin
+        :return: n, bins of the created distribution/histogram
+        :raises ValueError: if other quantity than PSF or AngErr is of interest
         """
-        
+
         if qoi == "PSF":
             needed_index = 6
         elif qoi == "AngErr":
@@ -535,14 +524,21 @@ class R2021AngularResolution:
     def _make_distribution(self, c_e, c_d, type_):
         """
         Create and store distribution of quantity of interest.
+        :param c_e: Bin index of energy
+        :param c_d: Bin index of declination
+        :param type_: Either "PSF" or "AngErr"
         """
+
         n, bins = self._marginalisation(self.true_energy_bins[c_e], self.declination_bins[c_d], type_)
         self.marginal_pdfs[type_][c_e][c_d] = stats.rv_histogram((n, bins))
 
     def _get_ang_err(self, c_e, c_d, type_):
         """
-        Overwrite method of parent class with appropriate 2-step error sampling.
-        TO BE DONE
+        Returns random samples of deflection angle and azimuth for mis-reconstruction.
+        :param c_e: Bin index of energy
+        :param c_d: Bin index of declination
+        :param type_: Either "PSF" or "AngErr"
+        :returns: Sampled values of deflection and azimuth, both in radians
         """
 
         azimuth = self.uniform.rvs(1)[0]
@@ -552,13 +548,18 @@ class R2021AngularResolution:
             n, bins = self._marginalisation(c_e, c_d, type_)
             self.marginal_pdfs[type_][c_e][c_d] = stats.rv_histogram((n, bins))
             deflection = self.marginal_pdfs[type_][c_e][c_d].rvs(size=1)[0]   # draws log(angle) values
-        return np.power(10, deflection), azimuth
+        return np.deg2rad(np.power(10, deflection)), azimuth
 
 
     def _do_rotation(self, vec, c_e, c_d, type_):
         """
         Function called to sample deflections from appropriate distributions and
         rotate a coordinate vector by that amount.
+        :param vec: Vector to be rotated/deflected
+        :param c_e: Bin index of energy
+        :param c_d: Bin inde of declination
+        :param type_: Either "PSF" or "AngErr"
+        :returns: rotated vector
         """
         
         def make_perp(vec):
@@ -574,7 +575,6 @@ class R2021AngularResolution:
 
         #sample kinematic angle from distribution
         deflection, azimuth = self._get_ang_err(c_e, c_d, type_)
-        print(deflection)
         # azimuth = 0.
         # print(deflection, azimuth)
         if type_ == "PSF":
@@ -586,7 +586,7 @@ class R2021AngularResolution:
         #first rotation vector is perpendicular to incident direction vector
         rot_vec_1 = make_perp(vec)
         #length is given by rotation angle, sampled from dist, converted to radians
-        rot_vec_1 *= np.deg2rad(deflection) 
+        rot_vec_1 *= deflection 
         #create rotation object from vector
         rot_1 = R.from_rotvec(rot_vec_1)
         #second rotation is around incident direction, length again sampled from uniform dist
@@ -603,6 +603,9 @@ class R2021AngularResolution:
     def sample(self, Etrue, coord):
         """
         Sample new ra, dec values given a true energy and direction.
+        :param Etrue: True $\log_{10}(E/\mathrm{GeV})$ that's to be sampled.
+        :param coord: Tuple indicident coordinates (ra, dec) in radians
+        :returns: new rectascension and new declination of deflected particle, angle between incident and deflected direction in degrees
         """
 
         def get_angle(vec1, vec2):
@@ -630,7 +633,6 @@ class R2021AngularResolution:
         new_ra = new_sky_coord.ra.rad
 
         new_dec = new_sky_coord.dec.rad
-        print(np.rad2deg(np.pi/2 - new_dec))
         reco_ang_err = get_angle(new_unit_vector, unit_vector)
         #return signature matches simulator.py
 
@@ -642,12 +644,16 @@ class R2021AngularResolution:
         """
         Testing function to quickly generate a bunch of test data
         And I just wanted to show off that I know how to use yield.
+        :param N: Number of particles to be sampled
+        :param Etrue: True $\log_{10}(E/\mathrm{GeV})$ that's to be sampled.
+        :param coord: Tuple indicident coordinates (ra, dec) in radians
+        :rtype: Iterator
         """
+
         for i in range(N):
             unit_vector, intermediate, new = self.sample(Etrue, coords)
             yield intermediate, new
-            # ra, dec, reco_ang_err = self.sample(Etrue, coords)
-            # return ra, dec, reco_ang_err
+
 
 class FixedAngularResolution:
     """
