@@ -451,7 +451,7 @@ class R2021AngularResolution:
     def _return_bins(self, energy, declination):
         """
         Returns the lower bin edges and their indices for given energy and declination.
-        :param float energy: Energy in GeV
+        :param float energy: Energy in $\log_{10}(E/\mathrm{GeV})$
         :param float declination: Declination in rad
         :return: Index of energy, energy at lower bin edge, index of declination, declination at lower bin edge
         :raises ValueError: if energy is outside of IRF-file range
