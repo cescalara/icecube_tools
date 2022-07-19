@@ -7,7 +7,7 @@ from scipy.stats import rv_histogram, uniform
 from scipy.spatial.transform import Rotation as R
 from icecube_tools.utils.data import IceCubeData, find_files, data_directory
 from icecube_tools.utils.vMF import get_kappa, get_theta_p
-from icecube_tools.detector.r2021 import R2021IRF
+# from icecube_tools.detector.r2021 import R2021IRF
 """
 Module for handling the angular resolution
 of IceCube based on public data.

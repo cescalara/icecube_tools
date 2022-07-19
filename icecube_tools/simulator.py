@@ -9,13 +9,15 @@ from .detector.detector import Detector
 from .source.source_model import Source, DIFFUSE, POINT
 from .source.flux_model import PowerLawFlux, BrokenPowerLawFlux
 from .neutrino_calculator import NeutrinoCalculator
-from .detector.angular_resolution import FixedAngularResolution, AngularResolution, R2021AngularResolution
-from .detector.energy_resolution import R2021EnergyResolution
+from .detector.angular_resolution import FixedAngularResolution, AngularResolution # R2021AngularResolution
+# from .detector.energy_resolution import R2021EnergyResolution
+from .detector.r2021 import R2021IRF
 
 """
 Module for running neutrino production 
 and detection simulations.
 """
+#TODO implement an if clause to check if 2021 data set is being used
 
 
 class Simulator:
@@ -156,8 +158,8 @@ class Simulator:
             self.source_label.append(label)
             self.true_energy.append(Etrue)
             self.arrival_energy.append(Earr)
-            if isinstance(self.detector.energy_resolution, R2021EnergyResolution):
-                Ereco = self.detector.energy_resolution.sample(np.log10(Earr), dec)
+            if isinstance(self.detector.energy_resolution, R2021IRF):
+                Ereco = self.detector.energy_resolution.sample_energy(np.log10(Earr), dec)
             else:
                 Ereco = self.detector.energy_resolution.sample(Earr)
             self.reco_energy.append(Ereco)
@@ -168,7 +170,13 @@ class Simulator:
                 self.ra.append(ra)
                 self.dec.append(dec)
 
-                if isinstance(self.detector.angular_resolution, AngularResolution):
+                if isinstance(
+                    self.detector.angular_resolution, R2021IRF
+                ):
+                    _, _, reco_ang_err  = self.detector.angular_resolution.sample((ra, dec), np.log10(Etrue), np.log10(Ereco))
+
+                    self.ang_err.append(reco_ang_err)
+                elif isinstance(self.detector.angular_resolution, AngularResolution):
                     reco_ang_err = self.detector.angular_resolution.get_ret_ang_err(
                         Earr
                     )
@@ -182,17 +190,18 @@ class Simulator:
 
                     self.ang_err.append(reco_ang_err)
 
-                elif isinstance(
-                    self.detector.angular_resolution, R2021AngularResolution
-                ):
-                    _, _, reco_ang_err  = self.detector.angular_resolution.sample(np.log10(Earr), (ra, dec))
-
-                    self.ang_err.append(reco_ang_err)
 
             else:
 
 
-                if isinstance(self.detector.angular_resolution, AngularResolution):
+                if isinstance(
+                    self.detector.angular_resolution, R2021IRF
+                ):
+                    reco_ra, reco_dec, reco_ang_err = self.detector.angular_resolution.sample(
+                        (ra, dec), np.log10(Earr), np.log10(Ereco)
+                    )
+                
+                elif isinstance(self.detector.angular_resolution, AngularResolution):
                     reco_ra, reco_dec = self.detector.angular_resolution.sample(
                         Earr, (ra, dec)
                     )
@@ -205,12 +214,6 @@ class Simulator:
                         (ra, dec)
                     )
                     reco_ang_err = self.detector.angular_resolution.ret_ang_err
-
-                elif isinstance(
-                    self.detector.angular_resolution, R2021AngularResolution
-                ):
-                    reco_ra, reco_dec, reco_ang_err = self.detector.angular_resolution.sample(
-                        np.log10(Earr), (ra, dec))
 
 
                 self.coordinate.append(
