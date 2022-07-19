@@ -13,7 +13,9 @@ logging.basicConfig(encoding='utf-8', level=logging.INFO)
 from .energy_resolution import EnergyResolution
 from .angular_resolution import AngularResolution
 from icecube_tools.utils.data import find_files, data_directory
-#TODO inheritance or not?
+
+
+#TODO delete?
 class R2021IRFReader():
     """
     Reader for the 2021 Jan 26 release.
@@ -61,44 +63,16 @@ class R2021IRF(EnergyResolution, AngularResolution):
         :param filename: Filename to be read in
         """
 
-
         filename = find_files(data_directory, "IC86_II_smearing.csv")[0]
         #self._energy_type = TRUE_ENERGY
         self._filename = filename
 
+        self.read()
+
         self.year = 2012    # subject to change
         self.nu_type = "nu_mu"
 
-        self.read()
-
-        self.true_energy_values = (
-            self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins) / 2
-        )
-
-
         self.uniform = uniform(0, 2*np.pi)
-
-        # Dictionary of dictionary of... for both PSF and AngErr, energy and dec bin to
-        # store marginal pdfs once they are needed.
-        # Keys are indices of self._true_energy_bins[:-1] and self._declination_bins[:-1]
-        # marginal pdfs: for each Etrue, dec, Ereco one for PSF marginalised over AngErr
-        # for each Etrue, dec, Ereco, PSF one for AngErr
-        # contains for each Etrue bin, declination bin, histogram of Ereco and its bins
-        # self.reco_energy = self._reader.reco_energy 
-
-
-        """
-        for c_e, e in enumerate(self.true_energy_bins[:-1]):
-            for c_d, d in enumerate(self.declination_bins[:-1]):
-                reduced_data = self.dataset[np.intersect1d(np.argwhere(
-                    np.isclose(self.dataset[:, 0], self.true_energy_bins[c_e])),
-                                np.argwhere(
-                    np.isclose(self.dataset[:, 2], np.rad2deg(self.declination_bins[c_d]))))]
-        
-                 bins = np.array(sorted(list(set(reduced_data[:, ]).union(
-                            set(reduced_data[:, needed_index+1])))))
-
-        """
 
         self.reco_energy = {e: {d: {} for d in range(self.declination_bins.shape[0]-1)} for e in range(self.true_energy_bins.shape[0]-1)}
         logging.debug('Creating Ereco distributions')
@@ -118,56 +92,6 @@ class R2021IRF(EnergyResolution, AngularResolution):
                                         d: {} for d in range(self.declination_bins[:-1].shape[0])}
                                               for etrue in range(self.true_energy_bins[:-1].shape[0])}
 
-        #loop over all bins up to reco energy
-        #marginalize over angerr, make distribution of psf
-        #while at it, make a distribution of angerr for every psf bin
-        #TODO this is not feasible, do it only if necessary bc value is actually drawn
-        """
-        for c_e, e in self.reco_energy.items():
-            #c_e, e are index/true energy-dict
-            for c_d, d in e.items():
-                #c_d, d are index/declination-dict
-                for c_b, b in enumerate(d['bins'][:-1]):
-                    n, bins = self._marginalize_over_angerr(c_e, c_d, c_b)
-                    self.marginal_pdf_psf[c_e][c_d][c_b] = {}
-                    self.marginal_pdf_psf[c_e][c_d][c_b]['bins'] = bins
-                    if n is not None:
-                        self.marginal_pdf_psf[c_e][c_d][c_b]['pdf'] = rv_histogram((n, bins))
-                    else:
-                        continue
-                    self.marginal_pdf_angerr[c_e][c_d][c_b] = {}
-                    for c_psf, psf_bin in enumerate(bins):
-                        n, bins = self._get_angerr_dist(c_e, c_d, c_b, c_psf)
-                        self.marginal_pdf_angerr[c_e][c_d][c_b][c_psf] = {}
-                        self.marginal_pdf_angerr[c_e][c_d][c_b][c_psf]['bins'] = bins
-                        print(n)
-                        print(bins)
-                        if n:
-                            self.marginal_pdf_angerr[c_e][c_d][c_b][c_psf]['pdf'] = rv_histogram((n, bins))
-                        else:
-                            continue
-        """
-        """
-        self.marginal_pdf_angerr = {etrue: {
-                                        d: {} for d in range(self.declination_bins[:-1].shape[0])}
-                                                for etrue in range(self.true_energy_bins[:-1].shape[0])}
-        """
-        """
-        Need a marginal pdf for reco energy for each Etrue/dec bin
-            - then for each reco energy:
-                - marginalise over AngErr, make dist
-                - sample PSF value
-                    - for that PSF value, find bin
-                    - sample from resulting AngErr dist
-                    - that's the angular uncertainty
-        """
-        
-        #TODO: delete after testing
-        self._kinematic_angles = []
-        self._angular_errors = []
-        self._azimuth_1 = []
-        self._azimuth_2 = []
-
 
     def _get_index_function(self, dist, value):
         def index_function(value):
@@ -177,6 +101,13 @@ class R2021IRF(EnergyResolution, AngularResolution):
 
 
     def sample_energy(self, Etrue, dec):
+        """
+        Sample reconstructed energy according to distribution depending on true energy and declination.
+        :param Etrue: True energy in $\log_{10}(E/\mathrm{GeV})$
+        :param dec: declination in rad
+        :return: reconstructed energy in GeV
+        """
+
         c_e, _, c_d, _ = self._return_etrue_bins(Etrue, dec)
         logging.debug(f'Energy and declination bins: {c_e}, {c_d}')
         #sample Ereco
@@ -185,17 +116,26 @@ class R2021IRF(EnergyResolution, AngularResolution):
         logging.debug(f'Ereco: {Ereco}')
         return np.power(10, Ereco)
 
+
     @staticmethod
     def get_angle(vec1, vec2):
+        """
+        Calculate the angle between two vectors.
+        :param vec1: First vector
+        :param vec2: Second vector
+        :return: Angle between vectors in degrees
+        """
+
         return np.rad2deg(np.arccos(np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))))
+
 
     def sample(self, coord, Etrue, Ereco=None):
         """
         Sample new ra, dec values given a true energy and direction.
-        :param Etrue: True $\log_{10}(E/\mathrm{GeV})$ that's to be sampled.
         :param coord: Tuple indicident coordinates (ra, dec) in radians
-        :param Etype: Either "Ereco" or "Etrue"
-        :returns: new rectascension and new declination of deflected particle, angle between incident and deflected direction in degrees
+        :param Etrue: True $\log_{10}(E/\mathrm{GeV})$ that's to be sampled.
+        :param Ereco: If Ereco is float (in $\log_{10}(E/\mathrm{GeV})$) then sampling of Ereco is omitted 
+        :return: new rectascension and new declination in rad of deflected particle, angle between incident and deflected direction in degrees
         """
 
         ra, dec = coord
@@ -286,6 +226,10 @@ class R2021IRF(EnergyResolution, AngularResolution):
 
 
     def read(self):
+        """
+        Reads in IRFs of data set.
+        For consistency and reducing the error-prone...iness, kinematic angles ("PSF") and angular errors are converted to log(degrees).
+        """
 
         self.prob_contained = 0.68
 
@@ -325,7 +269,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         :param c_d: Declination bin index
         :param c_e_r: Reconstructed energy bin index
         :param c_psf: Kinematic angle bin index
-        :return: normalised fractional counts, logarithmic bins in degrees
+        :return: normalised fractional counts, logarithmic bins in log(degrees)
         """
 
         presel_data = self.dataset[np.intersect1d(np.nonzero(np.isclose(self.dataset[:, 0], self.true_energy_bins[c_e])),
@@ -347,8 +291,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
     def _return_etrue_bins(self, energy, declination):
         """
         Returns the lower bin edges and their indices for given energy and declination.
-        :param float energy: Energy in $\log_{10}(E/\mathrm{GeV})$
-        :param float declination: Declination in rad
+        :param energy: Energy in $\log_{10}(E/\mathrm{GeV})$
+        :param declination: Declination in rad
         :return: Index of energy, energy at lower bin edge, index of declination, declination at lower bin edge
         :raises ValueError: if energy is outside of IRF-file range
         :raises ValueError: if declination is outside of $[-\pi/2, \pi/2]$
@@ -483,9 +427,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         Function called to sample deflections from appropriate distributions and
         rotate a coordinate vector by that amount.
         :param vec: Vector to be rotated/deflected
-        :param c_e: Bin index of energy
-        :param c_d: Bin inde of declination
-        :param type_: Either "PSF" or "AngErr"
+        :param deflection: Angle of deflection in log(degrees)
         :returns: rotated vector
         """
         
