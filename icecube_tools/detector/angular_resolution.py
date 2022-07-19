@@ -3,11 +3,11 @@ from abc import ABC, abstractmethod
 from vMF import sample_vMF
 from astropy.coordinates import SkyCoord
 from astropy import units as u
-from scipy import stats
+from scipy.stats import rv_histogram, uniform
 from scipy.spatial.transform import Rotation as R
 from icecube_tools.utils.data import IceCubeData, find_files, data_directory
 from icecube_tools.utils.vMF import get_kappa, get_theta_p
-
+from icecube_tools.detector.r2021 import R2021IRF
 """
 Module for handling the angular resolution
 of IceCube based on public data.
@@ -414,6 +414,8 @@ class R2021AngularResolution:
         :param filename: Filename to be read in
         """
 
+
+
         self._energy_type = TRUE_ENERGY
         self._filename = filename
 
@@ -433,14 +435,84 @@ class R2021AngularResolution:
 
         self.ang_res_values = 1    # placeholder, isn't used anyway
 
-        self.uniform = stats.uniform(0, 2*np.pi)
+        self.uniform = uniform(0, 2*np.pi)
 
         # Dictionary of dictionary of... for both PSF and AngErr, energy and dec bin to
         # store marginal pdfs once they are needed.
         # Keys are indices of self._true_energy_bins[:-1] and self._declination_bins[:-1]
-        self.marginal_pdfs = {"PSF":    {c: {} for c in range(self.true_energy_bins[:-1].shape[0])}, 
-                              "AngErr": {c: {} for c in range(self.true_energy_bins[:-1].shape[0])}}
+        # marginal pdfs: for each Etrue, dec, Ereco one for PSF marginalised over AngErr
+        # for each Etrue, dec, Ereco, PSF one for AngErr
+        # contains for each Etrue bin, declination bin, histogram of Ereco and its bins
+        # self.reco_energy = self._reader.reco_energy 
 
+
+        """
+        for c_e, e in enumerate(self.true_energy_bins[:-1]):
+            for c_d, d in enumerate(self.declination_bins[:-1]):
+                reduced_data = self.dataset[np.intersect1d(np.argwhere(
+                    np.isclose(self.dataset[:, 0], self.true_energy_bins[c_e])),
+                                np.argwhere(
+                    np.isclose(self.dataset[:, 2], np.rad2deg(self.declination_bins[c_d]))))]
+        
+                 bins = np.array(sorted(list(set(reduced_data[:, ]).union(
+                            set(reduced_data[:, needed_index+1])))))
+
+        """
+
+        self.reco_energy = {e: {d: {} for d in range(self.declination_bins.shape[0]-1)} for e in range(self.true_energy_bins.shape[0]-1)}
+
+        for c_e, e in enumerate(self.true_energy_bins[:-1]):
+            for c_d, d in enumerate(self.declination_bins[:-1]):
+                n, bins = self._marginalisation(c_e, c_d)
+                self.reco_energy[c_e][c_d]['pdf'] = rv_histogram((n, bins))
+                self.reco_energy[c_e][c_d]['bins'] = bins
+
+        self._values = []
+        self.marginal_pdf_psf = {etrue: {d: {} 
+                                            for d in range(self.declination_bins[:-1].shape[0])} 
+                                            for etrue in range(self.true_energy_bins[:-1].shape[0])}
+
+        self.marginal_pdf_angerr = {etrue: {
+                                        d: {} for d in range(self.declination_bins[:-1].shape[0])}
+                                              for etrue in range(self.true_energy_bins[:-1].shape[0])}
+
+        #loop over all bins up to reco energy
+        #marginalize over angerr, make distribution of psf
+        #while at it, make a distribution of angerr for every psf bin
+        for c_e, e in self.reco_energy.items():
+            for c_d, d in e.items():
+                for c_b, b in enumerate(d['bins']):
+                    n, bins = self._marginalize_over_angerr(c_e, c_d, c_b)
+                    self.marginal_pdf_psf[c_e][c_d][c_b] = {}
+                    self.marginal_pdf_psf[c_e][c_d][c_b]['bins'] = bins
+                    if n is not None:
+                        self.marginal_pdf_psf[c_e][c_d][c_b]['pdf'] = rv_histogram((n, bins))
+                    else:
+                        continue
+                    self.marginal_pdf_angerr[c_e][c_d][c_b] = {}
+                    for c_psf, psf_bin in enumerate(bins):
+                        n, bins = self._get_angerr_dist(c_e, c_d, c_b, c_psf)
+                        self.marginal_pdf_angerr[c_e][c_d][c_b][c_psf] = {}
+                        self.marginal_pdf_angerr[c_e][c_d][c_b][c_psf]['bins'] = bins
+                        if bins is not list():
+                            self.marginal_pdf_angerr[c_e][c_d][c_b][c_psf]['pdf'] = rv_histogram((n, bins))
+                        else:
+                            continue
+        """
+        self.marginal_pdf_angerr = {etrue: {
+                                        d: {} for d in range(self.declination_bins[:-1].shape[0])}
+                                                for etrue in range(self.true_energy_bins[:-1].shape[0])}
+        """
+        """
+        Need a marginal pdf for reco energy for each Etrue/dec bin
+            - then for each reco energy:
+                - marginalise over AngErr, make dist
+                - sample PSF value
+                    - for that PSF value, find bin
+                    - sample from resulting AngErr dist
+                    - that's the angular uncertainty
+        """
+        
         #TODO: delete after testing
         self._kinematic_angles = []
         self._angular_errors = []
@@ -448,7 +520,32 @@ class R2021AngularResolution:
         self._azimuth_2 = []
 
 
-    def _return_bins(self, energy, declination):
+    def _get_angerr_dist(self, c_e, c_d, c_e_r, c_psf):
+        reduced_data = self.dataset[np.intersect1d(np.intersect1d(np.intersect1d(
+                                np.argwhere(
+            np.isclose(self.dataset[:, 0], self.true_energy_bins[c_e])),
+                                np.argwhere(
+            np.isclose(self.dataset[:, 2], np.rad2deg(self.declination_bins[c_d])))),
+                                np.argwhere(
+            np.isclose(self.dataset[:, 4], self.reco_energy[c_e][c_d]['bins'][c_e_r]))),
+                                np.argwhere(
+            np.isclose(self.dataset[:, 6], self.marginal_pdf_psf[c_e][c_d][c_e_r]['bins'][c_psf])))]
+
+        #reduced_data contains only list of relevant entries for some psf bin.
+        #iterate through list, append bins if binsize!=0 and append entry to frac_counts
+        bins = []
+        frac_counts = []
+
+        needed_vals = np.nonzero(np.diff(reduced_data[:, 7] - reduced_data[:, 6]))
+        bins = np.union1d(reduced_data[needed_vals, 6], reduced_data[needed_vals, 7])
+        frac_counts = reduced_data[needed_vals, -1]
+
+        frac_counts /= np.sum(frac_counts)
+
+        return frac_counts, np.log10(bins)
+
+
+    def _return_etrue_bins(self, energy, declination):
         """
         Returns the lower bin edges and their indices for given energy and declination.
         :param float energy: Energy in $\log_{10}(E/\mathrm{GeV})$
@@ -457,7 +554,7 @@ class R2021AngularResolution:
         :raises ValueError: if energy is outside of IRF-file range
         :raises ValueError: if declination is outside of $[-\pi/2, \pi/2]$
         """
-        
+
         if energy >= self.true_energy_bins[0] and energy <= self.true_energy_bins[-1]:
             c_e = np.digitize(energy, self.true_energy_bins)
             #Need to get the index of lower bin edge.
@@ -485,24 +582,21 @@ class R2021AngularResolution:
         return c_e, e, c_d, d
 
 
-    def _marginalisation(self, c_e, c_d, qoi): 
+    def _marginalisation(self, c_e, c_d, qoi="ERec"):
         """
         Function that marginalises over the smearing data provided for the 2021 release.
         Careful: Samples are drawn in logspace and converted to linspace upon return.
         :param int c_e: Index of energy bin
         :param int c_d: Index of declination bin
         :return: n, bins of the created distribution/histogram
-        :raises ValueError: if other quantity than PSF or AngErr is of interest
         """
-
-        if qoi == "PSF":
-            needed_index = 6
-        elif qoi == "AngErr":
-            needed_index = 8
+ 
+        if qoi == "ERec":
+            needed_index = 4
         else:
             raise ValueError("Not other quantity of interest is available.")
         
-        #do pre-selection: lowest energy and highest declination, save into new array
+        #do pre-selection of true energy and declination
         reduced_data = self.dataset[np.intersect1d(np.argwhere(
             np.isclose(self.dataset[:, 0], self.true_energy_bins[c_e])),
                                 np.argwhere(
@@ -516,21 +610,59 @@ class R2021AngularResolution:
         #marginalise over uninteresting quantities
         for c_b, b in enumerate(bins[:-1]):
             indices = np.nonzero(np.isclose(b, reduced_data[:, needed_index]))
-
             frac_counts[c_b] = np.sum(reduced_data[indices, -1])
-        return frac_counts, np.log10(bins)
+        
+        return frac_counts, bins
 
+
+    def _marginalize_over_angerr(self, c_e, c_d, c_e_r): 
+        """
+        Function that marginalises over the smearing data provided for the 2021 release.
+        Careful: Samples are drawn in logspace and converted to linspace upon return.
+        :param int c_e: Index of energy bin
+        :param int c_d: Index of declination bin
+        :return: n, bins of the created distribution/histogram
+        :raises ValueError: if other quantity than PSF or AngErr is of interest
+        """
+        
+        #do pre-selection: lowest energy and highest declination, save into new array
+        reduced_data = self.dataset[np.intersect1d(np.intersect1d(np.argwhere(
+            np.isclose(self.dataset[:, 0], self.true_energy_bins[c_e])),
+                                np.argwhere(
+            np.isclose(self.dataset[:, 2], np.rad2deg(self.declination_bins[c_d])))),
+                                np.argwhere(
+            np.isclose(self.dataset[:, 4], self.reco_energy[c_e][c_d]['bins'][c_e_r])
+                                            )
+                                                                  )
+                                    ]
+        
+        bins = np.array(sorted(list(set(reduced_data[:, 6]).union(
+                    set(reduced_data[:, 7])))))
+        if bins is not list(): 
+            frac_counts = np.zeros(bins.shape[0]-1)
+ 
+            #marginalise over uninteresting quantities
+            for c_b, b in enumerate(bins[:-1]):
+                indices = np.nonzero(np.isclose(b, reduced_data[:, 6]))
+
+                frac_counts[c_b] = np.sum(reduced_data[indices, -1])
+            return frac_counts, np.log10(bins)
+
+        else:
+            return None, None
 
     def _make_distribution(self, c_e, c_d, type_):
         """
+        DEPRECATED?
         Create and store distribution of quantity of interest.
         :param c_e: Bin index of energy
         :param c_d: Bin index of declination
         :param type_: Either "PSF" or "AngErr"
         """
 
-        n, bins = self._marginalisation(self.true_energy_bins[c_e], self.declination_bins[c_d], type_)
+        n, bins = self._marginalisation(c_e, c_d, type_)
         self.marginal_pdfs[type_][c_e][c_d] = stats.rv_histogram((n, bins))
+
 
     def _get_ang_err(self, c_e, c_d, type_):
         """
@@ -600,11 +732,12 @@ class R2021AngularResolution:
         return final
 
 
-    def sample(self, Etrue, coord):
+    def sample(self, coord, Etrue=None, Ereco=None):
         """
         Sample new ra, dec values given a true energy and direction.
         :param Etrue: True $\log_{10}(E/\mathrm{GeV})$ that's to be sampled.
         :param coord: Tuple indicident coordinates (ra, dec) in radians
+        :param Etype: Either "Ereco" or "Etrue"
         :returns: new rectascension and new declination of deflected particle, angle between incident and deflected direction in degrees
         """
 
@@ -615,7 +748,31 @@ class R2021AngularResolution:
         sky_coord.representation_type = "cartesian"
         unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
 
-        c_e, e, c_d, d = self._return_bins(Etrue, dec)
+
+        """
+        if Ereco is None:
+            sample E reco from according dist of Etrue, dec
+        elif Ereco is not None:
+            just continue
+
+
+        get indices of Etrue, Ereco
+
+        sample according PSF, marginalised over AngErr
+
+        sample AngErr given the sampled PSF value
+
+        sample azimuth
+
+        do rotation
+
+        make new skycoord
+
+        calculate angle between initial and final direction, but that should just be AngErr
+
+        """
+
+
 
         #for testing: only use one at a time
         intermediate_vector = self._do_rotation(unit_vector, c_e, c_d, "PSF")

@@ -1,18 +1,14 @@
 import numpy as np
 from scipy.stats import lognorm
-from scipy import stats
+from scipy.stats import rv_histogram
 from scipy.optimize import curve_fit
 from abc import ABC, abstractmethod
 
 from icecube_tools.detector.effective_area import (
     R2015AeffReader,
     R2015_AEFF_FILENAME,
-    #R2021AeffReader,
-    #R2021_AEFF_FILENAME
-)
-from icecube_tools.detector.angular_resolution import (
-    R2021AngResReader,
-    R2021_ANG_RES_FILENAME,
+    R2021AeffReader,
+    R2021_AEFF_FILENAME
 )
 from icecube_tools.utils.data import IceCubeData, find_files, data_directory
 
@@ -425,13 +421,20 @@ class R2021EnergyResolution(EnergyResolutionBase):
 
         self._reader = R2021AngResReader(filename, **kwargs)
 
-        self._true_energy_bins = self._reader.true_energy_bins
+        self.true_energy_bins = self._reader.true_energy_bins
 
         self.declination_bins = self._reader.declination_bins
 
         self.dataset = self._reader.output
         #store marginal pdfs of reco energy for each true energy bin in a dict
-        self.reco_energy_pdfs = {e: {} for e in range(self._true_energy_bins.shape[0])}
+        # self.reco_energy_pdfs = {e: {} for e in range(self.true_energy_bins.shape[0]-1)}
+        self.reco_energy = {e: {d: {} for d in range(self.declination_bins.shape[0]-1)} for e in range(self.true_energy_bins.shape[0]-1)}
+
+        for c_e, e in enumerate(self.true_energy_bins[:-1]):
+            for c_d, d in enumerate(self.declination_bins[:-1]):
+                n, bins = self._marginalisation(c_e, c_d)
+                self.reco_energy[c_e][c_d]['pdf'] = rv_histogram((n, bins))
+                self.reco_energy[c_e][c_d]['bins'] = bins
 
         self._values = []
 
@@ -452,7 +455,7 @@ class R2021EnergyResolution(EnergyResolutionBase):
         else:
             raise ValueError("Not other quantity of interest is available.")
         
-        #do pre-selection: lowest energy and highest declination, save into new array
+        #do pre-selection of true energy and declination
         reduced_data = self.dataset[np.intersect1d(np.argwhere(
             np.isclose(self.dataset[:, 0], self.true_energy_bins[c_e])),
                                 np.argwhere(
@@ -467,7 +470,29 @@ class R2021EnergyResolution(EnergyResolutionBase):
         for c_b, b in enumerate(bins[:-1]):
             indices = np.nonzero(np.isclose(b, reduced_data[:, needed_index]))
             frac_counts[c_b] = np.sum(reduced_data[indices, -1])
+        
         return frac_counts, bins
+
+
+    def _return_reco_energy_bin(self, c_e, c_d, Ereco):
+        """
+        Return bin index of reconstructed energy.
+        :param c_e: Index of true energy bin
+        :param c_d: Index of declination bin
+        :param Ereco: Reconstructed energy in $\log_{10}(E/\mathrm{GeV})$
+        """
+
+        try:
+            bins = self.reco_energy[c_e][c_d]['bins']
+            index = np.digitize(Ereco, bins)
+            if index < bins.shape[0]:
+                index -= 1
+            else:
+                index -= 2
+        except KeyError as e:
+            print(e)
+
+        return index
 
 
     def _return_bins(self, energy, declination):
@@ -516,11 +541,7 @@ class R2021EnergyResolution(EnergyResolutionBase):
 
         c_e, e, c_d, d = self._return_bins(energy, declination)
 
-        try:
-            Erec = self.reco_energy_pdfs[c_e][c_d].rvs(size=1)[0]
-        except KeyError:
-            n, bins = self._marginalisation(c_e, c_d)
-            self.reco_energy_pdfs[c_e][c_d] = stats.rv_histogram((n, bins))
-            Erec = self.reco_energy_pdfs[c_e][c_d].rvs(size=1)[0]   # draws log(angle) values
+        Erec = self.reco_energy[c_e][c_d]['pdf'].rvs(size=1)[0]
+        
         return np.power(10, Erec)
 
