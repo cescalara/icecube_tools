@@ -7,8 +7,8 @@ from abc import ABC, abstractmethod
 from icecube_tools.detector.effective_area import (
     R2015AeffReader,
     R2015_AEFF_FILENAME,
-    R2021AeffReader,
-    R2021_AEFF_FILENAME
+    # R2021AeffReader,
+    # R2021_AEFF_FILENAME
 )
 from icecube_tools.utils.data import IceCubeData, find_files, data_directory
 
@@ -20,7 +20,7 @@ of IceCube using publicly available information.
 GIVEN_ETRUE = 0
 GIVEN_ERECO = 1
 
-_supported_dataset_ids = ["20150820", "20210126"]
+_supported_dataset_ids = ["20150820"]
 
 
 class EnergyResolutionBase(ABC):
@@ -159,13 +159,15 @@ class EnergyResolution(EnergyResolutionBase):
             eres_file_name = files[0]
 
             return cls(eres_file_name, **kwargs)
-
+        """
         elif dataset_id == "20210126":
 
             files = find_files(dataset_dir, R2021_ANG_RES_FILENAME)
             eres_file_name = files[0]
 
             return R2021EnergyResolution(eres_file_name, **kwargs)
+        """
+
 
     def _integrate_out_cos_zenith(self):
         """
@@ -406,6 +408,7 @@ class EnergyResolution(EnergyResolutionBase):
         return lognorm.rvs(sigma, loc=0, scale=mu)
 
 
+'''
 class R2021EnergyResolution(EnergyResolutionBase):
     """
     Class to handle energy resolution of 2021 data release.
@@ -544,4 +547,4 @@ class R2021EnergyResolution(EnergyResolutionBase):
         Erec = self.reco_energy[c_e][c_d]['pdf'].rvs(size=1)[0]
         
         return np.power(10, Erec)
-
+'''

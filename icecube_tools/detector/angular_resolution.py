@@ -15,7 +15,7 @@ of IceCube based on public data.
 
 R2018_ANG_RES_FILENAME = "AngRes.txt"
 R2015_ANG_RES_FILENAME = "angres_plot"
-R2021_ANG_RES_FILENAME = "IC86_II_smearing.csv"
+# R2021_ANG_RES_FILENAME = "IC86_II_smearing.csv"
 
 
 
@@ -23,7 +23,7 @@ R2021_ANG_RES_FILENAME = "IC86_II_smearing.csv"
 TRUE_ENERGY = 0
 RECO_ENERGY = 1
 
-_supported_dataset_ids = ["20181018", "20210126"]
+_supported_dataset_ids = ["20181018"]
 
 
 class IceCubeAngResReader(ABC):
@@ -130,6 +130,7 @@ class R2018AngResReader(IceCubeAngResReader):
         )
 
 
+'''
 class R2021AngResReader(IceCubeAngResReader):
     """
     Reader for the 2021 Jan 26 release.
@@ -163,7 +164,7 @@ class R2021AngResReader(IceCubeAngResReader):
         self.true_energy_values = (
             self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins) / 2
         )
-
+'''
 
 
 
@@ -242,11 +243,6 @@ class AngularResolution(object):
 
             return R2015AngResReader(self._filename)
 
-        elif R2021_ANG_RES_FILENAME in self._filename:
-
-            self._energy_type = TRUE_ENERGY
-
-            return R2021AngResReader(self._filename)
 
         elif ".csv" in self._filename:
 
@@ -391,16 +387,16 @@ class AngularResolution(object):
             files = find_files(dataset_dir, R2018_ANG_RES_FILENAME)
 
             angres_file_name = files[2]
-
+        """
         elif dataset_id == "20210126":
 
             files = find_files(dataset_dir, R2021_ANG_RES_FILENAME)
             angres_file_name = files[0]
             return R2021AngularResolution(angres_file_name, **kwargs)
-
+        """
         return AngularResolution(angres_file_name, **kwargs)
 
-
+'''
 class R2021AngularResolution:
     """
     Special class to handle smearing effects given in the 2021 data release:
@@ -810,7 +806,7 @@ class R2021AngularResolution:
         for i in range(N):
             unit_vector, intermediate, new = self.sample(Etrue, coords)
             yield intermediate, new
-
+'''
 
 class FixedAngularResolution:
     """
