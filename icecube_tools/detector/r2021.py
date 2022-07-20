@@ -3,17 +3,20 @@ from scipy.stats import rv_histogram, uniform
 from scipy.spatial.transform import Rotation as R
 from astropy.coordinates import SkyCoord
 from astropy import units as u
+
 import logging
-seed = 42
+logging.basicConfig(encoding='utf-8', level=logging.INFO)
 from numpy.random import Generator, PCG64
+seed = 42
 scipy_randomGen = uniform
 scipy_randomGen.random_state=Generator(PCG64(seed))
-import matplotlib.pyplot as plt
-logging.basicConfig(encoding='utf-8', level=logging.INFO)
+
 from .energy_resolution import EnergyResolution
 from .angular_resolution import AngularResolution
 from icecube_tools.utils.data import find_files, data_directory
 from icecube_tools.utils.data import ddict
+
+
 
 #TODO delete?
 class R2021IRFReader():
@@ -60,7 +63,6 @@ class R2021IRF(EnergyResolution, AngularResolution):
     def __init__(self, **kwargs):
         """
         Special class to handle smearing effects given in the 2021 data release.
-        :param filename: Filename to be read in
         """
 
         filename = find_files(data_directory, "IC86_II_smearing.csv")[0]
@@ -77,13 +79,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         # self.reco_energy = {e: {d: {} for d in range(self.declination_bins.shape[0]-1)} for e in range(self.true_energy_bins.shape[0]-1)}
         self.reco_energy = ddict()
         logging.debug('Creating Ereco distributions')
-        """
-        for c_e, e in enumerate(self.true_energy_bins[:-1]):
-            for c_d, d in enumerate(self.declination_bins[:-1]):
-                n, bins = self._marginalisation(c_e, c_d)
-                self.reco_energy[c_e][c_d]['pdf'] = rv_histogram((n, bins))
-                self.reco_energy[c_e][c_d]['bins'] = bins
-        """
+
         for c_e, e in enumerate(self.true_energy_bins[:-1]):
             for c_d, d in enumerate(self.declination_bins[:-1]):
                 n, bins = self._marginalisation(c_e, c_d)
@@ -92,15 +88,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         
         self._values = []
         logging.debug('Creating empty dicts for kinematic angle dists and angerr dists')
-        """
-        self.marginal_pdf_psf = {etrue: {d: {} 
-                                            for d in range(self.declination_bins[:-1].shape[0])} 
-                                            for etrue in range(self.true_energy_bins[:-1].shape[0])}
 
-        self.marginal_pdf_angerr = {etrue: {
-                                        d: {} for d in range(self.declination_bins[:-1].shape[0])}
-                                              for etrue in range(self.true_energy_bins[:-1].shape[0])}
-        """
         self.marginal_pdf_psf = ddict()
         self.marginal_pdf_angerr = ddict()
 
@@ -175,46 +163,33 @@ class R2021IRF(EnergyResolution, AngularResolution):
             n, bins = self._marginalize_over_angerr(c_e, c_d, c_e_r)
             self.marginal_pdf_psf.add(bins, c_e, c_d, c_e_r, 'bins')
             self.marginal_pdf_psf.add(rv_histogram((n, bins)), c_e, c_d, c_e_r, 'pdf')
-            # logging.debug(f'{n}\n{bins}')
             kinematic_angle = self.marginal_pdf_psf(c_e, c_d, c_e_r, 'pdf').rvs(size=1)[0]  
-            # samples = self.marginal_pdf_psf[c_e][c_d][c_e_r]['pdf'].rvs(size=1000)
-        # x = np.linspace(*self.marginal_pdf_psf[c_e][c_d][c_e_r]['pdf'].support(), num=1000)
-        # pdf = self.marginal_pdf_psf[c_e][c_d][c_e_r]['pdf'].pdf(x)
-        # plt.plot(x, pdf)
-        # plt.vlines(kinematic_angle, 0, pdf.max())
+        
         logging.debug(f'kinematic angle: {kinematic_angle}')
         logging.debug(f'probability density of kin ang: {self.marginal_pdf_psf[c_e][c_d][c_e_r]["pdf"].pdf(kinematic_angle)}')
-        # plt.hist(samples, bins=self.marginal_pdf_psf[c_e][c_d][c_e_r]['bins'], alpha=0.5, density=True)
-        # self._kinematic_angles.append(np.power(10, kinematic_angle))
         
         if np.isclose(self.marginal_pdf_psf(c_e, c_d, c_e_r, 'pdf').pdf(kinematic_angle), 0):
             logging.error('Sampled zero-chance value')
-            # raise ValueError("Sampled zero-chance value")
+            raise ValueError("Sampled zero-chance value")
+
         #get kinematic angle index
         c_k = self._return_kinematic_bins(c_e, c_d, c_e_r, kinematic_angle)
         logging.debug(f'Kinematic angle bin: {c_k}')
+
         #sample appropriate ang_err distribution
         try:
             ang_err = self.marginal_pdf_angerr(c_e, c_d, c_e_r, c_k, 'pdf').rvs(size=1)[0]
         except KeyError as KE:
             logging.debug(f'Creating AngErr dist for {c_e}, {c_d}, {c_e_r}, {c_k}')
-            """
-            try:
-                self.marginal_pdf_angerr[c_e][c_d][c_e_r]
-            except KeyError as KE2:
-                self.marginal_pdf_angerr[c_e][c_d][c_e_r] = {}
-            self.marginal_pdf_angerr[c_e][c_d][c_e_r][c_k] = {}
-            """
             n, bins = self._get_angerr_dist(c_e, c_d, c_e_r, c_k)
             self.marginal_pdf_angerr.add(rv_histogram((n, bins)), c_e, c_d, c_e_r, c_k, 'pdf') 
             self.marginal_pdf_angerr.add(bins, c_e, c_d, c_e_r, c_k, 'bins')
-            # logging.debug(f'{n}, {bins}')
             ang_err = self.marginal_pdf_angerr(c_e, c_d, c_e_r, c_k, 'pdf').rvs(size=1)[0]
+
         logging.debug(f'Angular error: {ang_err}')
         logging.debug(f'probability density: {self.marginal_pdf_angerr(c_e, c_d, c_e_r, c_k, "pdf").pdf(ang_err)}')
 
         new_unit_vector = self._do_rotation(unit_vector, ang_err)
-        
 
         #create sky coordinates from rotated/deflected vector
         new_sky_coord = SkyCoord(
@@ -230,10 +205,10 @@ class R2021IRF(EnergyResolution, AngularResolution):
 
         new_dec = new_sky_coord.dec.rad
         reco_ang_err = self.get_angle(new_unit_vector, unit_vector)
-        #return signature matches simulator.py
+
         if not np.isclose(reco_ang_err, np.power(10, ang_err)):
             raise ValueError(f"Reconstructed angle and sampled angerr do not match: {reco_ang_err}, {np.power(10, kinematic_angle)}")
-        # return unit_vector, intermediate_vector, new_unit_vector
+
         return new_ra, new_dec, reco_ang_err 
 
 
@@ -291,9 +266,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
                                                   np.nonzero(np.isclose(presel_data[:, 6], self.marginal_pdf_psf(c_e, c_d, c_e_r, 'bins', c_psf))))]
         
         needed_vals = np.nonzero(reduced_data[:, 9] -  reduced_data[:, 8])
-        # logging.debug(f'{needed_vals}')
         bins = np.union1d(reduced_data[needed_vals, 9], reduced_data[needed_vals, 8])
-        # logging.debug(f'{bins}')
         frac_counts = reduced_data[needed_vals, -1].squeeze()
         frac_counts /= np.sum(frac_counts)
 
@@ -312,12 +285,12 @@ class R2021IRF(EnergyResolution, AngularResolution):
 
         if energy >= self.true_energy_bins[0] and energy <= self.true_energy_bins[-1]:
             c_e = np.digitize(energy, self.true_energy_bins)
-            #Need to get the index of lower bin edge.
-            #np.digitize returns one too much, two if energy=highest bin edge
+
             if c_e < self.true_energy_bins.shape[0]:
                 c_e -= 1
             else:
                 c_e -= 2
+
             e = self.true_energy_bins[c_e]
         else:
             raise ValueError("Energy out of bounds.")
@@ -359,6 +332,14 @@ class R2021IRF(EnergyResolution, AngularResolution):
 
 
     def _return_kinematic_bins(self, c_e, c_d, c_e_r, angle):
+        """
+        Returns bin index of kinematic angle given in log(degees).
+        :param c_e: Bin index of true energy
+        :param c_d: Bin index of declination
+        :param c_e_r: Bin index of reconstructed energy
+        :return: Bin index of kinematic angle
+        """
+
         bins = self.marginal_pdf_psf[c_e][c_d][c_e_r]['bins']
         c_k = np.digitize(angle, bins)        
         if c_k < bins.shape[0]:
