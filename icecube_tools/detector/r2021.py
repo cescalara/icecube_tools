@@ -11,46 +11,10 @@ seed = 42
 scipy_randomGen = uniform
 scipy_randomGen.random_state=Generator(PCG64(seed))
 
-from .energy_resolution import EnergyResolution
-from .angular_resolution import AngularResolution
-from icecube_tools.utils.data import find_files, data_directory
-from icecube_tools.utils.data import ddict
+from icecube_tools.detector.energy_resolution import EnergyResolution
+from icecube_tools.detector.angular_resolution import AngularResolution
+from icecube_tools.utils.data import find_files, data_directory, IceCubeData, ddict
 
-
-
-#TODO delete?
-class R2021IRFReader():
-    """
-    Reader for the 2021 Jan 26 release.
-    Link: https://icecube.wisc.edu/data-releases/2021/01/all-sky-point-source-icecube-data-years-2008-2018/
-    """
-
-    def read(self):
-
-        self.prob_contained = 0.68
-
-        self.year = 2012    # subject to change
-        self.nu_type = "nu_mu"
-
-        self.output = np.loadtxt(self._filename, comments="#")
-
-        true_energy_lower = np.array(list(set(self.output[:, 0])))
-        true_energy_upper = np.array(list(set(self.output[:, 1])))
-        self.true_energy_bins = np.union1d(true_energy_lower, true_energy_upper)
-        self.true_energy_bins.sort()
-
-        dec_lower = np.array(list(set(self.output[:, 2])))
-        dec_higher = np.array(list(set(self.output[:, 3])))
-
-        self.declination_bins = np.radians(np.union1d(dec_lower, dec_higher))
-        self.declination_bins.sort()
-
-        self.ang_res_values = 1    # placeholder, isn't used anyway
-
-        #is this used?
-        self.true_energy_values = (
-            self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins) / 2
-        )
 
 
 class R2021IRF(EnergyResolution, AngularResolution):
@@ -60,16 +24,13 @@ class R2021IRF(EnergyResolution, AngularResolution):
     2) misreconstruction of tracks, what the readme calls "AngErr"
     """
     
-    def __init__(self, **kwargs):
+    def __init__(self, fetch=True, **kwargs):
         """
         Special class to handle smearing effects given in the 2021 data release.
         """
 
-        filename = find_files(data_directory, "IC86_II_smearing.csv")[0]
         #self._energy_type = TRUE_ENERGY
-        self._filename = filename
-
-        self.read()
+        self.read(fetch)
 
         self.year = 2012    # subject to change
         self.nu_type = "nu_mu"
@@ -212,7 +173,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         return new_ra, new_dec, reco_ang_err 
 
 
-    def read(self):
+    def read(self, fetch):
         """
         Reads in IRFs of data set.
         For consistency and reducing the error-prone...iness, kinematic angles ("PSF") and angular errors are converted to log(degrees).
@@ -223,6 +184,14 @@ class R2021IRF(EnergyResolution, AngularResolution):
         self.year = 2012    # subject to change
         self.nu_type = "nu_mu"
 
+        if fetch:
+            data_interface = IceCubeData()
+            dataset = data_interface.find("20210126")
+            data_interface.fetch(dataset)
+            dataset_dir = data_interface.get_path_to(dataset[0])
+
+        filename = find_files(data_directory, "IC86_II_smearing.csv")[0]
+        self._filename = filename
         self.output = np.loadtxt(self._filename, comments="#")
         self.dataset = self.output
         true_energy_lower = np.array(list(set(self.output[:, 0])))
