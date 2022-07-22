@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from vMF import sample_vMF
 from astropy.coordinates import SkyCoord
 from astropy import units as u
+from scipy import stats
 from scipy.stats import rv_histogram, uniform
 from scipy.spatial.transform import Rotation as R
 from icecube_tools.utils.data import IceCubeData, find_files, data_directory
