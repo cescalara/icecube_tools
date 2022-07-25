@@ -1,5 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
+import h5py
+from os.path import join
 
 """
 Module to compute the IceCube energy likelihood
@@ -29,6 +31,157 @@ class MarginalisedEnergyLikelihood(ABC):
         """
 
         pass
+
+
+class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
+    """
+    Compute the marginalised energy likelihood by reading in the provided IRF data of 2021.
+    Creates instances of MarginalisedEnergyLikelihoodFromSimFixedIndex (slightly copied from
+    MarginalisedEnergyLikelihoodFromSim but with different interpolating) for each given index.
+    If the likelihood is requested for an index not provided with a dataset,
+    the likelihood will be interpolated (linearly) between provided indices.
+    """
+
+    def __init__(self,
+                 index_list,
+                 path,
+                 src_dec
+    ):
+        """
+        Initialise all datasets
+        User needs to make sure that data sets cover the entire declination needed.
+        
+        :param index_list: List of indices provided with datasets
+        :param path: Path where datasets are located
+        :param src_dec: Source declination in radians
+        """
+        #TODO change path thing and loading of data? maybe option to pass data directly
+        # for each index, load a different MarginalisedEnergyLikelihoodFromSim
+        #distinguish between used data set/likelihood for different indices
+        self.index_list = sorted(index_list)
+        self.likelihood = {}
+        for c, i in enumerate(self.index_list):
+            filename = join(path, f"sim_output_index_{i:1.1f}.h5")
+            with h5py.File(filename, "r") as f:
+                reco_energy = f["reco_energy"][()]
+                dec = f["dec"][()]
+                ang_err = f["ang_err"][()]
+            self.likelihood[f"{float(i):1.1f}"] = MarginalisedEnergyLikelihoodFromSimFixedIndex(
+                reco_energy,
+                dec,
+                i,
+                src_dec
+            )
+        self.lls = np.zeros((len(index_list), self.likelihood[f"{float(i):1.1f}"]._energy_bins.shape[0]-1))
+        for c, i in enumerate(self.index_list):
+            self.lls[c, :] = self.likelihood[f"{float(i):1.1f}"].likelihood
+        self._energy_bins = self.likelihood[f"{float(i):1.1f}"]._energy_bins
+
+       
+
+    def __call__(self, E, index):
+        """
+        Returns likelihood of reconstructed energy for specified spectral index.
+        :param E: Reconstructed energy in GeV, may be float or np.ndarray
+        :param index: spectral index
+        :return: Likelihood
+        """
+
+        #TODO check out if log interpolation is more accurate
+        if index < min(self.index_list) or index > max(self.index_list):
+            raise ValueError(f"Index {index} outside of range of index list.")
+        idx = np.digitize(np.log10(E), self._energy_bins) - 1
+        if isinstance(idx, np.ndarray):
+            out = np.zeros(idx.shape)
+            #should be faster with np.apply_along_axis
+            #TODO!
+            for c, v in enumerate(idx):
+                lls = self.lls[:, v]
+                out[c] = np.interp(index, self.index_list, lls)
+            return out
+        #print(lls)
+        else:
+            lls = self.lls[:, idx]
+            return np.interp(index, self.index_list, lls)
+        #return self.likelihood[f"{float(index):1.1f}"](E)
+
+
+
+class MarginalisedEnergyLikelihoodFromSimFixedIndex(MarginalisedEnergyLikelihood):
+    """
+    Copied from MarginalisedEnergyLikelihoodFromSim but without the interpolating
+    """
+
+    def __init__(self,
+                 energy,
+                 dec,
+                 sim_index,
+                 src_dec=0.,
+                 min_E=1e2,
+                 max_E=1e9,
+                 min_sind=-0.1,
+                 max_sind=1.,
+                 Ebins=50,
+                 
+    ):
+        """
+        :param energy: List of reconstructed energies from simulatedevents
+        :param dec: List of declinations from simulated events
+        :param sim_index: Spectral index used for the simulated events
+        :param src_dec: Declination of source to be analised, in radians
+        """
+
+        self._energy = energy
+        self._dec = dec
+        self._sim_index = sim_index
+        self._min_E = min_E
+        self._max_E = max_E
+        self._min_sind=min_sind
+        self._max_sind=max_sind
+        self._energy_bins = np.linspace(np.log10(min_E), np.log10(max_E), Ebins)  # GeV
+        self._sin_dec_bins = np.linspace(min_sind, max_sind, 20)
+        self.src_dec = src_dec
+
+
+    def __call__(self, E):
+        """
+        Return likelihood of some reconstructed energy.
+        :param E: Reconstructed energy in GeV, may be float or np.ndarray
+        :return: Likelihood
+        """
+
+        idx = np.digitize(np.log10(E), self._energy_bins) - 1
+        return self.likelihood[idx]
+
+
+    @property
+    def src_dec(self):
+        return self._src_dec
+
+
+    @src_dec.setter
+    def src_dec(self, val):
+        self._src_dec = val
+        self._precompute_histograms()
+
+
+    def _precompute_histograms(self):
+        """
+        Computes histograms of reconstructed energy from data set.
+        Only uses data close in declination to specified source to account for declination dependence.
+        """
+
+        sind_idx = np.digitize(np.sin(self._src_dec), self._sin_dec_bins) - 1
+        idx = (np.sin(self._dec) >= self._sin_dec_bins[sind_idx]) & (
+            np.sin(self._dec) < self._sin_dec_bins[sind_idx + 1]
+        )
+        self._selected_energy = self._energy[idx]
+        self.likelihood, _ = np.histogram(
+                np.log10(self._selected_energy),
+                bins=self._energy_bins,
+                density=True
+        )
+
 
 
 class MarginalisedEnergyLikelihoodFromSim(MarginalisedEnergyLikelihood):
@@ -81,24 +234,50 @@ class MarginalisedEnergyLikelihoodFromSim(MarginalisedEnergyLikelihood):
 
         self._src_dec = None
 
+
     def set_src_dec(self, src_dec):
+        """
+        Set the source declination in private variable
+        Precompute likelihood distributions
+        """
 
         self._src_dec = src_dec
 
         self._precompute_histograms()
 
     def _calc_weights(self, new_index):
+        """
+        Only compute one simulation with some given spectral index, num=index_bins.
+        In order to test against multiple indices, re-use existing data
+        but give new weights according to new spectral index.
+        If |gamma| > |simulated gamma|, less weight needs to be at higher energies
+        Convetion: index is positive, minus is explicitely stated in equations,
+        assume flat spectrum (gamma=0) simulated:
+        for gamma=2, shift to lower energies -> self._sim_index - new_index = 0 - 2 = -2
+        -> the higher the energy, the lower the weight!
+        """
 
         return np.power(self._selected_energy, self._sim_index - new_index)
 
     def _precompute_histograms(self):
-
+        """
+        Creates histograms of for each tested spectral index:
+        self._likelihood empty list, one entry for each spectral index
+        index of sin(dec) of source in list of sin(dec) sourrounding source
+        energy is list of all Ereco from simulated events, index (idx) those who belong to correct declinations
+        _selected_energy then contains all Ereco belonging to the selected events
+        get index bin center
+        create histogram (i.e. probability of finding some Ereco for given spectral index) for each spectral index
+        """
+        #TODO maybe change the sin(dec) bins to something more like +/- specified range?
+        #what if src dec is right at a bin edge? too many events discarded!
         self._likelihood = np.zeros(
             (len(self._index_bins[:-1]), len(self._energy_bins[:-1]))
         )
 
         sind_idx = np.digitize(np.sin(self._src_dec), self._sin_dec_bins) - 1
 
+        #only use events within the declination band hosting the source
         idx = (np.sin(self._dec) >= self._sin_dec_bins[sind_idx]) & (
             np.sin(self._dec) < self._sin_dec_bins[sind_idx + 1]
         )
@@ -125,6 +304,7 @@ class MarginalisedEnergyLikelihoodFromSim(MarginalisedEnergyLikelihood):
         P(Ereco | index) = \int dEtrue P(Ereco | Etrue) P(Etrue | index)
         """
 
+        #check for E out of bounds
         if E < self._min_E or E > self._max_E:
 
             raise ValueError(
@@ -136,6 +316,7 @@ class MarginalisedEnergyLikelihoodFromSim(MarginalisedEnergyLikelihood):
                 + str(self._max_E)
             )
 
+        #check for index out of bounds
         if new_index < self._min_index or new_index > self._max_index:
 
             raise ValueError(

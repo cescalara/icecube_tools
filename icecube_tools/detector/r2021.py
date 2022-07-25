@@ -118,7 +118,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         #sample appropriate psf distribution
         try:
             kinematic_angle = self.marginal_pdf_psf(c_e, c_d, c_e_r, 'pdf').rvs(size=1)[0]
-            samples = self.marginal_pdf_psf(c_e, c_d, c_e_r, 'pdf').rvs(size=1000)
+            # samples = self.marginal_pdf_psf(c_e, c_d, c_e_r, 'pdf').rvs(size=1000)
         except KeyError:
             logging.debug(f'Creating kinematic angle dist for {c_e}, {c_d}, {c_e_r}')
             n, bins = self._marginalize_over_angerr(c_e, c_d, c_e_r)
