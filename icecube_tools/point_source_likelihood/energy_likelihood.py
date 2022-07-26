@@ -45,7 +45,15 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
     def __init__(self,
                  index_list,
                  path,
-                 src_dec
+                 src_dec,
+                 interpolation='log',
+                 min_index=1.5,
+                 max_index=4.0,
+                 min_E=1e2,
+                 max_E=1e9,
+                 min_sind=-0.1,
+                 max_sind=1.,
+                 Ebins=50,
     ):
         """
         Initialise all datasets
@@ -60,6 +68,7 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
         #distinguish between used data set/likelihood for different indices
         self.index_list = sorted(index_list)
         self.likelihood = {}
+        self._interpolation = interpolation
         for c, i in enumerate(self.index_list):
             filename = join(path, f"sim_output_index_{i:1.1f}.h5")
             with h5py.File(filename, "r") as f:
@@ -70,13 +79,24 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
                 reco_energy,
                 dec,
                 i,
-                src_dec
-            )
+                src_dec,
+                min_E,
+                max_E,
+                min_sind,
+                max_sind,
+                Ebins
+        )
         self.lls = np.zeros((len(index_list), self.likelihood[f"{float(i):1.1f}"]._energy_bins.shape[0]-1))
         for c, i in enumerate(self.index_list):
             self.lls[c, :] = self.likelihood[f"{float(i):1.1f}"].likelihood
         self._energy_bins = self.likelihood[f"{float(i):1.1f}"]._energy_bins
-
+        self._max_index = max_index
+        self._min_index = min_index
+        self._min_E = min_E
+        self._max_E = max_E
+        self._min_sind = min_sind
+        self._max_sind = max_sind
+        self._Ebins = Ebins
        
 
     def __call__(self, E, index):
@@ -95,14 +115,29 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
             out = np.zeros(idx.shape)
             #should be faster with np.apply_along_axis
             #TODO!
-            for c, v in enumerate(idx):
-                lls = self.lls[:, v]
-                out[c] = np.interp(index, self.index_list, lls)
-            return out
+            if self._interpolation == 'lin':
+                for c, v in enumerate(idx):
+                    lls = self.lls[:, v]
+                    out[c] = np.interp(index, self.index_list, lls)
+                return out
+            elif self._interpolation == 'log':
+                for c, v in enumerate(idx):
+                    lls = np.log10(self.lls[:, v])
+                    out[c] = np.interp(index, self.index_list, lls)
+                return np.power(10, out)
+            else:
+                raise ValueError("No other interpolation available")
         #print(lls)
         else:
-            lls = self.lls[:, idx]
-            return np.interp(index, self.index_list, lls)
+            if self._interpolation == 'lin':
+                lls = self.lls[:, idx]
+                return np.interp(index, self.index_list, lls)
+            elif self._interpolation == 'log':
+                lls = np.log10(self.lls[:, idx])
+                out = np.interp(index, self.index_list, lls)
+                return np.power(10, out)
+            else:
+                raise ValueError("No other interpolation available.")
         #return self.likelihood[f"{float(index):1.1f}"](E)
 
 

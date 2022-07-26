@@ -1,8 +1,9 @@
 import numpy as np
-from scipy.stats import rv_histogram, uniform
+from scipy.stats import rv_histogram, uniform, norm
 from scipy.spatial.transform import Rotation as R
 from astropy.coordinates import SkyCoord
 from astropy import units as u
+from vMF import sample_vMF
 
 import logging
 logging.basicConfig(encoding='utf-8', level=logging.INFO)
@@ -14,7 +15,7 @@ scipy_randomGen.random_state=Generator(PCG64(seed))
 from icecube_tools.detector.energy_resolution import EnergyResolution
 from icecube_tools.detector.angular_resolution import AngularResolution
 from icecube_tools.utils.data import find_files, data_directory, IceCubeData, ddict
-
+from icecube_tools.utils.vMF import get_kappa, get_theta_p
 
 
 class R2021IRF(EnergyResolution, AngularResolution):
@@ -53,12 +54,21 @@ class R2021IRF(EnergyResolution, AngularResolution):
         self.marginal_pdf_psf = ddict()
         self.marginal_pdf_angerr = ddict()
 
+        self.kinematic_angle_bin_list = []
+        self.etrue_bin_list = []
+        self.ereco_bin_list = []
+        self.dec_bin_list = []
+        
 
     def _get_index_function(self, dist, value):
         def index_function(value):
             #np.digitize goes here
             pass
         return index_function(value)
+
+
+    def reset_lists(self):
+        self.kinematic_angle_bins = []
 
 
     def sample_energy(self, Etrue, dec):
@@ -149,8 +159,13 @@ class R2021IRF(EnergyResolution, AngularResolution):
 
         logging.debug(f'Angular error: {ang_err}')
         logging.debug(f'probability density: {self.marginal_pdf_angerr(c_e, c_d, c_e_r, c_k, "pdf").pdf(ang_err)}')
-
-        new_unit_vector = self._do_rotation(unit_vector, ang_err)
+        #should sample deflection from (truncated?) normal distribution with ang_err as width
+        #no! put sampled angle into vMF distribution!
+        #TODO ask Francesca, if yes, do so
+        #kappa needs an angle in degrees, prob of containment, here 0.5 as stated in the paper
+        kappa = get_kappa(np.power(10, ang_err), 0.5)
+        new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0]
+        # new_unit_vector = self._do_rotation(unit_vector, ang_err)
 
         #create sky coordinates from rotated/deflected vector
         new_sky_coord = SkyCoord(
@@ -167,8 +182,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
         new_dec = new_sky_coord.dec.rad
         reco_ang_err = self.get_angle(new_unit_vector, unit_vector)
 
-        if not np.isclose(reco_ang_err, np.power(10, ang_err)):
-            raise ValueError(f"Reconstructed angle and sampled angerr do not match: {reco_ang_err}, {np.power(10, kinematic_angle)}")
+        # if not np.isclose(reco_ang_err, np.power(10, ang_err)):
+        #     raise ValueError(f"Reconstructed angle and sampled angerr do not match: {reco_ang_err}, {np.power(10, kinematic_angle)}")
 
         return new_ra, new_dec, reco_ang_err 
 

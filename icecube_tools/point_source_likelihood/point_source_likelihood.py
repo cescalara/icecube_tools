@@ -147,7 +147,7 @@ class PointSourceLikelihood:
 
         self.N = len(selected_dec_band)
 
-    def _signal_likelihood(self, ra, dec, source_coord, energy, index):
+    def _signal_likelihood(self, ra, dec, source_coord, energy, index, angerr=1):
 
         if isinstance(
             self._direction_likelihood, EnergyDependentSpatialGaussianLikelihood
@@ -156,6 +156,15 @@ class PointSourceLikelihood:
             likelihood = self._direction_likelihood(
                 (ra, dec), source_coord, energy, index
             ) * self._energy_likelihood(energy, index)
+
+        elif isinstance(
+            self._direction_likelihood, EventDependentSpatialGaussianLikelihood
+        ):
+            likelihood = self._direction_likelihood(
+                 angerr, (ra, dec), source_coord
+            ) * self._energy_likelihood(energy, index)
+
+
 
         else:
 
