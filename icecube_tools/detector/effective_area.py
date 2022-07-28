@@ -17,7 +17,7 @@ R2013_AEFF_FILENAME = "effective_areas"
 R2015_AEFF_FILENAME = "effective_area.h5"
 R2018_AEFF_FILENAME = "TabulatedAeff.txt"
 BRAUN2008_AEFF_FILENAME = "AeffBraun2008.csv"
-R2021_AEFF_FILENAME = "effectiveArea.csv"
+R2021_AEFF_FILENAME = "IC86_II_effectiveArea.csv"
 
 _supported_dataset_ids = ["20131121", "20150820", "20181018", "20210126"]
 
@@ -521,6 +521,6 @@ class EffectiveArea(object):
 
             files = find_files(dataset_dir, R2021_AEFF_FILENAME)
             # Pick one at random?
-            aeff_file_name = files[1]
+            aeff_file_name = files[0]
 
         return cls(aeff_file_name, **kwargs)
