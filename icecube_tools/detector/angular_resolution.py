@@ -248,18 +248,30 @@ class AngularResolution(object):
             a = (self._minimum - ang_res) / self._scatter
             b = (self._maximum - ang_res) / self._scatter
 
-            ang_res = stats.truncnorm(a, b, loc=ang_res, scale=self._scatter,).rvs(
-                1
-            )[0]
+            if isinstance(ang_res, np.ndarray):
+                ang_res = stats.truncnorm(a, b, loc=ang_res, scale=np.full(ang_res.shape, self._scatter)).rvs(
+                )
+            else: 
+                ang_res = stats.truncnorm(a, b, loc=ang_res, scale=self._scatter,).rvs(
+                    1
+                )[0]
 
         # Check bounds
-        if ang_res < self._minimum:
+        if isinstance(ang_res, np.ndarray):
+            idx = np.nonzero(ang_res < self._minimum)
+            ang_res[idx] = self._minimum
 
-            ang_res = self._minimum
+            idx = np.nonzero(ang_res > self._maximum)
+            ang_res[idx] = self._maximum
 
-        if ang_res > self._maximum:
+        else:
+            if ang_res < self._minimum:
 
-            ang_res = self._maximum
+                ang_res = self._minimum
+
+            if ang_res > self._maximum:
+
+                ang_res = self._maximum
 
         return ang_res
 

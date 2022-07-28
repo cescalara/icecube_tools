@@ -447,23 +447,35 @@ class EffectiveArea(object):
         energy_index = np.digitize(true_energy, self.true_energy_bins) - 1
 
         # Guard against overflow
-        if energy_index >= self.true_energy_bins.size - 1:
+        if isinstance(energy_index, np.ndarray):
+            idx = np.nonzero(energy_index >= self.true_energy_bins.size - 1)
+            energy_index[idx] = self.true_energy_bins.size - 2
 
-            energy_index = self.true_energy_bins.size - 2
+            idx = np.nonzero(energy_index < 0)
+            energy_index[idx] = 0
 
-        elif energy_index < 0:
-
-            energy_index = 0
-
-        if len(self.cos_zenith_bins) > 2:
-
-            cosz_index = np.digitize(true_cos_zenith, self.cos_zenith_bins) - 1
-
-            return scaled_values[energy_index][cosz_index]
+            if len(self.cos_zenith_bins) > 2:
+                cosz_index = np.digitize(true_cos_zenith, self.cos_zenith_bins) - 1
+                return scaled_values[energy_index, cosz_index]
+            else:
+                return scaled_values[energy_index]
 
         else:
+            if energy_index >= self.true_energy_bins.size - 1:
 
-            return scaled_values[energy_index]
+                energy_index = self.true_energy_bins.size - 2
+
+            elif energy_index < 0:
+
+                energy_index = 0
+            if len(self.cos_zenith_bins) > 2:
+
+                cosz_index = np.digitize(true_cos_zenith, self.cos_zenith_bins) - 1
+                return scaled_values[energy_index][cosz_index]
+
+            else:
+
+                return scaled_values[energy_index]
 
     @classmethod
     def from_dataset(cls, dataset_id, fetch=True, **kwargs):
