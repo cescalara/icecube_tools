@@ -79,7 +79,7 @@ class Simulator:
 
         self._source_weights = np.array(self._Nex) / sum(self._Nex)
 
-def run(self, N=None, show_progress=True, seed=1234):
+    def run(self, N=None, show_progress=True, seed=1234):
         """
         Run a simulation for the given set of sources
         and detector configuration.
@@ -257,7 +257,7 @@ def run(self, N=None, show_progress=True, seed=1234):
                         self.coordinate.append(
                             SkyCoord(reco_ra * u.rad, reco_dec * u.rad, frame="icrs")
                         )
-            
+
         self.true_energy = np.concatenate(tuple(Etrue_d[k] for k in Earr_d.keys()))
         self.arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
         self.label = np.concatenate(tuple(np.full(l_num[l], l, dtype=int) for l in Earr_d.keys()))
