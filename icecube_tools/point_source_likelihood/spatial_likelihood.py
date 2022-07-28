@@ -104,6 +104,7 @@ class EventDependentSpatialGaussianLikelihood(SpatialLikelihood):
 
         P(x_i | x_s) = (1 / (2pi * sigma^2)) * exp( |x_i - x_s|^2/ (2*sigma^2) )
 
+        :param ang_err: Angular error to be used in the Gaussian, in degrees
         :param event_coord: (ra, dec) of event [rad].
         :param source_coord: (ra, dec) of point source [rad].
         """

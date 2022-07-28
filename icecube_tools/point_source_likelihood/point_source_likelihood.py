@@ -35,6 +35,7 @@ class PointSourceLikelihood:
         decs,
         energies,
         source_coord,
+        ang_errs=[],
         bg_energy_likelihood=None,
         index_prior=None,
         band_width_factor=3.0,
@@ -100,6 +101,8 @@ class PointSourceLikelihood:
 
         self._index_prior = index_prior
 
+        self._ang_errs = ang_errs
+
         # Sensible values based on Braun+2008
         # and Aartsen+2018 analyses
         self._bg_index = 3.7
@@ -143,11 +146,15 @@ class PointSourceLikelihood:
 
         self._selected_energies = self._energies[selected]
 
+        if isinstance(self._ang_errs, np.ndarray):
+            self._selected_ang_errs = self._ang_errs[selected]
+        else:
+            self._selected_ang_errs = [1] * len(selected)
         self.Nprime = len(selected)
 
         self.N = len(selected_dec_band)
 
-    def _signal_likelihood(self, ra, dec, source_coord, energy, index, angerr=1):
+    def _signal_likelihood(self, ra, dec, source_coord, energy, index, ang_err=1):
 
         if isinstance(
             self._direction_likelihood, EnergyDependentSpatialGaussianLikelihood
@@ -161,7 +168,7 @@ class PointSourceLikelihood:
             self._direction_likelihood, EventDependentSpatialGaussianLikelihood
         ):
             likelihood = self._direction_likelihood(
-                 angerr, (ra, dec), source_coord
+                 ang_err, (ra, dec), source_coord
             ) * self._energy_likelihood(energy, index)
 
 
@@ -216,6 +223,7 @@ class PointSourceLikelihood:
                 self._source_coord,
                 self._selected_energies[i],
                 index,
+                ang_err=self._selected_ang_errs[i]
             )
 
             bg = self._background_likelihood(self._selected_energies[i])
@@ -266,6 +274,7 @@ class PointSourceLikelihood:
                 self._source_coord,
                 self._selected_energies[i],
                 index,
+                ang_err=self._selected_ang_errs[i]
             )
 
             bg = self._background_likelihood(self._selected_energies[i])
@@ -332,6 +341,8 @@ class PointSourceLikelihood:
 
         self._best_fit_ns = m.values["ns"]
         self._best_fit_index = m.values["index"]
+        return m
+
 
     def _minimize_grid(self):
         """
@@ -363,6 +374,7 @@ class PointSourceLikelihood:
 
             self._best_fit_ns = ns_grid[sel[0]][0]
             self._best_fit_index = index_grid[sel[1]][0]
+        self.grid = out
 
     def _first_derivative_likelihood_ratio(self, ns=0, index=2.0):
         """
@@ -384,6 +396,7 @@ class PointSourceLikelihood:
                 self._source_coord,
                 self._selected_energies[i],
                 index,
+                ang_err=self._selected_ang_errs[i],
             )
 
             bg = self._background_likelihood(self._selected_energies[i])
