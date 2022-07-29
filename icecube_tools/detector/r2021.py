@@ -112,7 +112,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         ra, dec = coord
         sky_coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
         sky_coord.representation_type = "cartesian"
-        unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
+        unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z]).T
 
         if isinstance(Etrue, np.ndarray):
             size = Etrue.size
@@ -127,6 +127,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         Ereco = np.zeros(size)
         kinematic_angle = np.zeros(size)
         ang_err = np.zeros(size)
+        reco_ang_err = np.zeros(size)
         new_ras = np.zeros(size)
         new_decs = np.zeros(size)
 
@@ -146,7 +147,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
                 _index_f = (np.intersect1d(_index_d, _index_e),)
 
                 Ereco[_index_f] = self.reco_energy[idx_e, idx_d].rvs(size=_index_f[0].size)
-                current_c_e_r = self._return_reco_energy_bins(c_e, c_d, Ereco[_index_f])
+                print(Ereco[_index_f])
+                current_c_e_r = self._return_reco_energy_bins(idx_e, idx_d, Ereco[_index_f])
                 c_e_r[_index_f] = current_c_e_r
 
                 logging.debug(f'Ereco: {Ereco[_index_f]}, bin: {current_c_e_r}')
@@ -159,7 +161,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
                     _index_r = (np.intersect1d(_index_f[0], _index_help),)
 
                     try:
-                        kinematic_angle[_index_r] = self.marginal_pdf_psf(idx_e, idx_d, idx_e_r).rvs(size=size_e_r)
+                        kinematic_angle[_index_r] = self.marginal_pdf_psf(idx_e, idx_d, idx_e_r, 'pdf').rvs(size=size_e_r)
 
                     except KeyError:
                         #logging.debug(f'Creating kinematic angle dist for {c_e}, {c_d}, {c_e_r}')
@@ -195,9 +197,12 @@ class R2021IRF(EnergyResolution, AngularResolution):
         #logging.debug(f'Angular error: {ang_err}')
         #logging.debug(f'probability density: {self.marginal_pdf_angerr(c_e, c_d, c_e_r, c_k, "pdf").pdf(ang_err)}')
         #kappa needs an angle in degrees, prob of containment, here 0.5 as stated in the paper
-        for c, ang in enumerate(ang_err):
-            kappa = get_kappa(np.power(10, ang), 0.5)
-            new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0]
+        for c, ang in enumerate(np.power(10, ang_err)):
+            print("vmf")
+            print(ang)
+            kappa = get_kappa(ang, 0.5)
+            print(kappa)
+            new_unit_vector = sample_vMF(unit_vector[c], kappa, 1)[0]
 
             #create sky coordinates from rotated/deflected vector
             new_sky_coord = SkyCoord(
@@ -210,9 +215,9 @@ class R2021IRF(EnergyResolution, AngularResolution):
 
             new_ras[c] = new_sky_coord.ra.rad
             new_decs[c] = new_sky_coord.dec.rad
-            ang_err[c] = self.get_angle(new_unit_vector, unit_vector) 
+            reco_ang_err[c] = self.get_angle(new_unit_vector, unit_vector[c]) 
 
-        return new_ras, new_decs, ang_err, np.power(10, Ereco)
+        return new_ras, new_decs, reco_ang_err, np.power(10, Ereco)
 
 
     def read(self, fetch):
@@ -329,8 +334,9 @@ class R2021IRF(EnergyResolution, AngularResolution):
         :param c_d: Index of declination bin
         :param Ereco: Reconstructed energy in $\log_{10}(E/\mathrm{GeV})$
         """
-
-        bins = self.reco_energy_bins[c_e, c_d][0]
+        print(c_e, c_d, Ereco)
+        bins = self.reco_energy_bins[c_e, c_d]
+        print(bins)
         index = np.digitize(Ereco, bins)
         idx = np.nonzero(index < bins.shape[0])
         index[idx] = index[idx] - 1

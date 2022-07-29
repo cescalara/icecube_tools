@@ -221,8 +221,9 @@ class Simulator:
                 self.coordinate += [s for s in SkyCoord(ra_d[i] * u.rad, dec_d[i] * u.rad, frame="icrs")]
 
                 if isinstance(self.detector.angular_resolution, R2021IRF):
-                    _, _, reco_ang_err, Ereco = self.detector.angular_resolution.sample((ra, dec), np.log10(Etrue))
-
+                    _, _, reco_ang_err, Ereco = self.detector.angular_resolution.sample(
+                        (ra_d[i], dec_d[i]), np.log10(Earr_d[i])
+                    )
                     self.ang_err += list(reco_ang_err)
                     self.reco_energy += list(Ereco)
 
@@ -245,9 +246,12 @@ class Simulator:
 
 
                 if isinstance(self.detector.angular_resolution, R2021IRF):
-                    reco_ra, reco_dec, reco_ang_err  = self.detector.angular_resolution.sample((ra, dec), np.log10(Etrue), np.log10(Ereco))
+                    reco_ra, reco_dec, reco_ang_err, Ereco  = self.detector.angular_resolution.sample(
+                        (ra_d[i], dec_d[i]), np.log10(Earr_d[i]))
                     self.ang_err += list(reco_ang_err)
-                    
+                    self.reco_energy += list(Ereco)
+                    self.ra += list(reco_ra)
+                    self.dec += list(reco_dec)
 
                 elif isinstance(self.detector.angular_resolution, AngularResolution):
                     #go a step backwards and fix the vMF sampling later
