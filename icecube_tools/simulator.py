@@ -11,15 +11,12 @@ from .source.source_model import Source, DIFFUSE, POINT
 from .source.flux_model import PowerLawFlux, BrokenPowerLawFlux
 from .neutrino_calculator import NeutrinoCalculator
 from .detector.angular_resolution import FixedAngularResolution, AngularResolution # R2021AngularResolution
-# from .detector.energy_resolution import R2021EnergyResolution
 from .detector.r2021 import R2021IRF
 
 """
 Module for running neutrino production 
 and detection simulations.
 """
-#TODO implement an if clause to check if 2021 data set is being used
-
 
 class Simulator:
     def __init__(self, sources, detector):
@@ -133,7 +130,7 @@ class Simulator:
         l_set = set(label)
         l_num = {i: np.argwhere(i == label).shape[0] for i in l_set}
         max_energy = {}
-        
+        print(l_num) 
         #create dicts of empty arrays of matching length (i.e. expected events) for each surce
         ra_d = {i: np.zeros(l_num[i]) for i in l_set}
         dec_d = {i: np.zeros(l_num[i]) for i in l_set}
@@ -176,22 +173,6 @@ class Simulator:
 
                 Earr_ = Etrue_ / (1 + self.sources[i].z)
 
-<<<<<<< HEAD
-                accepted = np.random.choice(
-                    [True, False], p=[detection_prob, 1 - detection_prob]
-                )
-
-            self.source_label.append(label)
-            self.true_energy.append(Etrue)
-            self.arrival_energy.append(Earr)
-            if isinstance(self.detector.energy_resolution, R2021IRF):
-                Ereco = self.detector.energy_resolution.sample_energy(np.log10(Earr), dec)
-            else:
-                Ereco = self.detector.energy_resolution.sample(Earr)
-            self.reco_energy.append(Ereco)
-
-            if self.sources[label].source_type == DIFFUSE:
-=======
                 detection_prob = self.detector.effective_area.detection_probability(
                         Earr_, cosz, max_energy[i]
                 ).astype(float)
@@ -207,7 +188,6 @@ class Simulator:
                 #)
                 samples = uniform.rvs(size=num)
                 accepted_ = samples < detection_prob
->>>>>>> merge
 
                 idx = np.nonzero(accepted_)
                 if idx[0].size == 0:
@@ -230,26 +210,27 @@ class Simulator:
                         ra_d[i][start:] = ra_[idx][0:remaining]
                         dec_d[i][start:] = dec_[idx][0:remaining]
                         done = True
-            
-            
+
+            if not isinstance(self.detector.energy_resolution, R2021IRF):
+                Ereco = self.detector.energy_resolution.sample(Earr_d[i])
+                self.reco_energy += list(Ereco)           
+
             #do source type specific things here
             if self.sources[i].source_type == DIFFUSE:
 
                 self.coordinate += [s for s in SkyCoord(ra_d[i] * u.rad, dec_d[i] * u.rad, frame="icrs")]
 
-                if isinstance(
-                    self.detector.angular_resolution, R2021IRF
-                ):
-                    _, _, reco_ang_err  = self.detector.angular_resolution.sample((ra, dec), np.log10(Etrue), np.log10(Ereco))
+                if isinstance(self.detector.angular_resolution, R2021IRF):
+                    _, _, reco_ang_err, Ereco = self.detector.angular_resolution.sample((ra, dec), np.log10(Etrue))
 
-                    self.ang_err.append(reco_ang_err)
+                    self.ang_err += list(reco_ang_err)
+                    self.reco_energy += list(Ereco)
+
                 elif isinstance(self.detector.angular_resolution, AngularResolution):
                     reco_ang_err = self.detector.angular_resolution.get_ret_ang_err(
                         Earr_d[i]
                     )
                     self.ang_err += list(reco_ang_err)
-
-                    self.ang_err.append(reco_ang_err)
 
                 elif isinstance(
                     self.detector.angular_resolution, FixedAngularResolution
@@ -257,31 +238,18 @@ class Simulator:
                     reco_ang_err = self.detector.angular_resolution.ret_ang_err
                     temp = [reco_ang_err] * l_num[i]
 
-<<<<<<< HEAD
-                    self.ang_err.append(reco_ang_err)
-
+                self.dec += list(dec_d[i])
+                self.ra += list(ra_d[i])
 
             else:
 
 
-                if isinstance(
-                    self.detector.angular_resolution, R2021IRF
-                ):
-                    reco_ra, reco_dec, reco_ang_err = self.detector.angular_resolution.sample(
-                        (ra, dec), np.log10(Earr), np.log10(Ereco)
-                    )
-                
+                if isinstance(self.detector.angular_resolution, R2021IRF):
+                    reco_ra, reco_dec, reco_ang_err  = self.detector.angular_resolution.sample((ra, dec), np.log10(Etrue), np.log10(Ereco))
+                    self.ang_err += list(reco_ang_err)
+                    
+
                 elif isinstance(self.detector.angular_resolution, AngularResolution):
-                    reco_ra, reco_dec = self.detector.angular_resolution.sample(
-                        Earr, (ra, dec)
-                    )
-                    reco_ang_err = self.detector.angular_resolution.ret_ang_err
-=======
-                    self.ang_err.append += temp
-                
-            else:
-
-                if isinstance(self.detector.angular_resolution, AngularResolution):
                     #go a step backwards and fix the vMF sampling later
                     for c in range(l_num[i]):
                         reco_ra, reco_dec = self.detector.angular_resolution.sample(
@@ -292,25 +260,10 @@ class Simulator:
                         self.ang_err.append(reco_ang_err)
                         self.dec.append(reco_dec)
                         self.ra.append(reco_ra)
->>>>>>> merge
 
                 elif isinstance(
                     self.detector.angular_resolution, FixedAngularResolution
                 ):
-<<<<<<< HEAD
-                    reco_ra, reco_dec = self.detector.angular_resolution.sample(
-                        (ra, dec)
-                    )
-                    reco_ang_err = self.detector.angular_resolution.ret_ang_err
-
-
-                self.coordinate.append(
-                    SkyCoord(reco_ra * u.rad, reco_dec * u.rad, frame="icrs")
-                )
-                self.ra.append(reco_ra)
-                self.dec.append(reco_dec)
-                self.ang_err.append(reco_ang_err)
-=======
                     for c in range(l_num[i]):
                         reco_ra, reco_dec = self.detector.angular_resolution.sample(
                             (ra_d[i][c], dec_d[i][c])
@@ -325,7 +278,6 @@ class Simulator:
         self.true_energy = np.concatenate(tuple(Etrue_d[k] for k in Earr_d.keys()))
         self.arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
         self.label = np.concatenate(tuple(np.full(l_num[l], l, dtype=int) for l in Earr_d.keys()))
->>>>>>> merge
 
     def save(self, filename):
         """
@@ -519,13 +471,13 @@ class Braun2008Simulator:
             )
 
 
-def sphere_sample(radius=1, v_lim=0):
+def sphere_sample(radius=1, v_lim=0, N=1):
     """
     Sample points uniformly on a sphere.
     """
 
-    u = np.random.uniform(0, 1)
-    v = np.random.uniform(v_lim, 1)
+    u = np.random.uniform(0, 1, size=N)
+    v = np.random.uniform(v_lim, 1, size=N)
 
     phi = 2 * np.pi * u
     theta = np.arccos(2 * v - 1)
