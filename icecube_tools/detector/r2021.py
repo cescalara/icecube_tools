@@ -147,7 +147,6 @@ class R2021IRF(EnergyResolution, AngularResolution):
                 _index_f = (np.intersect1d(_index_d, _index_e),)
 
                 Ereco[_index_f] = self.reco_energy[idx_e, idx_d].rvs(size=_index_f[0].size)
-                print(Ereco[_index_f])
                 current_c_e_r = self._return_reco_energy_bins(idx_e, idx_d, Ereco[_index_f])
                 c_e_r[_index_f] = current_c_e_r
 
@@ -155,20 +154,19 @@ class R2021IRF(EnergyResolution, AngularResolution):
 
                 set_e_r = set(current_c_e_r)
                 size_e_r = np.bincount(current_c_e_r)[np.nonzero(np.bincount(current_c_e_r) != 0)] 
-                
                 for idx_e_r in set_e_r:
                     _index_help = np.argwhere(c_e_r == idx_e_r).squeeze()
                     _index_r = (np.intersect1d(_index_f[0], _index_help),)
 
                     try:
-                        kinematic_angle[_index_r] = self.marginal_pdf_psf(idx_e, idx_d, idx_e_r, 'pdf').rvs(size=size_e_r)
+                        kinematic_angle[_index_r] = self.marginal_pdf_psf(idx_e, idx_d, idx_e_r, 'pdf').rvs(size=_index_r[0].size)
 
                     except KeyError:
                         #logging.debug(f'Creating kinematic angle dist for {c_e}, {c_d}, {c_e_r}')
                         n, bins = self._marginalize_over_angerr(idx_e, idx_d, idx_e_r)
                         self.marginal_pdf_psf.add(bins, idx_e, idx_d, idx_e_r, 'bins')
                         self.marginal_pdf_psf.add(rv_histogram((n, bins)), idx_e, idx_d, idx_e_r, 'pdf')
-                        kinematic_angle[_index_r] = self.marginal_pdf_psf(idx_e, idx_d, idx_e_r, 'pdf').rvs(size=size_e_r)  
+                        kinematic_angle[_index_r] = self.marginal_pdf_psf(idx_e, idx_d, idx_e_r, 'pdf').rvs(size=_index_r[0].size)
         
                         #logging.debug(f'kinematic angle: {kinematic_angle}')
                         #logging.debug(f'probability density of kin ang: {self.marginal_pdf_psf[c_e][c_d][c_e_r]["pdf"].pdf(kinematic_angle)}')
@@ -184,24 +182,21 @@ class R2021IRF(EnergyResolution, AngularResolution):
                         _index_k = (np.intersect1d(_index_r[0], _index_help),)
 
                         try:
-                            ang_err[_index_k] = self.marginal_pdf_angerr(idx_e, idx_d, idx_e_r, idx_k, 'pdf').rvs(size=size_k)
+                            ang_err[_index_k] = self.marginal_pdf_angerr(idx_e, idx_d, idx_e_r, idx_k, 'pdf').rvs(size=_index_k[0].size)
 
                         except KeyError as KE:
                             #logging.debug(f'Creating AngErr dist for {c_e}, {c_d}, {c_e_r}, {c_k}')
                             n, bins = self._get_angerr_dist(idx_e, idx_d, idx_e_r, idx_k)
                             self.marginal_pdf_angerr.add(rv_histogram((n, bins)), idx_e, idx_d, idx_e_r, idx_k, 'pdf') 
                             self.marginal_pdf_angerr.add(bins, idx_e, idx_d, idx_e_r, idx_k, 'bins')
-                            ang_err[_index_k] = self.marginal_pdf_angerr(idx_e, idx_d, idx_e_r, idx_k, 'pdf').rvs(size=size_k)
+                            ang_err[_index_k] = self.marginal_pdf_angerr(idx_e, idx_d, idx_e_r, idx_k, 'pdf').rvs(size=_index_k[0].size)
 
 
         #logging.debug(f'Angular error: {ang_err}')
         #logging.debug(f'probability density: {self.marginal_pdf_angerr(c_e, c_d, c_e_r, c_k, "pdf").pdf(ang_err)}')
         #kappa needs an angle in degrees, prob of containment, here 0.5 as stated in the paper
         for c, ang in enumerate(np.power(10, ang_err)):
-            print("vmf")
-            print(ang)
             kappa = get_kappa(ang, 0.5)
-            print(kappa)
             new_unit_vector = sample_vMF(unit_vector[c], kappa, 1)[0]
 
             #create sky coordinates from rotated/deflected vector

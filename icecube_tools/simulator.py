@@ -3,7 +3,8 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 import h5py
 from scipy.stats import uniform
-
+import logging
+logging.basicConfig(level=logging.DEBUG)
 # from tqdm import tqdm as progress_bar
 
 from .detector.detector import Detector
@@ -130,14 +131,11 @@ class Simulator:
         l_set = set(label)
         l_num = {i: np.argwhere(i == label).shape[0] for i in l_set}
         max_energy = {}
-        print(l_num) 
         #create dicts of empty arrays of matching length (i.e. expected events) for each surce
         ra_d = {i: np.zeros(l_num[i]) for i in l_set}
         dec_d = {i: np.zeros(l_num[i]) for i in l_set}
         Etrue_d = {i: np.zeros(l_num[i]) for i in l_set}
         Earr_d = {i: np.zeros(l_num[i]) for i in l_set}
-        #print(Etrue_d)
-        
         
         accepted = np.zeros(self.N, dtype=bool)
         
@@ -147,7 +145,7 @@ class Simulator:
             
             max_energy[i] = self.sources[i].flux_model._upper_energy
             
-            print("source:", i)
+            logging.info(f"source: {i}")
             
             done = False
             
@@ -155,7 +153,7 @@ class Simulator:
                 #check if data is needed, else break loop
                 where_zero = np.argwhere(Etrue_d[i] == 0.)
                 if where_zero.size == 0:
-                    print("no more empty slots, done")
+                    logging.debug("no more empty slots, done")
                     break
                 
                 Etrue_ = self.sources[i].flux_model.sample(num)
@@ -177,15 +175,7 @@ class Simulator:
                         Earr_, cosz, max_energy[i]
                 ).astype(float)
                 self.detection_probability += list(detection_prob)
-            
-                #print(detection_prob)
-                #print(detection_prob.shape)
-                #break
-                
-                
-                #accepted = np.random.choice(
-                #    [True, False], p=[detection_prob, 1 - detection_prob], size=idx[0].shape[0]
-                #)
+
                 samples = uniform.rvs(size=num)
                 accepted_ = samples < detection_prob
 
@@ -195,15 +185,14 @@ class Simulator:
                 else:
                     start = np.min(where_zero)
                     end = start + idx[0].size
-                    #print(start, end)
                     try:
                         Etrue_d[i][start:end] = Etrue_[idx]
                         Earr_d[i][start:end] = Earr_[idx]
                         ra_d[i][start:end] = ra_[idx]
                         dec_d[i][start:end] = dec_[idx]
-                        print("all data placed")
+                        logging.debug("All data placed.")
                     except (IndexError, ValueError):
-                        print("not enough slots, cutting short")
+                        logging.debug("Not enough slots, cutting short.")
                         remaining = np.argwhere(Etrue_d[i] == 0.).size
                         Etrue_d[i][start:] = Etrue_[idx][0:remaining]
                         Earr_d[i][start:] = Earr_[idx][0:remaining]
