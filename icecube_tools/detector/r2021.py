@@ -83,7 +83,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         logging.debug(f'Energy and declination bins: {c_e}, {c_d}')
         #sample Ereco
         logging.debug('Sampling Ereco')
-        Ereco = self.reco_energy(c_e, c_d, 'pdf').rvs(size=1)[0]
+        Ereco = self.reco_energy(c_e, c_d, 'pdf').rvs(size=c_e.size)
         logging.debug(f'Ereco: {Ereco}')
         return np.power(10, Ereco)
 

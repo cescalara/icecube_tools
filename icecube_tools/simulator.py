@@ -107,6 +107,9 @@ class Simulator:
 
         v_lim = (np.cos(np.pi - np.arccos(self.max_cosz)) + 1) / 2
 
+        self.N=3
+
+
         self.true_energy = []
         self.arrival_energy = []
         self.reco_energy = []
@@ -126,7 +129,7 @@ class Simulator:
         
 
         
-        num = self.N * 1000
+        num = self.N * 1
         label = np.random.choice(range(len(self.sources)), self.N, p=self._source_weights)
         l_set = set(label)
         l_num = {i: np.argwhere(i == label).shape[0] for i in l_set}
@@ -156,8 +159,8 @@ class Simulator:
                     logging.debug("no more empty slots, done")
                     break
                 
-                Etrue_ = self.sources[i].flux_model.sample(num)
-
+                # Etrue_ = self.sources[i].flux_model.sample(num)
+                Etrue_ = np.array([1e3, 1e5, 1e7])
                 if self.sources[i].source_type == DIFFUSE:
 
                     ra_, dec_ = sphere_sample(v_lim=v_lim, N=num)
@@ -177,8 +180,8 @@ class Simulator:
                 self.detection_probability += list(detection_prob)
 
                 samples = uniform.rvs(size=num)
-                accepted_ = samples < detection_prob
-
+                # accepted_ = samples < detection_prob
+                accepted_ = samples <= 1.0
                 idx = np.nonzero(accepted_)
                 if idx[0].size == 0:
                     continue
@@ -199,11 +202,11 @@ class Simulator:
                         ra_d[i][start:] = ra_[idx][0:remaining]
                         dec_d[i][start:] = dec_[idx][0:remaining]
                         done = True
-
+            """
             if not isinstance(self.detector.energy_resolution, R2021IRF):
                 Ereco = self.detector.energy_resolution.sample(Earr_d[i])
                 self.reco_energy += list(Ereco)           
-
+            """
             #do source type specific things here
             if self.sources[i].source_type == DIFFUSE:
 
@@ -263,6 +266,8 @@ class Simulator:
                         )
                         reco_ang_err = self.detector.angular_resolution.ret_ang_err
                         self.ang_err.append(reco_ang_err)
+                        self.ra.append(reco_ra)
+                        self.dec.append(reco_dec)
 
                         self.coordinate.append(
                             SkyCoord(reco_ra * u.rad, reco_dec * u.rad, frame="icrs")
