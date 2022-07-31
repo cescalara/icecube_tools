@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import bernoulli
+from scipy.stats import bernoulli, uniform
 
 
 class BoundedPowerLaw(object):
@@ -83,6 +83,10 @@ class BoundedPowerLaw(object):
             val[idx] = np.ones(len(val[idx]))
             return val
 
+    def inv_cdf(self, x, x_min, x_max, gamma):
+        val = (np.power(x_max, 1. - gamma) - np.power(x_min, 1. - gamma)) * x + np.power(x_min, 1. - gamma)
+        return np.power(val, 1 / (1. - gamma))
+    '''
     def inv_cdf(self, x):
         """
         Evaluate the inverse cumulative distribution function at x.
@@ -93,13 +97,14 @@ class BoundedPowerLaw(object):
             return np.power(
                 (x * self.inv_cdf_factor) + self.inv_cdf_const, self.inv_cdf_gamma
             )
-
+    '''
     def samples(self, nsamples):
         """
         Inverse CDF sample from the bounded power law distribution.
         """
-        u = np.random.uniform(0, 1, nsamples)
-        return self.inv_cdf(u)
+        # u = np.random.uniform(0, 1, size=nsamples)
+        u = uniform(0, 1).rvs(size=nsamples)
+        return self.inv_cdf(u, self.xmin, self.xmax, self.gamma)
 
 
 class BrokenBoundedPowerLaw:

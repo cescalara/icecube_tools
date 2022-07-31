@@ -4,7 +4,7 @@ from astropy import units as u
 import h5py
 from scipy.stats import uniform
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.CRITICAL)
 # from tqdm import tqdm as progress_bar
 
 from .detector.detector import Detector
@@ -107,7 +107,6 @@ class Simulator:
 
         v_lim = (np.cos(np.pi - np.arccos(self.max_cosz)) + 1) / 2
 
-        self.N=3
 
 
         self.true_energy = []
@@ -129,7 +128,7 @@ class Simulator:
         
 
         
-        num = self.N * 1
+        num = self.N * 1000
         label = np.random.choice(range(len(self.sources)), self.N, p=self._source_weights)
         l_set = set(label)
         l_num = {i: np.argwhere(i == label).shape[0] for i in l_set}
@@ -151,16 +150,16 @@ class Simulator:
             logging.info(f"source: {i}")
             
             done = False
-            
+            j = 0
             while not done:
+                print(j)
                 #check if data is needed, else break loop
                 where_zero = np.argwhere(Etrue_d[i] == 0.)
                 if where_zero.size == 0:
                     logging.debug("no more empty slots, done")
                     break
                 
-                # Etrue_ = self.sources[i].flux_model.sample(num)
-                Etrue_ = np.array([1e3, 1e5, 1e7])
+                Etrue_ = self.sources[i].flux_model.sample(num)
                 if self.sources[i].source_type == DIFFUSE:
 
                     ra_, dec_ = sphere_sample(v_lim=v_lim, N=num)
@@ -181,7 +180,7 @@ class Simulator:
 
                 samples = uniform.rvs(size=num)
                 # accepted_ = samples < detection_prob
-                accepted_ = samples <= 1.0
+                accepted_ = samples <= detection_prob
                 idx = np.nonzero(accepted_)
                 if idx[0].size == 0:
                     continue
@@ -202,11 +201,14 @@ class Simulator:
                         ra_d[i][start:] = ra_[idx][0:remaining]
                         dec_d[i][start:] = dec_[idx][0:remaining]
                         done = True
-            """
+                j+=1
+
+            
+            
             if not isinstance(self.detector.energy_resolution, R2021IRF):
                 Ereco = self.detector.energy_resolution.sample(Earr_d[i])
                 self.reco_energy += list(Ereco)           
-            """
+
             #do source type specific things here
             if self.sources[i].source_type == DIFFUSE:
 
