@@ -127,7 +127,12 @@ class Simulator:
         """
         
 
-        
+        #During detector simulation, many events are discarded due to 
+        #the detection probability (scaled version of the effective area).
+        #To increase speed, take many more events at once and only keep
+        #the accepted ones.
+
+        #TODO maybe change the factor to something spectral index dependent
         num = self.N * 1000
         label = np.random.choice(range(len(self.sources)), self.N, p=self._source_weights)
         l_set = set(label)
@@ -149,10 +154,7 @@ class Simulator:
             
             logging.info(f"source: {i}")
             
-            done = False
-            j = 0
-            while not done:
-                print(j)
+            while True:
                 #check if data is needed, else break loop
                 where_zero = np.argwhere(Etrue_d[i] == 0.)
                 if where_zero.size == 0:
@@ -172,14 +174,12 @@ class Simulator:
 
 
                 Earr_ = Etrue_ / (1 + self.sources[i].z)
-
                 detection_prob = self.detector.effective_area.detection_probability(
                         Earr_, cosz, max_energy[i]
                 ).astype(float)
                 self.detection_probability += list(detection_prob)
 
                 samples = uniform.rvs(size=num)
-                # accepted_ = samples < detection_prob
                 accepted_ = samples <= detection_prob
                 idx = np.nonzero(accepted_)
                 if idx[0].size == 0:
@@ -188,21 +188,19 @@ class Simulator:
                     start = np.min(where_zero)
                     end = start + idx[0].size
                     try:
-                        Etrue_d[i][start:end] = Etrue_[idx]
-                        Earr_d[i][start:end] = Earr_[idx]
-                        ra_d[i][start:end] = ra_[idx]
-                        dec_d[i][start:end] = dec_[idx]
+                        Etrue_d[i][start:end] = Etrue_[idx].copy()
+                        Earr_d[i][start:end] = Earr_[idx].copy()
+                        ra_d[i][start:end] = ra_[idx].copy()
+                        dec_d[i][start:end] = dec_[idx].copy()
                         logging.debug("All data placed.")
                     except (IndexError, ValueError):
                         logging.debug("Not enough slots, cutting short.")
                         remaining = np.argwhere(Etrue_d[i] == 0.).size
-                        Etrue_d[i][start:] = Etrue_[idx][0:remaining]
-                        Earr_d[i][start:] = Earr_[idx][0:remaining]
-                        ra_d[i][start:] = ra_[idx][0:remaining]
-                        dec_d[i][start:] = dec_[idx][0:remaining]
-                        done = True
-                j+=1
-
+                        Etrue_d[i][start:] = Etrue_[idx][0:remaining].copy()
+                        Earr_d[i][start:] = Earr_[idx][0:remaining].copy()
+                        ra_d[i][start:] = ra_[idx][0:remaining].copy()
+                        dec_d[i][start:] = dec_[idx][0:remaining].copy()
+                        break
             
             
             if not isinstance(self.detector.energy_resolution, R2021IRF):
@@ -240,12 +238,14 @@ class Simulator:
 
 
                 if isinstance(self.detector.angular_resolution, R2021IRF):
+                    #loop over events handled inside R2021IRF
                     reco_ra, reco_dec, reco_ang_err, Ereco  = self.detector.angular_resolution.sample(
                         (ra_d[i], dec_d[i]), np.log10(Earr_d[i]))
                     self.ang_err += list(reco_ang_err)
                     self.reco_energy += list(Ereco)
                     self.ra += list(reco_ra)
                     self.dec += list(reco_dec)
+                    self.coordinate += [s for s in SkyCoord(ra_d[i] * u.rad, dec_d[i] * u.rad, frame="icrs")]
 
                 elif isinstance(self.detector.angular_resolution, AngularResolution):
                     #go a step backwards and fix the vMF sampling later
@@ -254,10 +254,10 @@ class Simulator:
                             Earr_d[i][c], (ra_d[i][c], dec_d[i][c])
                         )
                         reco_ang_err = self.detector.angular_resolution.ret_ang_err
-
                         self.ang_err.append(reco_ang_err)
                         self.dec.append(reco_dec)
                         self.ra.append(reco_ra)
+                        self.coordinate += [s for s in SkyCoord(ra_d[i] * u.rad, dec_d[i] * u.rad, frame="icrs")]
 
                 elif isinstance(
                     self.detector.angular_resolution, FixedAngularResolution
@@ -270,7 +270,6 @@ class Simulator:
                         self.ang_err.append(reco_ang_err)
                         self.ra.append(reco_ra)
                         self.dec.append(reco_dec)
-
                         self.coordinate.append(
                             SkyCoord(reco_ra * u.rad, reco_dec * u.rad, frame="icrs")
                         )
