@@ -185,7 +185,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         # if not np.isclose(reco_ang_err, np.power(10, ang_err)):
         #     raise ValueError(f"Reconstructed angle and sampled angerr do not match: {reco_ang_err}, {np.power(10, kinematic_angle)}")
 
-        return new_ra, new_dec, reco_ang_err 
+        return new_ra, new_dec, reco_ang_err, Ereco 
 
 
     def read(self, fetch):
