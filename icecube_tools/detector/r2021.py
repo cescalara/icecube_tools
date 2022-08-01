@@ -138,14 +138,17 @@ class R2021IRF(EnergyResolution, AngularResolution):
         #sample Ereco
         set_e = set(c_e)
         set_d = set(c_d)
-
+        print("set_e:", set_e)
+        print("set_d:", set_d)
         for idx_e in set_e:
+            print("idx_e:", idx_e)
             _index_e = np.argwhere(idx_e == c_e).squeeze()
 
             for idx_d in set_d:
+                print("idx_d:", idx_d)
                 _index_d = np.argwhere(idx_d == c_d).squeeze()
                 _index_f = (np.intersect1d(_index_d, _index_e),)
-
+                # print("which entries in etrue, dec:", _index_f)
                 Ereco[_index_f] = self.reco_energy[idx_e, idx_d].rvs(size=_index_f[0].size)
                 current_c_e_r = self._return_reco_energy_bins(idx_e, idx_d, Ereco[_index_f])
                 c_e_r[_index_f] = current_c_e_r
@@ -153,8 +156,10 @@ class R2021IRF(EnergyResolution, AngularResolution):
                 logging.debug(f'Ereco: {Ereco[_index_f]}, bin: {current_c_e_r}')
 
                 set_e_r = set(current_c_e_r)
+                print("set_e_r:", set_e_r)
                 size_e_r = np.bincount(current_c_e_r)[np.nonzero(np.bincount(current_c_e_r) != 0)] 
                 for idx_e_r in set_e_r:
+                    print("idx_e_r:", idx_e_r)
                     _index_help = np.argwhere(c_e_r == idx_e_r).squeeze()
                     _index_r = (np.intersect1d(_index_f[0], _index_help),)
 
@@ -162,6 +167,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
                         kinematic_angle[_index_r] = self.marginal_pdf_psf(idx_e, idx_d, idx_e_r, 'pdf').rvs(size=_index_r[0].size)
 
                     except KeyError:
+                        print(f"creating kinang dist for {idx_e}, {idx_d}, {idx_e_r}")
                         #logging.debug(f'Creating kinematic angle dist for {c_e}, {c_d}, {c_e_r}')
                         n, bins = self._marginalize_over_angerr(idx_e, idx_d, idx_e_r)
                         self.marginal_pdf_psf.add(bins, idx_e, idx_d, idx_e_r, 'bins')
@@ -178,6 +184,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
                     size_k = np.bincount(current_c_k)[np.nonzero(np.bincount(current_c_k) != 0)]
 
                     for idx_k in set_k:
+                        print("idx_k:", idx_k)
                         _index_help = np.argwhere(c_k == idx_k).squeeze()
                         _index_k = (np.intersect1d(_index_r[0], _index_help),)
 
@@ -191,6 +198,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
                             self.marginal_pdf_angerr.add(bins, idx_e, idx_d, idx_e_r, idx_k, 'bins')
                             ang_err[_index_k] = self.marginal_pdf_angerr(idx_e, idx_d, idx_e_r, idx_k, 'pdf').rvs(size=_index_k[0].size)
 
+        # return Ereco
 
         #logging.debug(f'Angular error: {ang_err}')
         #logging.debug(f'probability density: {self.marginal_pdf_angerr(c_e, c_d, c_e_r, c_k, "pdf").pdf(ang_err)}')
@@ -329,9 +337,9 @@ class R2021IRF(EnergyResolution, AngularResolution):
         :param c_d: Index of declination bin
         :param Ereco: Reconstructed energy in $\log_{10}(E/\mathrm{GeV})$
         """
-        print(c_e, c_d, Ereco)
+        # print(c_e, c_d, Ereco)
         bins = self.reco_energy_bins[c_e, c_d]
-        print(bins)
+        # print(bins)
         index = np.digitize(Ereco, bins)
         idx = np.nonzero(index < bins.shape[0])
         index[idx] = index[idx] - 1
