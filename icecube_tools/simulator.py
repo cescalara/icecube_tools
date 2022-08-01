@@ -119,11 +119,9 @@ class Simulator:
         self.source_label = []
         self.ang_err = []
 
-#         for i in progress_bar(
-#             range(self.N), desc="Sampling", disable=(not show_progress)
-#         ):
-        Etrue_list = [1e3, 1e5, 1e7]
-        for i in range(len(Etrue_list)):
+        for i in progress_bar(
+            range(self.N), desc="Sampling", disable=(not show_progress)
+        ):
             label = np.random.choice(range(len(self.sources)), p=self._source_weights)
 
             max_energy = self.sources[label].flux_model._upper_energy
@@ -132,8 +130,7 @@ class Simulator:
 
             while not accepted:
 
-                # Etrue = self.sources[label].flux_model.sample(1)[0]
-                Etrue = Etrue_list[i]
+                Etrue = self.sources[label].flux_model.sample(1)[0]
                 if self.sources[label].source_type == DIFFUSE:
 
                     ra, dec = sphere_sample(v_lim=v_lim)
@@ -155,7 +152,6 @@ class Simulator:
                 accepted = np.random.choice(
                     [True, False], p=[detection_prob, 1 - detection_prob]
                 )
-
             self.source_label.append(label)
             self.true_energy.append(Etrue)
             self.arrival_energy.append(Earr)
