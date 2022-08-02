@@ -3,6 +3,8 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 import h5py
 
+from memory_profiler import profile
+
 from tqdm import tqdm as progress_bar
 
 from .detector.detector import Detector
@@ -81,7 +83,7 @@ class Simulator:
         self._Nex = nu_calc(time=self.time, max_cosz=self.max_cosz)
 
         self._source_weights = np.array(self._Nex) / sum(self._Nex)
-
+    @profile
     def run(self, N=None, show_progress=True, seed=1234):
         """
         Run a simulation for the given set of sources
