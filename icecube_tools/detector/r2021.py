@@ -70,6 +70,53 @@ class R2021IRF(EnergyResolution, AngularResolution):
         return np.rad2deg(np.arccos(np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))))
 
 
+    def sample_energy(self, coord, Etrue):
+        """
+        Sample reconstructed energy given a true energy and direction.
+        :param coord: Tuple indicident coordinates (ra, dec) in radians
+        :param Etrue: True $\log_{10}(E/\mathrm{GeV})$ that's to be sampled.
+        :return: new rectascension and new declination in rad of deflected particle,
+                 angle between incident and deflected direction in degrees,
+                 reconstructed energy in GeV
+        """
+        #TODO merge this with R2021IRF().sample() and maybe add a keyword
+        #if only reconstructed energy is supposed to be sampled
+
+        ra, dec = coord
+        sky_coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
+        sky_coord.representation_type = "cartesian"
+        unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z]).T
+
+        if isinstance(Etrue, np.ndarray):
+            size = Etrue.size
+        else:
+            size = 1
+
+        c_e, _, c_d, _ = self._return_etrue_bins(Etrue, dec)
+        Ereco = np.zeros(size)
+
+        logging.debug(f'Energy and declination bins: {c_e}, {c_d}')
+        logging.debug('Sampling Ereco')
+
+        #Idea behind this loop structure:
+        #Group data by the bin indices
+        #Sample further data for each group in one function call
+        #Move on to next group
+        #Omits loop over single events -> faster, in principle
+ 
+        set_e = set(c_e)
+        set_d = set(c_d)
+        for idx_e in set_e:
+            _index_e = np.argwhere(idx_e == c_e).squeeze()
+
+            for idx_d in set_d:
+                _index_d = np.argwhere(idx_d == c_d).squeeze()
+                _index_f = (np.intersect1d(_index_d, _index_e),)
+                Ereco[_index_f] = self.reco_energy[idx_e, idx_d].rvs(size=_index_f[0].size)
+
+        return Ereco
+
+
     def sample(self, coord, Etrue):
         """
         Sample new ra, dec values given a true energy and direction.
