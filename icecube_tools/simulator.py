@@ -5,6 +5,8 @@ import h5py
 from scipy.stats import uniform
 import logging
 logging.basicConfig(level=logging.CRITICAL)
+
+#from memory_profiler import profile
 # from tqdm import tqdm as progress_bar
 
 from .detector.detector import Detector
@@ -81,7 +83,7 @@ class Simulator:
 
         self._source_weights = np.array(self._Nex) / sum(self._Nex)
 
-
+    #@profile
     def run_energy(self, N=None, show_progress=True, seed=1234):
         """
         Run a simulation of energy reconstruction for the given set of sources
@@ -118,149 +120,7 @@ class Simulator:
         self.ra = []
         self.dec = []
         self.source_label = np.zeros(self.N, dtype=int)
-        self.ang_err = []
-        self.detection_probability = []
-        
-        done = False
-        """
-        for i in progress_bar(
-            range(self.N), desc="Sampling", disable=(not show_progress)
-        ):
-        """
-        
-
-        #During detector simulation, many events are discarded due to 
-        #the detection probability (scaled version of the effective area).
-        #To increase speed, take many more events at once and only keep
-        #the accepted ones.
-
-        #TODO maybe change the factor to something spectral index dependent
-        num = self.N * 500
-        label = np.random.choice(range(len(self.sources)), self.N, p=self._source_weights)
-        l_set = set(label)
-        l_num = {i: np.argwhere(i == label).shape[0] for i in l_set}
-        max_energy = {}
-        #create dicts of empty arrays of matching length (i.e. expected events) for each surce
-        ra_d = {i: np.zeros(l_num[i]) for i in l_set}
-        dec_d = {i: np.zeros(l_num[i]) for i in l_set}
-        Etrue_d = {i: np.zeros(l_num[i]) for i in l_set}
-        Earr_d = {i: np.zeros(l_num[i]) for i in l_set}
-        
-        accepted = np.zeros(self.N, dtype=bool)
-        
-        #go over each source
-        for i in l_set:
-            #simulate until appropriate number of events is accepted
-            
-            max_energy[i] = self.sources[i].flux_model._upper_energy
-            
-            logging.info(f"source: {i}")
-            
-            while True:
-                #check if data is needed, else break loop
-                where_zero = np.argwhere(Etrue_d[i] == 0.)
-                if where_zero.size == 0:
-                    logging.debug("no more empty slots, done")
-                    break
-                
-                Etrue_ = self.sources[i].flux_model.sample(num)
-                if self.sources[i].source_type == DIFFUSE:
-
-                    ra_, dec_ = sphere_sample(v_lim=v_lim, N=num)
-
-                else:
-
-                    ra_, dec_ = np.full(num, self.sources[i].coord[0]), np.full(num, self.sources[i].coord[1])
-
-                cosz = -np.sin(dec_)
-
-
-                Earr_ = Etrue_ / (1 + self.sources[i].z)
-                detection_prob = self.detector.effective_area.detection_probability(
-                        Earr_, cosz, max_energy[i]
-                ).astype(float)
-                self.detection_probability += list(detection_prob)
-
-                samples = uniform.rvs(size=num)
-                accepted_ = samples <= detection_prob
-                idx = np.nonzero(accepted_)
-                if idx[0].size == 0:
-                    continue
-                else:
-                    start = np.min(where_zero)
-                    end = start + idx[0].size
-                    try:
-                        Etrue_d[i][start:end] = Etrue_[idx]
-                        Earr_d[i][start:end] = Earr_[idx]
-                        ra_d[i][start:end] = ra_[idx]
-                        dec_d[i][start:end] = dec_[idx]
-                        logging.debug("All data placed.")
-                    except (IndexError, ValueError):
-                        logging.debug("Not enough slots, cutting short.")
-                        remaining = np.argwhere(Etrue_d[i] == 0.).size
-                        Etrue_d[i][start:] = Etrue_[idx][0:remaining]
-                        Earr_d[i][start:] = Earr_[idx][0:remaining]
-                        ra_d[i][start:] = ra_[idx][0:remaining]
-                        dec_d[i][start:] = dec_[idx][0:remaining]
-                        break
-            
-            
-            if not isinstance(self.detector.energy_resolution, R2021IRF):
-                Ereco = self.detector.energy_resolution.sample(Earr_d[i])
-                self.reco_energy += list(Ereco)
-            else:
-                Ereco = self.detector.energy_resolution.sample_energy(
-                    (ra_d[i], dec_d[i]), np.log10(Earr_d[i])
-                )
-                self.reco_energy += list(np.power(10,Ereco))
-        return self.reco_energy
-
-
-    def run(self, N=None, show_progress=True, seed=1234):
-        """
-        Run a simulation for the given set of sources
-        and detector configuration.
-        The expected number of neutrinos will be
-        calculated for each source. If total N is forced,
-        then the number from each source will be weighted
-        accordingly.
-        :param N: Set expected number of neutrinos manually.
-        :param show_progress: Show the progress bar.
-        """
-
-        np.random.seed(seed)
-
-        self._get_expected_number()
-
-        if not N:
-
-            self.N = np.random.poisson(sum(self._Nex))
-
-        else:
-
-            self.N = int(N)
-
-        v_lim = (np.cos(np.pi - np.arccos(self.max_cosz)) + 1) / 2
-
-
-
-        self.true_energy = []
-        self.arrival_energy = []
-        self.reco_energy = []
-        self.coordinate = []
-        self.ra = []
-        self.dec = []
-        self.source_label = np.zeros(self.N, dtype=int)
-        self.ang_err = []
-        self.detection_probability = []
-        
-        done = False
-        """
-        for i in progress_bar(
-            range(self.N), desc="Sampling", disable=(not show_progress)
-        ):
-        """
-        
+        self.ang_err = []        
 
         #During detector simulation, many events are discarded due to 
         #the detection probability (scaled version of the effective area).
@@ -312,7 +172,133 @@ class Simulator:
                 detection_prob = self.detector.effective_area.detection_probability(
                         Earr_, cosz, max_energy[i]
                 ).astype(float)
-                self.detection_probability += list(detection_prob)
+                
+
+                samples = uniform.rvs(size=num)
+                accepted_ = samples <= detection_prob
+                idx = np.nonzero(accepted_)
+                if idx[0].size == 0:
+                    continue
+                else:
+                    start = np.min(where_zero)
+                    end = start + idx[0].size
+                    try:
+                        Etrue_d[i][start:end] = Etrue_[idx]
+                        Earr_d[i][start:end] = Earr_[idx]
+                        ra_d[i][start:end] = ra_[idx]
+                        dec_d[i][start:end] = dec_[idx]
+                        logging.debug("All data placed.")
+                    except (IndexError, ValueError):
+                        logging.debug("Not enough slots, cutting short.")
+                        remaining = np.argwhere(Etrue_d[i] == 0.).size
+                        Etrue_d[i][start:] = Etrue_[idx][0:remaining]
+                        Earr_d[i][start:] = Earr_[idx][0:remaining]
+                        ra_d[i][start:] = ra_[idx][0:remaining]
+                        dec_d[i][start:] = dec_[idx][0:remaining]
+                        break
+            
+            
+            if not isinstance(self.detector.energy_resolution, R2021IRF):
+                Ereco = self.detector.energy_resolution.sample(Earr_d[i])
+                self.reco_energy += list(Ereco)
+            else:
+                Ereco = self.detector.energy_resolution.sample_energy(
+                    (ra_d[i], dec_d[i]), np.log10(Earr_d[i])
+                )
+                self.reco_energy += list(np.power(10,Ereco))
+
+        self.arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
+
+        return self.arrival_energy, self.reco_energy
+
+    #@profile
+    def run(self, N=None, show_progress=True, seed=1234):
+        """
+        Run a simulation for the given set of sources
+        and detector configuration.
+        The expected number of neutrinos will be
+        calculated for each source. If total N is forced,
+        then the number from each source will be weighted
+        accordingly.
+        :param N: Set expected number of neutrinos manually.
+        :param show_progress: Show the progress bar.
+        """
+
+        np.random.seed(seed)
+
+        self._get_expected_number()
+
+        if not N:
+
+            self.N = np.random.poisson(sum(self._Nex))
+
+        else:
+
+            self.N = int(N)
+
+        v_lim = (np.cos(np.pi - np.arccos(self.max_cosz)) + 1) / 2
+
+
+
+        self.true_energy = []
+        self.arrival_energy = []
+        self.reco_energy = []
+        self.coordinate = []
+        self.ra = []
+        self.dec = []
+        self.source_label = np.zeros(self.N, dtype=int)
+        self.ang_err = []
+
+        #During detector simulation, many events are discarded due to 
+        #the detection probability (scaled version of the effective area).
+        #To increase speed, take many more events at once and only keep
+        #the accepted ones.
+
+        #TODO maybe change the factor to something spectral index dependent
+        num = self.N * 1000
+        label = np.random.choice(range(len(self.sources)), self.N, p=self._source_weights)
+        l_set = set(label)
+        l_num = {i: np.argwhere(i == label).shape[0] for i in l_set}
+        max_energy = {}
+        #create dicts of empty arrays of matching length (i.e. expected events) for each surce
+        ra_d = {i: np.zeros(l_num[i]) for i in l_set}
+        dec_d = {i: np.zeros(l_num[i]) for i in l_set}
+        Etrue_d = {i: np.zeros(l_num[i]) for i in l_set}
+        Earr_d = {i: np.zeros(l_num[i]) for i in l_set}
+        
+        accepted = np.zeros(self.N, dtype=bool)
+        
+        #go over each source
+        for i in l_set:
+            #simulate until appropriate number of events is accepted
+            
+            max_energy[i] = self.sources[i].flux_model._upper_energy
+            
+            logging.info(f"source: {i}")
+            
+            while True:
+                #check if data is needed, else break loop
+                where_zero = np.argwhere(Etrue_d[i] == 0.)
+                if where_zero.size == 0:
+                    logging.debug("no more empty slots, done")
+                    break
+                
+                Etrue_ = self.sources[i].flux_model.sample(num)
+                if self.sources[i].source_type == DIFFUSE:
+
+                    ra_, dec_ = sphere_sample(v_lim=v_lim, N=num)
+
+                else:
+
+                    ra_, dec_ = np.full(num, self.sources[i].coord[0]), np.full(num, self.sources[i].coord[1])
+
+                cosz = -np.sin(dec_)
+
+
+                Earr_ = Etrue_ / (1 + self.sources[i].z)
+                detection_prob = self.detector.effective_area.detection_probability(
+                        Earr_, cosz, max_energy[i]
+                ).astype(float)
 
                 samples = uniform.rvs(size=num)
                 accepted_ = samples <= detection_prob

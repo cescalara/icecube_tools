@@ -46,6 +46,7 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
                  index_list,
                  path,
                  src_dec,
+                 ftype='numpy',
                  interpolation='log',
                  min_index=1.5,
                  max_index=4.0,
@@ -70,11 +71,17 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
         self.likelihood = {}
         self._interpolation = interpolation
         for c, i in enumerate(self.index_list):
-            filename = join(path, f"sim_output_index_{i:1.1f}.h5")
-            with h5py.File(filename, "r") as f:
-                reco_energy = f["reco_energy"][()]
-                dec = f["dec"][()]
-                ang_err = f["ang_err"][()]
+            if ftype == 'numpy':
+                filename = join(path, f"reco_energy_index_{i:.1f}.txt")
+                reco_energy = np.loadtxt(filename)
+                dec = np.pi/4
+            elif ftype == 'h5':
+                filename = join(path, f"sim_output_index_{i:1.1f}.h5")
+                with h5py.File(filename, "r") as f:
+                    reco_energy = f["reco_energy"][()]
+                    dec = f["dec"][()]
+                    #ang_err not needed
+                    #ang_err = f["ang_err"][()]
             self.likelihood[f"{float(i):1.1f}"] = MarginalisedEnergyLikelihoodFromSimFixedIndex(
                 reco_energy,
                 dec,
