@@ -125,7 +125,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
                 c_e_r[_index_f] = current_c_e_r
 
                 logging.debug(f'Ereco: {Ereco[_index_f]}, bins: {current_c_e_r}')
-
+                """ 
                 set_e_r = set(current_c_e_r)
 
                 for idx_e_r in set_e_r:
@@ -157,7 +157,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
                             self.marginal_pdf_angerr.add(rv_histogram((n, bins)), idx_e, idx_d, idx_e_r, idx_k, 'pdf') 
                             self.marginal_pdf_angerr.add(bins, idx_e, idx_d, idx_e_r, idx_k, 'bins')
                             ang_err[_index_k] = self.marginal_pdf_angerr(idx_e, idx_d, idx_e_r, idx_k, 'pdf').rvs(size=_index_k[0].size)
-
+                """
+        """
         #kappa needs an angle in degrees, prob of containment, here 0.5 as stated in the paper
         for c, ang in enumerate(np.power(10, ang_err)):
             kappa = get_kappa(ang, 0.5)
@@ -175,7 +176,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
             new_ras[c] = new_sky_coord.ra.rad
             new_decs[c] = new_sky_coord.dec.rad
             reco_ang_err[c] = self.get_angle(new_unit_vector, unit_vector[c]) 
-
+        """
+        return np.power(10, Ereco)
         return new_ras, new_decs, reco_ang_err, np.power(10, Ereco)
 
 

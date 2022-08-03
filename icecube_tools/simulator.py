@@ -239,14 +239,16 @@ class Simulator:
 
                 if isinstance(self.detector.angular_resolution, R2021IRF):
                     #loop over events handled inside R2021IRF
-                    reco_ra, reco_dec, reco_ang_err, Ereco  = self.detector.angular_resolution.sample(
+                    """reco_ra, reco_dec, reco_ang_err, Ereco  = self.detector.angular_resolution.sample(
                         (ra_d[i], dec_d[i]), np.log10(Earr_d[i]))
                     self.ang_err += list(reco_ang_err)
                     self.reco_energy += list(Ereco)
                     self.ra += list(reco_ra)
                     self.dec += list(reco_dec)
                     self.coordinate += [s for s in SkyCoord(ra_d[i] * u.rad, dec_d[i] * u.rad, frame="icrs")]
-
+                    """
+                    Ereco = self.detector.angular_resolution.sample((ra_d[i], dec_d[i]), np.log10(Earr_d[i]))
+                    self.reco_energy += list(Ereco)
                 elif isinstance(self.detector.angular_resolution, AngularResolution):
                     #go a step backwards and fix the vMF sampling later
                     for c in range(l_num[i]):
@@ -273,11 +275,11 @@ class Simulator:
                         self.coordinate.append(
                             SkyCoord(reco_ra * u.rad, reco_dec * u.rad, frame="icrs")
                         )
-
+        """
         self.true_energy = np.concatenate(tuple(Etrue_d[k] for k in Earr_d.keys()))
         self.arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
         self.label = np.concatenate(tuple(np.full(l_num[l], l, dtype=int) for l in Earr_d.keys()))
-
+        """
     def save(self, filename):
         """
         Save the output to filename.
