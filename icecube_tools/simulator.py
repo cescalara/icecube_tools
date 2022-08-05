@@ -3,7 +3,7 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 import h5py
 
-from memory_profiler import profile
+# from memory_profiler import profile
 
 from tqdm import tqdm as progress_bar
 
