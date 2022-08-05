@@ -6,14 +6,13 @@ from scipy.stats import uniform
 import logging
 logging.basicConfig(level=logging.CRITICAL)
 
-#from memory_profiler import profile
-# from tqdm import tqdm as progress_bar
+# from memory_profiler import profile
 
 from .detector.detector import Detector
 from .source.source_model import Source, DIFFUSE, POINT
 from .source.flux_model import PowerLawFlux, BrokenPowerLawFlux
 from .neutrino_calculator import NeutrinoCalculator
-from .detector.angular_resolution import FixedAngularResolution, AngularResolution # R2021AngularResolution
+from .detector.angular_resolution import FixedAngularResolution, AngularResolution
 from .detector.r2021 import R2021IRF
 
 """
@@ -84,7 +83,7 @@ class Simulator:
         self._source_weights = np.array(self._Nex) / sum(self._Nex)
 
     #@profile
-    def run_energy(self, N=None, show_progress=True, seed=1234):
+    def run_energy(self, N=None, seed=1234):
         """
         Run a simulation of energy reconstruction for the given set of sources
         and detector configuration.
@@ -93,8 +92,7 @@ class Simulator:
         then the number from each source will be weighted
         accordingly.
         :param N: Set expected number of neutrinos manually.
-        :param show_progress: Show the progress bar.
-        :return: Reconstructed energy in GeV.
+        :return: Arrival energy, reconstructed energy in GeV.
         """
 
         np.random.seed(seed)
@@ -203,7 +201,7 @@ class Simulator:
                 self.reco_energy += list(Ereco)
             else:
                 Ereco = self.detector.energy_resolution.sample_energy(
-                    (ra_d[i], dec_d[i]), np.log10(Earr_d[i])
+                    (ra_d[i], dec_d[i]), np.log10(Earr_d[i], seed=seed)
                 )
                 self.reco_energy += list(np.power(10,Ereco))
 
@@ -211,8 +209,8 @@ class Simulator:
 
         return self.arrival_energy, self.reco_energy
 
-    #@profile
-    def run(self, N=None, show_progress=True, seed=1234):
+    @profile
+    def run(self, N=None, seed=1234):
         """
         Run a simulation for the given set of sources
         and detector configuration.
@@ -221,7 +219,6 @@ class Simulator:
         then the number from each source will be weighted
         accordingly.
         :param N: Set expected number of neutrinos manually.
-        :param show_progress: Show the progress bar.
         """
 
         np.random.seed(seed)
@@ -246,16 +243,15 @@ class Simulator:
         self.coordinate = []
         self.ra = []
         self.dec = []
-        self.source_label = np.zeros(self.N, dtype=int)
         self.ang_err = []
-
+        self.source_label = []
         #During detector simulation, many events are discarded due to 
         #the detection probability (scaled version of the effective area).
         #To increase speed, take many more events at once and only keep
         #the accepted ones.
 
         #TODO maybe change the factor to something spectral index dependent
-        num = self.N * 1000
+        num = self.N * 2000
         label = np.random.choice(range(len(self.sources)), self.N, p=self._source_weights)
         l_set = set(label)
         l_num = {i: np.argwhere(i == label).shape[0] for i in l_set}
@@ -275,7 +271,6 @@ class Simulator:
             max_energy[i] = self.sources[i].flux_model._upper_energy
             
             logging.info(f"source: {i}")
-            
             while True:
                 #check if data is needed, else break loop
                 where_zero = np.argwhere(Etrue_d[i] == 0.)
@@ -300,7 +295,7 @@ class Simulator:
                         Earr_, cosz, max_energy[i]
                 ).astype(float)
 
-                samples = uniform.rvs(size=num)
+                samples = uniform.rvs(size=num, random_state=seed)
                 accepted_ = samples <= detection_prob
                 idx = np.nonzero(accepted_)
                 if idx[0].size == 0:
@@ -322,8 +317,7 @@ class Simulator:
                         ra_d[i][start:] = ra_[idx][0:remaining]
                         dec_d[i][start:] = dec_[idx][0:remaining]
                         break
-            
-            
+            # print("Sampling spectrum is done") 
             if not isinstance(self.detector.energy_resolution, R2021IRF):
                 Ereco = self.detector.energy_resolution.sample(Earr_d[i])
                 self.reco_energy += list(Ereco)           
@@ -331,11 +325,11 @@ class Simulator:
             #do source type specific things here
             if self.sources[i].source_type == DIFFUSE:
 
-                self.coordinate += [s for s in SkyCoord(ra_d[i] * u.rad, dec_d[i] * u.rad, frame="icrs")]
+                # self.coordinate += [s for s in SkyCoord(ra_d[i] * u.rad, dec_d[i] * u.rad, frame="icrs")]
 
                 if isinstance(self.detector.angular_resolution, R2021IRF):
                     _, _, reco_ang_err, Ereco = self.detector.angular_resolution.sample(
-                        (ra_d[i], dec_d[i]), np.log10(Earr_d[i])
+                        (ra_d[i], dec_d[i]), np.log10(Earr_d[i]), seed=seed
                     )
                     self.ang_err += list(reco_ang_err)
                     self.reco_energy += list(Ereco)
@@ -360,32 +354,32 @@ class Simulator:
 
                 if isinstance(self.detector.angular_resolution, R2021IRF):
                     #loop over events handled inside R2021IRF
-                    """reco_ra, reco_dec, reco_ang_err, Ereco  = self.detector.angular_resolution.sample(
-                        (ra_d[i], dec_d[i]), np.log10(Earr_d[i]))
+                    reco_ra, reco_dec, reco_ang_err, Ereco  = self.detector.angular_resolution.sample(
+                        (ra_d[i], dec_d[i]), np.log10(Earr_d[i]), seed=seed)
                     self.ang_err += list(reco_ang_err)
-                    self.reco_energy += list(Ereco)
                     self.ra += list(reco_ra)
                     self.dec += list(reco_dec)
-                    self.coordinate += [s for s in SkyCoord(ra_d[i] * u.rad, dec_d[i] * u.rad, frame="icrs")]
-                    """
-                    Ereco = self.detector.angular_resolution.sample((ra_d[i], dec_d[i]), np.log10(Earr_d[i]))
+                    # self.coordinate += [s for s in SkyCoord(ra_d[i] * u.rad, dec_d[i] * u.rad, frame="icrs")]
                     self.reco_energy += list(Ereco)
+
                 elif isinstance(self.detector.angular_resolution, AngularResolution):
                     #go a step backwards and fix the vMF sampling later
-                    for c in range(l_num[i]):
-                        reco_ra, reco_dec = self.detector.angular_resolution.sample(
-                            Earr_d[i][c], (ra_d[i][c], dec_d[i][c])
-                        )
-                        reco_ang_err = self.detector.angular_resolution.ret_ang_err
-                        self.ang_err.append(reco_ang_err)
-                        self.dec.append(reco_dec)
-                        self.ra.append(reco_ra)
-                        self.coordinate += [s for s in SkyCoord(ra_d[i] * u.rad, dec_d[i] * u.rad, frame="icrs")]
+                    # for c in range(l_num[i]):
+                    reco_ra, reco_dec = self.detector.angular_resolution.sample(
+                        Earr_d[i], (ra_d[i], dec_d[i])
+                    )
+                    reco_ang_err = self.detector.angular_resolution.ret_ang_err
+                    self.ang_err +=list(reco_ang_err)
+                    self.dec += list(reco_dec)
+                    self.ra += list(reco_ra)
+                        # self.coordinate += [s for s in SkyCoord(ra_d[i] * u.rad, dec_d[i] * u.rad, frame="icrs")]
 
                 elif isinstance(
                     self.detector.angular_resolution, FixedAngularResolution
                 ):
                     for c in range(l_num[i]):
+                        
+                        print(c)
                         reco_ra, reco_dec = self.detector.angular_resolution.sample(
                             (ra_d[i][c], dec_d[i][c])
                         )
@@ -393,14 +387,14 @@ class Simulator:
                         self.ang_err.append(reco_ang_err)
                         self.ra.append(reco_ra)
                         self.dec.append(reco_dec)
-                        self.coordinate.append(
-                            SkyCoord(reco_ra * u.rad, reco_dec * u.rad, frame="icrs")
-                        )
-        """
+                        # self.coordinate.append(
+                        #     SkyCoord(reco_ra * u.rad, reco_dec * u.rad, frame="icrs")
+                        # )
+        
         self.true_energy = np.concatenate(tuple(Etrue_d[k] for k in Earr_d.keys()))
         self.arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
-        self.label = np.concatenate(tuple(np.full(l_num[l], l, dtype=int) for l in Earr_d.keys()))
-        """
+        self.source_label = np.concatenate(tuple(np.full(l_num[l], l, dtype=int) for l in Earr_d.keys()))
+        
     def save(self, filename):
         """
         Save the output to filename.

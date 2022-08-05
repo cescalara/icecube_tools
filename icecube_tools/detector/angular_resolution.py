@@ -8,7 +8,7 @@ from scipy.stats import rv_histogram, uniform
 from scipy.spatial.transform import Rotation as R
 from icecube_tools.utils.data import IceCubeData, find_files, data_directory
 from icecube_tools.utils.vMF import get_kappa, get_theta_p
-# from icecube_tools.detector.r2021 import R2021IRF
+
 """
 Module for handling the angular resolution
 of IceCube based on public data.
@@ -16,10 +16,6 @@ of IceCube based on public data.
 
 R2018_ANG_RES_FILENAME = "AngRes.txt"
 R2015_ANG_RES_FILENAME = "angres_plot"
-# R2021_ANG_RES_FILENAME = "IC86_II_smearing.csv"
-
-
-
 
 TRUE_ENERGY = 0
 RECO_ENERGY = 1
@@ -249,6 +245,7 @@ class AngularResolution(object):
             b = (self._maximum - ang_res) / self._scatter
 
             if isinstance(ang_res, np.ndarray):
+                #shouldn't this be rvs(size=ang_res.size)?
                 ang_res = stats.truncnorm(a, b, loc=ang_res, scale=np.full(ang_res.shape, self._scatter)).rvs(
                 )
             else: 
@@ -277,7 +274,7 @@ class AngularResolution(object):
 
     def get_ret_ang_err(self, E):
         """
-        Get the median angualr resolution for the
+        Get the median angular resolution for the
         given Etrue/Ereco, corresponsing to ret_ang_err_p.
         """
 
@@ -305,7 +302,7 @@ class AngularResolution(object):
 
         kappa = get_kappa(ang_err, self.ang_err_p)
 
-        new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0]
+        new_unit_vector = sample_vMF(unit_vector, kappa)
 
         new_sky_coord = SkyCoord(
             x=new_unit_vector[0],
