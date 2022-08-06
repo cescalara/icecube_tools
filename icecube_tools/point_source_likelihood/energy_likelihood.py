@@ -122,7 +122,18 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
         #TODO check out if log interpolation is more accurate
         if index < min(self.index_list) or index > max(self.index_list):
             raise ValueError(f"Index {index} outside of range of index list.")
+
+        if index not in self.index_list:
+            raise ValueError("Only indices with simulation are allowed.")
         idx = np.digitize(np.log10(E), self._energy_bins) - 1
+        
+
+        index_index = np.digitize(index, self.index_list) - 1
+        return self.lls[index_index, idx]
+
+        """
+        if not isinstance(idx, np.ndarray):
+            idx = np.array([idx])
         if isinstance(idx, np.ndarray):
             out = np.zeros(idx.shape)
             #should be faster with np.apply_along_axis
@@ -172,7 +183,7 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
             else:
                 raise ValueError("No other interpolation available.")
         #return self.likelihood[f"{float(index):1.1f}"](E)
-
+        """
 
     def calc_loglike(self, energies, index):
         loglike = 0

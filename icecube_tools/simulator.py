@@ -198,12 +198,18 @@ class Simulator:
             
             if not isinstance(self.detector.energy_resolution, R2021IRF):
                 Ereco = self.detector.energy_resolution.sample(Earr_d[i])
-                self.reco_energy += list(Ereco)
+                try:
+                    self.reco_energy += list(Ereco)
+                except TypeError:
+                    self.reco_energy += [Ereco]
             else:
                 Ereco = self.detector.energy_resolution.sample_energy(
                     (ra_d[i], dec_d[i]), np.log10(Earr_d[i], seed=seed)
                 )
-                self.reco_energy += list(np.power(10,Ereco))
+                try:
+                    self.reco_energy += list(np.power(10,Ereco))
+                except TypeError:
+                    self.reco_energy += [np.power(10, Ereco)]
 
         self.arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
 
@@ -320,35 +326,49 @@ class Simulator:
             # print("Sampling spectrum is done") 
             if not isinstance(self.detector.energy_resolution, R2021IRF):
                 Ereco = self.detector.energy_resolution.sample(Earr_d[i])
-                self.reco_energy += list(Ereco)           
+                #this and all following try-except TypeError blocks
+                #are needed if only a single event is sampled
+                #then list() will not work bc float is not an iterable
+                try:
+                    self.reco_energy += list(Ereco)           
+                except TypeError:
+                    self.reco_energy += [Ereco]
 
             #do source type specific things here
             if self.sources[i].source_type == DIFFUSE:
 
-                # self.coordinate += [s for s in SkyCoord(ra_d[i] * u.rad, dec_d[i] * u.rad, frame="icrs")]
 
                 if isinstance(self.detector.angular_resolution, R2021IRF):
                     _, _, reco_ang_err, Ereco = self.detector.angular_resolution.sample(
                         (ra_d[i], dec_d[i]), np.log10(Earr_d[i]), seed=seed
                     )
-                    self.ang_err += list(reco_ang_err)
-                    self.reco_energy += list(Ereco)
-
+                    try:
+                        self.ang_err += list(reco_ang_err)
+                        self.reco_energy += list(Ereco)
+                    except TypeError:
+                        self.ang_err += [reco_ang_err]
+                        self.reco_energy += [Ereco]
+                        
                 elif isinstance(self.detector.angular_resolution, AngularResolution):
                     reco_ang_err = self.detector.angular_resolution.get_ret_ang_err(
                         Earr_d[i]
                     )
-                    self.ang_err += list(reco_ang_err)
-
+                    try:
+                        self.ang_err += list(reco_ang_err)
+                    except TypeError:
+                        self.ang_err += [reco_ang_err]
                 elif isinstance(
                     self.detector.angular_resolution, FixedAngularResolution
                 ):
                     reco_ang_err = self.detector.angular_resolution.ret_ang_err
                     temp = [reco_ang_err] * l_num[i]
 
-                self.dec += list(dec_d[i])
-                self.ra += list(ra_d[i])
-
+                try:
+                    self.dec += list(dec_d[i])
+                    self.ra += list(ra_d[i])
+                except TypeError:
+                    self.dec += [dec_d[i]]
+                    self.ra += [ra_d[i]]
             else:
 
 
@@ -356,41 +376,30 @@ class Simulator:
                     #loop over events handled inside R2021IRF
                     reco_ra, reco_dec, reco_ang_err, Ereco  = self.detector.angular_resolution.sample(
                         (ra_d[i], dec_d[i]), np.log10(Earr_d[i]), seed=seed)
-                    self.ang_err += list(reco_ang_err)
-                    self.ra += list(reco_ra)
-                    self.dec += list(reco_dec)
-                    # self.coordinate += [s for s in SkyCoord(ra_d[i] * u.rad, dec_d[i] * u.rad, frame="icrs")]
                     self.reco_energy += list(Ereco)
 
                 elif isinstance(self.detector.angular_resolution, AngularResolution):
-                    #go a step backwards and fix the vMF sampling later
-                    # for c in range(l_num[i]):
                     reco_ra, reco_dec = self.detector.angular_resolution.sample(
                         Earr_d[i], (ra_d[i], dec_d[i])
                     )
                     reco_ang_err = self.detector.angular_resolution.ret_ang_err
-                    self.ang_err +=list(reco_ang_err)
-                    self.dec += list(reco_dec)
-                    self.ra += list(reco_ra)
-                        # self.coordinate += [s for s in SkyCoord(ra_d[i] * u.rad, dec_d[i] * u.rad, frame="icrs")]
 
                 elif isinstance(
                     self.detector.angular_resolution, FixedAngularResolution
                 ):
-                    for c in range(l_num[i]):
-                        
-                        print(c)
-                        reco_ra, reco_dec = self.detector.angular_resolution.sample(
-                            (ra_d[i][c], dec_d[i][c])
-                        )
-                        reco_ang_err = self.detector.angular_resolution.ret_ang_err
-                        self.ang_err.append(reco_ang_err)
-                        self.ra.append(reco_ra)
-                        self.dec.append(reco_dec)
-                        # self.coordinate.append(
-                        #     SkyCoord(reco_ra * u.rad, reco_dec * u.rad, frame="icrs")
-                        # )
-        
+                    reco_ra, reco_dec = self.detector.angular_resolution.sample(
+                        (ra_d[i], dec_d[i])
+                    )
+                    reco_ang_err = self.detector.angular_resolution.ret_ang_err
+                try:
+                    self.ang_err +=list(reco_ang_err)
+                    self.dec += list(reco_dec)
+                    self.ra += list(reco_ra)
+                except TypeError:
+                    self.ang_err += [reco_ang_err]
+                    self.dec += [reco_dec]
+                    self.ra += [reco_ra] 
+
         self.true_energy = np.concatenate(tuple(Etrue_d[k] for k in Earr_d.keys()))
         self.arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
         self.source_label = np.concatenate(tuple(np.full(l_num[l], l, dtype=int) for l in Earr_d.keys()))
