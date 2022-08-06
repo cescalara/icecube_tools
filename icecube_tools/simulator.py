@@ -209,7 +209,7 @@ class Simulator:
 
         return self.arrival_energy, self.reco_energy
 
-    @profile
+    # @profile
     def run(self, N=None, seed=1234):
         """
         Run a simulation for the given set of sources
