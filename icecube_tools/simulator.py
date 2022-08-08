@@ -4,7 +4,6 @@ from astropy import units as u
 import h5py
 from scipy.stats import uniform
 import logging
-logging.basicConfig(level=logging.INFO)
 
 # from memory_profiler import profile
 from tqdm import tqdm as progress_bar
@@ -217,7 +216,7 @@ class Simulator:
         return self.arrival_energy, self.reco_energy
 
     # @profile
-    def run(self, N=None, seed=1234):
+    def run(self, N=None, seed=1234, show_progress=False):
         """
         Run a simulation for the given set of sources
         and detector configuration.
@@ -228,6 +227,12 @@ class Simulator:
         :param N: Set expected number of neutrinos manually.
         :param seed: Set random seed.
         """
+
+        if show_progress:
+            logging.basicConfig(level=logging.INFO)
+
+        else:
+            logging.basicConfig(level=logging.CRITICAL)
 
         np.random.seed(seed)
 

@@ -6,7 +6,6 @@ from astropy import units as u
 from vMF import sample_vMF
 
 import logging
-logging.basicConfig(level=logging.INFO)
 
 from icecube_tools.detector.energy_resolution import EnergyResolution
 from icecube_tools.detector.angular_resolution import AngularResolution
@@ -28,11 +27,13 @@ class R2021IRF(EnergyResolution, AngularResolution):
         """
 
         self.read(fetch)
-
+        self.ret_ang_err_p = kwargs.get("ret_ang_err_p", 0.68)
         self.year = 2012    # subject to change
         self.nu_type = "nu_mu"
 
         self.uniform = uniform(0, 2*np.pi)
+
+
 
         logging.debug('Creating Ereco distributions')
         #Reco energy is handled without ddict() because it's not that much calculation
@@ -68,7 +69,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         return np.rad2deg(np.arccos(np.dot(vec1.T, vec2) / (np.linalg.norm(vec1, axis=0) * np.linalg.norm(vec2, axis=0))))
 
 
-    def sample_energy(self, coord, Etrue, seed=42):
+    def sample_energy(self, coord, Etrue, seed=42, show_progress=False):
         """
         Sample reconstructed energy given a true energy and direction.
         :param coord: Tuple indicident coordinates (ra, dec) in radians
@@ -79,6 +80,11 @@ class R2021IRF(EnergyResolution, AngularResolution):
         """
         #TODO merge this with R2021IRF().sample() and maybe add a keyword
         #if only reconstructed energy is supposed to be sampled
+
+        if show_progress:
+            logging.basicConfig(level=logging.INFO)
+        else:
+            logging.basicConfig(level=logging.CRITICAL)
 
         ra, dec = coord
         sky_coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
@@ -115,7 +121,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         return np.power(10, Ereco)
 
 
-    def sample(self, coord, Etrue, seed=42):
+    def sample(self, coord, Etrue, seed=42, show_progress=False):
         """
         Sample new ra, dec values given a true energy and direction.
         :param coord: Tuple indicident coordinates (ra, dec) in radians
@@ -125,6 +131,10 @@ class R2021IRF(EnergyResolution, AngularResolution):
                  reconstructed energy in GeV
         """
 
+        if show_progress:
+            logging.basicConfig(level=logging.INFO)
+        else:
+            logging.basicConfig(level=logging.CRITICAL)
         ra, dec = coord
         sky_coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
         sky_coord.representation_type = "cartesian"
@@ -207,6 +217,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         #kappa needs an angle in degrees, prob of containment, here 0.5 as stated in the paper
         # for c, ang in enumerate(np.power(10, ang_err)):
         kappa = get_kappa(ang_err, 0.5)
+        reco_ang_err = get_theta_p(kappa, self.ret_ang_err_p)
         logging.info(kappa.shape)
         logging.info(unit_vector.shape)
         new_unit_vector = sample_vMF(unit_vector, kappa)
@@ -221,7 +232,6 @@ class R2021IRF(EnergyResolution, AngularResolution):
         new_sky_coord.representation_type = "unitspherical"
         new_ras = new_sky_coord.ra.rad
         new_decs = new_sky_coord.dec.rad
-        reco_ang_err = np.diag(self.get_angle(new_unit_vector, unit_vector))
         logging.info(f"reco_ang_error shape: {reco_ang_err.shape}")
         return new_ras, new_decs, reco_ang_err, np.power(10, Ereco)
 
