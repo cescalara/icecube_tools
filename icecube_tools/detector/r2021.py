@@ -6,6 +6,7 @@ from astropy import units as u
 from vMF import sample_vMF
 
 import logging
+logging.basicConfig(level=logging.INFO)
 
 from icecube_tools.detector.energy_resolution import EnergyResolution
 from icecube_tools.detector.angular_resolution import AngularResolution
@@ -64,7 +65,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         :return: Angle between vectors in degrees
         """
 
-        return np.rad2deg(np.arccos(np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))))
+        return np.rad2deg(np.arccos(np.dot(vec1.T, vec2) / (np.linalg.norm(vec1, axis=0) * np.linalg.norm(vec2, axis=0))))
 
 
     def sample_energy(self, coord, Etrue, seed=42):
@@ -127,7 +128,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         ra, dec = coord
         sky_coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
         sky_coord.representation_type = "cartesian"
-        unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z]).T
+        unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
 
         if isinstance(Etrue, np.ndarray):
             size = Etrue.size
@@ -204,22 +205,24 @@ class R2021IRF(EnergyResolution, AngularResolution):
                             ang_err[_index_k] = self.marginal_pdf_angerr(idx_e, idx_d, idx_e_r, idx_k, 'pdf').rvs(size=_index_k[0].size, random_state=seed)
 
         #kappa needs an angle in degrees, prob of containment, here 0.5 as stated in the paper
-        for c, ang in enumerate(np.power(10, ang_err)):
-            kappa = get_kappa(ang, 0.5)
-            new_unit_vector = sample_vMF(unit_vector[c], kappa, 1)[0]
+        # for c, ang in enumerate(np.power(10, ang_err)):
+        kappa = get_kappa(ang_err, 0.5)
+        logging.info(kappa.shape)
+        logging.info(unit_vector.shape)
+        new_unit_vector = sample_vMF(unit_vector, kappa)
 
-            #create sky coordinates from rotated/deflected vector
-            new_sky_coord = SkyCoord(
-                x=new_unit_vector[0],
-                y=new_unit_vector[1],
-                z=new_unit_vector[2],
-                representation_type="cartesian",
-            )
-            new_sky_coord.representation_type = "unitspherical"
-            new_ras[c] = new_sky_coord.ra.rad
-            new_decs[c] = new_sky_coord.dec.rad
-            reco_ang_err[c] = self.get_angle(new_unit_vector, unit_vector[c]) 
-
+        #create sky coordinates from rotated/deflected vector
+        new_sky_coord = SkyCoord(
+            x=new_unit_vector[0],
+            y=new_unit_vector[1],
+            z=new_unit_vector[2],
+            representation_type="cartesian",
+        )
+        new_sky_coord.representation_type = "unitspherical"
+        new_ras = new_sky_coord.ra.rad
+        new_decs = new_sky_coord.dec.rad
+        reco_ang_err = np.diag(self.get_angle(new_unit_vector, unit_vector))
+        logging.info(f"reco_ang_error shape: {reco_ang_err.shape}")
         return new_ras, new_decs, reco_ang_err, np.power(10, Ereco)
 
 

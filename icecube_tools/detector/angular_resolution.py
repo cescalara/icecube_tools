@@ -299,9 +299,7 @@ class AngularResolution(object):
         sky_coord.representation_type = "cartesian"
 
         unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
-
         kappa = get_kappa(ang_err, self.ang_err_p)
-
         new_unit_vector = sample_vMF(unit_vector, kappa)
 
         new_sky_coord = SkyCoord(

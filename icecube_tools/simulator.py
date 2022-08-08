@@ -4,9 +4,10 @@ from astropy import units as u
 import h5py
 from scipy.stats import uniform
 import logging
-logging.basicConfig(level=logging.CRITICAL)
+logging.basicConfig(level=logging.INFO)
 
 # from memory_profiler import profile
+from tqdm import tqdm as progress_bar
 
 from .detector.detector import Detector
 from .source.source_model import Source, DIFFUSE, POINT
@@ -138,22 +139,22 @@ class Simulator:
         Earr_d = {i: np.zeros(l_num[i]) for i in l_set}
         
         accepted = np.zeros(self.N, dtype=bool)
-        
+ 
         #go over each source
         for i in l_set:
             #simulate until appropriate number of events is accepted
-            
+
             max_energy[i] = self.sources[i].flux_model._upper_energy
-            
+
             logging.info(f"source: {i}")
-            
+
             while True:
                 #check if data is needed, else break loop
                 where_zero = np.argwhere(Etrue_d[i] == 0.)
                 if where_zero.size == 0:
                     logging.debug("no more empty slots, done")
                     break
-                
+
                 Etrue_ = self.sources[i].flux_model.sample(num)
                 if self.sources[i].source_type == DIFFUSE:
 
@@ -225,6 +226,7 @@ class Simulator:
         then the number from each source will be weighted
         accordingly.
         :param N: Set expected number of neutrinos manually.
+        :param seed: Set random seed.
         """
 
         np.random.seed(seed)
@@ -321,8 +323,10 @@ class Simulator:
                         ra_d[i][start:] = ra_[idx][0:remaining]
                         dec_d[i][start:] = dec_[idx][0:remaining]
                         break
-            # print("Sampling spectrum is done") 
+            # print("Sampling spectrum is done")
+            logging.info("Done sampling the spectrum") 
             if not isinstance(self.detector.energy_resolution, R2021IRF):
+                logging.info("Sampled reco energy")
                 Ereco = self.detector.energy_resolution.sample(Earr_d[i])
                 #this and all following try-except TypeError blocks
                 #are needed if only a single event is sampled
@@ -343,7 +347,8 @@ class Simulator:
                     try:
                         self.ang_err += list(reco_ang_err)
                         self.reco_energy += list(Ereco)
-                    except TypeError:
+                    except TypeError as e:
+                        print(e)
                         self.ang_err += [reco_ang_err]
                         self.reco_energy += [Ereco]
                         
@@ -367,6 +372,7 @@ class Simulator:
                 except TypeError:
                     self.dec += [dec_d[i]]
                     self.ra += [ra_d[i]]
+                logging.info("Sampled angular uncertainty for diffuse source")
             else:
 
 
@@ -393,15 +399,20 @@ class Simulator:
                     self.ang_err +=list(reco_ang_err)
                     self.dec += list(reco_dec)
                     self.ra += list(reco_ra)
-                except TypeError:
+                except TypeError as e:
+                    print(e)
                     self.ang_err += [reco_ang_err]
                     self.dec += [reco_dec]
-                    self.ra += [reco_ra] 
+                    self.ra += [reco_ra]
+                logging.info("Sampled angular uncertainty for point source")
 
         self.true_energy = np.concatenate(tuple(Etrue_d[k] for k in Earr_d.keys()))
         self.arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
         self.source_label = np.concatenate(tuple(np.full(l_num[l], l, dtype=int) for l in Earr_d.keys()))
-        
+        logging.info("Created array of simulation data")       
+
+
+ 
     def save(self, filename):
         """
         Save the output to filename.
