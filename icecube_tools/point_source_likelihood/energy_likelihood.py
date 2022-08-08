@@ -45,7 +45,9 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
     def __init__(self,
                  index_list,
                  path,
+                 fname,
                  src_dec,
+                 ftype='h5',
                  interpolation='log',
                  min_index=1.5,
                  max_index=4.0,
@@ -61,6 +63,7 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
         
         :param index_list: List of indices provided with datasets
         :param path: Path where datasets are located
+        :param fname: Filename, bar ending of `_{index:1.f}.txt`
         :param src_dec: Source declination in radians
         """
         #TODO change path thing and loading of data? maybe option to pass data directly
@@ -70,11 +73,18 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
         self.likelihood = {}
         self._interpolation = interpolation
         for c, i in enumerate(self.index_list):
-            filename = join(path, f"sim_output_index_{i:1.1f}.h5")
+            """
+            if ftype == 'numpy':
+                filename = join(path, f"{fname}_{i:.1f}.txt")
+                reco_energy = np.loadtxt(filename)
+                dec = np.pi/4
+            """
+            filename = join(path, f"{fname}_{i:1.1f}.h5")
             with h5py.File(filename, "r") as f:
                 reco_energy = f["reco_energy"][()]
                 dec = f["dec"][()]
-                ang_err = f["ang_err"][()]
+                #ang_err not needed
+                #ang_err = f["ang_err"][()]
             self.likelihood[f"{float(i):1.1f}"] = MarginalisedEnergyLikelihoodFromSimFixedIndex(
                 reco_energy,
                 dec,
@@ -105,12 +115,25 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
         :param E: Reconstructed energy in GeV, may be float or np.ndarray
         :param index: spectral index
         :return: Likelihood
+        :raise ValueError: if the requested index is out of range.
+        :raise ValueError: if any other interpolation than `log` or `lin` is requested. 
         """
 
         #TODO check out if log interpolation is more accurate
         if index < min(self.index_list) or index > max(self.index_list):
             raise ValueError(f"Index {index} outside of range of index list.")
+
+        if index not in self.index_list:
+            raise ValueError("Only indices with simulation are allowed.")
         idx = np.digitize(np.log10(E), self._energy_bins) - 1
+        
+
+        index_index = np.digitize(index, self.index_list) - 1
+        return self.lls[index_index, idx]
+
+        """
+        if not isinstance(idx, np.ndarray):
+            idx = np.array([idx])
         if isinstance(idx, np.ndarray):
             out = np.zeros(idx.shape)
             #should be faster with np.apply_along_axis
@@ -125,6 +148,11 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
                     lls = np.log10(self.lls[:, v])
                     out[c] = np.interp(index, self.index_list, lls)
                 return np.power(10, out)
+            elif self._interpolation == 'exp':
+                for c, v in enumerate(idx):
+                    lls = np.exp(self.lls[:, v])
+                    out[c] = n.interp(index, self.index_list, lls)
+                    return np.log(out[c])
             else:
                 raise ValueError("No other interpolation available")
         #print(lls)
@@ -136,11 +164,38 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
                 lls = np.log10(self.lls[:, idx])
                 out = np.interp(index, self.index_list, lls)
                 return np.power(10, out)
+            elif self._interpolation == 'exp':
+                lls = np.exp(self.lls[:, idx])
+                out = np.interp(index, self.index_list, lls)
+                return np.log(out)
+            elif self._interpolation == 'quad':
+                lls = np.power(self.lls[:, idx], 2)
+                out = np.interp(index, self.index_list, lls)
+                return np.power(out, 0.5)
+            elif self._interpolation == 'inv':
+                lls = 1. / self.lls[:, idx]
+                out = np.interp(index, self.index_list, lls)
+                return 1. / out
+            elif self._interpolation == 'power':
+                lls = np.power(self.lls[:, idx], self.power)
+                out = np.interp(index, self.index_list, lls)
+                return np.power(out, 1./self.power)
             else:
                 raise ValueError("No other interpolation available.")
         #return self.likelihood[f"{float(index):1.1f}"](E)
+        """
 
+    def calc_loglike(self, energies, index):
+        loglike = 0
+        self.faulty = []
+        for e in energies:
+            temp = self.__call__(e, index)
+            if temp == 0.0:
+                self.faulty.append(e)
+                temp = 1e-10
+            loglike += np.log10(temp)
 
+        return -loglike
 
 class MarginalisedEnergyLikelihoodFromSimFixedIndex(MarginalisedEnergyLikelihood):
     """

@@ -105,7 +105,8 @@ class PointSourceLikelihood:
 
         # Sensible values based on Braun+2008
         # and Aartsen+2018 analyses
-        self._bg_index = 3.7
+        #TODO set back to 3.7, different value only used for testing!!!
+        self._bg_index = 3.5
         self._ns_min = 0.0
         self._max_index = 4.0
         # min index depends on the energy likelihood used.
@@ -118,11 +119,11 @@ class PointSourceLikelihood:
         self.Ntot = len(self._energies)
 
     def _select_nearby_events(self):
-
+        #source coords
         source_ra, source_dec = self._source_coord
 
         dec_fac = np.deg2rad(self._band_width)
-
+        #get indices of events close to source -> sources further away have little to no influence on the llh
         selected = list(
             set(
                 np.where(
@@ -133,13 +134,13 @@ class PointSourceLikelihood:
                 )[0]
             )
         )
-
+        #how many events are in the selected (i.e. close to the source) declination band?
         selected_dec_band = np.where(
             (self._decs >= self._dec_low) & (self._decs <= self._dec_high)
         )[0]
 
         self._selected = selected
-
+        #store selected events in private attributes
         self._selected_ras = self._ras[selected]
 
         self._selected_decs = self._decs[selected]
@@ -150,12 +151,13 @@ class PointSourceLikelihood:
             self._selected_ang_errs = self._ang_errs[selected]
         else:
             self._selected_ang_errs = [1] * len(selected)
+        #how many events are close to the source?
         self.Nprime = len(selected)
-
+        #how many events are only in declination close to the source
         self.N = len(selected_dec_band)
 
     def _signal_likelihood(self, ra, dec, source_coord, energy, index, ang_err=1):
-
+        #likelihood is product of spatial and energy likelihood in all cases
         if isinstance(
             self._direction_likelihood, EnergyDependentSpatialGaussianLikelihood
         ):
@@ -163,14 +165,14 @@ class PointSourceLikelihood:
             likelihood = self._direction_likelihood(
                 (ra, dec), source_coord, energy, index
             ) * self._energy_likelihood(energy, index)
-
+            # likelihood = self._energy_likelihood(energy, index)
         elif isinstance(
             self._direction_likelihood, EventDependentSpatialGaussianLikelihood
         ):
             likelihood = self._direction_likelihood(
                  ang_err, (ra, dec), source_coord
             ) * self._energy_likelihood(energy, index)
-
+            # likelihood = self._energy_likelihood(energy, index)
 
 
         else:
@@ -178,15 +180,14 @@ class PointSourceLikelihood:
             likelihood = self._direction_likelihood(
                 (ra, dec), source_coord
             ) * self._energy_likelihood(energy, index)
-
+            # likelihood = self._energy_likelihood(energy, index)
         return likelihood
 
     def _background_likelihood(self, energy):
-
         if self._bg_energy_likelihood:
-
-            output = self._bg_energy_likelihood(energy) / self._band_solid_angle
-
+            #llh is likelihood of drawing event of give energy of background energy distribution
+            output = self._bg_energy_likelihood(energy)  / self._band_solid_angle
+            # output = 1. / self._band_solid_angle
             if output == 0.0:
 
                 output = 1e-10
@@ -194,10 +195,11 @@ class PointSourceLikelihood:
             return output
 
         else:
-
-            return (
-                self._energy_likelihood(energy, self._bg_index) / self._band_solid_angle
-            )
+            output = self._energy_likelihood(energy, self._bg_index) / self._band_solid_angle
+            # output = 1. / self._band_solid_angle
+            if output == 0.0:
+                output = 1e-10
+            return output
 
     def _get_neg_log_likelihood_ratio(self, ns, index):
         """
@@ -213,38 +215,43 @@ class PointSourceLikelihood:
         one_plus_alpha = 1e-10
         alpha = one_plus_alpha - 1
 
-        log_likelihood_ratio = 0.0
 
-        for i in range(self.Nprime):
-
-            signal = self._signal_likelihood(
-                self._selected_ras[i],
-                self._selected_decs[i],
-                self._source_coord,
-                self._selected_energies[i],
-                index,
-                ang_err=self._selected_ang_errs[i]
-            )
-
-            bg = self._background_likelihood(self._selected_energies[i])
-
-            chi = (1 / self.N) * (signal / bg - 1)
-
-            alpha_i = ns * chi
-
-            if (1 + alpha_i) < one_plus_alpha:
-
-                alpha_tilde = (alpha_i - alpha) / one_plus_alpha
-                log_likelihood_ratio += (
-                    np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde ** 2)
+        idx = np.digitize(index, self._energy_likelihood.index_list)
+        llhs = np.zeros(2)
+        for c, indx in enumerate(self._energy_likelihood.index_list[idx-1:idx+1]):
+            log_likelihood_ratio = 0.0
+            for i in range(self.Nprime):
+                #get signal and bg likelihoods for this particular event, given index and ns
+                signal = self._signal_likelihood(
+                    self._selected_ras[i],
+                    self._selected_decs[i],
+                    self._source_coord,
+                    self._selected_energies[i],
+                    indx,
+                    ang_err=self._selected_ang_errs[i]
                 )
+                #something with numerical stability
+                bg = self._background_likelihood(self._selected_energies[i])
+                chi = (1 / self.N) * (signal / bg - 1)
 
-            else:
+                alpha_i = ns * chi
 
-                log_likelihood_ratio += np.log1p(alpha_i)
+                if (1 + alpha_i) < one_plus_alpha:
 
-        log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
+                    alpha_tilde = (alpha_i - alpha) / one_plus_alpha
+                    log_likelihood_ratio += (
+                        np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde ** 2)
+                    )
 
+                else:
+
+                    log_likelihood_ratio += np.log1p(alpha_i)
+
+            log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
+
+            llhs[c] = log_likelihood_ratio
+
+        log_likelihood_ratio = np.interp(index, self._energy_likelihood.index_list[idx-1:idx+1], llhs)
         return -log_likelihood_ratio
 
     def _func_to_minimize(self, ns, index):
@@ -264,43 +271,53 @@ class PointSourceLikelihood:
         one_plus_alpha = 1e-10
         alpha = one_plus_alpha - 1
 
-        log_likelihood_ratio = 0.0
 
-        for i in range(self.Nprime):
+        idx = np.digitize(index, self._energy_likelihood.index_list)
+        llhs = np.zeros(2)
+        for c, indx in enumerate(self._energy_likelihood.index_list[idx-1:idx+1]):
+            log_likelihood_ratio = 0.0
+            for i in range(self.Nprime):
 
-            signal = self._signal_likelihood(
-                self._selected_ras[i],
-                self._selected_decs[i],
-                self._source_coord,
-                self._selected_energies[i],
-                index,
-                ang_err=self._selected_ang_errs[i]
-            )
-
-            bg = self._background_likelihood(self._selected_energies[i])
-
-            chi = (1 / self.N) * (signal / bg - 1)
-
-            alpha_i = ns * chi
-
-            if (1 + alpha_i) < one_plus_alpha:
-
-                alpha_tilde = (alpha_i - alpha) / one_plus_alpha
-                log_likelihood_ratio += (
-                    np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde ** 2)
+                signal = self._signal_likelihood(
+                    self._selected_ras[i],
+                    self._selected_decs[i],
+                    self._source_coord,
+                    self._selected_energies[i],
+                    indx,
+                    ang_err=self._selected_ang_errs[i]
                 )
 
-            else:
+                bg = self._background_likelihood(self._selected_energies[i])
 
-                log_likelihood_ratio += np.log1p(alpha_i)
+                chi = (1 / self.N) * (signal / bg - 1)
 
-        log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
+                alpha_i = ns * chi
+
+                if (1 + alpha_i) < one_plus_alpha:
+
+                    alpha_tilde = (alpha_i - alpha) / one_plus_alpha
+                    log_likelihood_ratio += (
+                        np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde ** 2)
+                    )
+
+                else:
+
+                    log_likelihood_ratio += np.log1p(alpha_i)
+
+            log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
+
+
+
+            llhs[c] = log_likelihood_ratio
+
+        log_likelihood_ratio = np.interp(index, self._energy_likelihood.index_list[idx-1:idx+1], llhs)
 
         if self._index_prior:
 
             log_likelihood_ratio += np.log(self._index_prior(index))
-
+        
         return -log_likelihood_ratio
+
 
     def __call__(self, ns, index):
         """
@@ -330,7 +347,7 @@ class PointSourceLikelihood:
             limit_ns=(self._ns_min, self._ns_max),
             limit_index=(self._energy_likelihood._min_index, self._max_index),
         )
-
+        # m.fixed["index"] = True
         m.migrad()
 
         if not m.migrad_ok() or not m.matrix_accurate():
