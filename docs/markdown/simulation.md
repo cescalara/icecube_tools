@@ -5,9 +5,9 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.11.0
+      jupytext_version: 1.13.8
   kernelspec:
-    display_name: Python 3
+    display_name: Python 3 (ipykernel)
     language: python
     name: python3
 ---
@@ -33,31 +33,35 @@ from icecube_tools.detector.angular_resolution import AngularResolution
 from icecube_tools.detector.detector import IceCube
 from icecube_tools.source.flux_model import PowerLawFlux
 from icecube_tools.source.source_model import DiffuseSource, PointSource
+from icecube_tools.detector.r2021 import R2021IRF
 ```
 
 ```python
 # Define detector (see detector model notebook for more info)
-aeff = EffectiveArea.from_dataset("20181018")
-angres = AngularResolution.from_dataset("20181018")
-eres = EnergyResolution.from_dataset("20150820")
-detector = IceCube(aeff, eres, angres)
+aeff = EffectiveArea.from_dataset("20210126")
+irf = R2021IRF()
+#IceCube expects an instance of EffectiveAerea, AngularResolution and
+#EnergyResolution.
+#R2021IRF inherits from AngularResolution and EnergyResolution
+#just to be able to be used as both
+detector = IceCube(aeff, irf, irf)
 ```
 
 ```python
 # Define simple sources (see source model notebook for more info)
-diff_flux_norm = 1e-18 # Flux normalisation in units of GeV^-1 cm^-2 s^-1 sr^-1
-point_flux_norm = 1e-18 # Flux normalisation in units of GeV^-1 cm^-2 s^-1 
+diff_flux_norm = 1e-19 # Flux normalisation in units of GeV^-1 cm^-2 s^-1 sr^-1
+point_flux_norm = 3e-19 # Flux normalisation in units of GeV^-1 cm^-2 s^-1 
 norm_energy = 1e5 # Energy of normalisation in units of GeV
-min_energy = 1e4 # GeV
-max_energy = 1e7 # GeV
+min_energy = 1e2 # GeV
+max_energy = 1e8 # GeV
 
 diff_power_law = PowerLawFlux(diff_flux_norm, norm_energy, 3.0, 
                               min_energy, max_energy)
 diff_source = DiffuseSource(diff_power_law, z=0.0)
 
-point_power_law = PowerLawFlux(point_flux_norm, norm_energy, 2.6, 
+point_power_law = PowerLawFlux(point_flux_norm, norm_energy, 2.5, 
                                min_energy, max_energy)
-point_source = PointSource(point_power_law, z=0.3, coord=(np.pi, np.pi/4))
+point_source = PointSource(point_power_law, z=0., coord=(np.pi, np.pi/4))
 sources = [diff_source, point_source]
 ```
 
@@ -159,4 +163,8 @@ ax.add_collection(df_nu)
 ax.add_collection(ps_nu)
 
 ax.grid()
+```
+
+```python
+
 ```

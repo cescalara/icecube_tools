@@ -215,7 +215,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
                             ang_err[_index_k] = self.marginal_pdf_angerr(idx_e, idx_d, idx_e_r, idx_k, 'pdf').rvs(size=_index_k[0].size, random_state=seed)
 
         #kappa needs an angle in degrees, prob of containment, here 0.5 as stated in the paper
-        # for c, ang in enumerate(np.power(10, ang_err)):
+        ang_err = np.power(10, ang_err)
         kappa = get_kappa(ang_err, 0.5)
         reco_ang_err = get_theta_p(kappa, self.ret_ang_err_p)
         logging.info(kappa.shape)

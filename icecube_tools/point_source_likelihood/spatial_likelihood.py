@@ -94,7 +94,6 @@ class EventDependentSpatialGaussianLikelihood(SpatialLikelihood):
         #convert p to sigma if necessary...
         #omit for now
         self._sigma = sigma
-        pass     
 
 
     def __call__(self, ang_err, event_coord, source_coord):
