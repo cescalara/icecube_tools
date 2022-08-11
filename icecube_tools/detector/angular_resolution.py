@@ -289,8 +289,22 @@ class AngularResolution(object):
         Sample new ra, dec values given a true energy
         and direction.
         """
-
+        isarray = True
         ra, dec = coord
+
+        if not isinstance(ra, np.ndarray):
+            ra = np.array([ra])
+            isarray=False
+        if not isinstance(dec, np.ndarray):
+            dec = np.array([dec])
+
+        assert dec.shape == ra.shape
+
+        if not isinstance(Etrue, np.ndarray):
+            Etrue = np.array([Etrue])
+            
+
+        assert dec.shape == Etrue.shape
 
         ang_err = self._get_ang_err(Etrue)
 
@@ -301,6 +315,9 @@ class AngularResolution(object):
         unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
         kappa = get_kappa(ang_err, self.ang_err_p)
         new_unit_vector = sample_vMF(unit_vector, kappa)
+        
+        if new_unit_vector.shape != (3, Etrue.size):
+            new_unit_vector = new_unit_vector.T
 
         new_sky_coord = SkyCoord(
             x=new_unit_vector[0],
@@ -316,6 +333,9 @@ class AngularResolution(object):
         new_dec = new_sky_coord.dec.rad
 
         self._ret_ang_err = get_theta_p(kappa, self.ret_ang_err_p)
+
+        if not isarray:
+            self._ret_ang_err = self._ret_ang_err[0]
 
         return new_ra, new_dec
 

@@ -45,7 +45,7 @@ def test_r2021_irf():
     dec = np.pi / 4 # rad
     Etrue = np.log10(1e5)
 
-    _, _, _ = irf.sample((ra, dec), Etrue)
+    _, _, _, _ = irf.sample((ra, dec), Etrue)
 
     with raises(ValueError):
         irf._return_etrue_bins(1, dec)

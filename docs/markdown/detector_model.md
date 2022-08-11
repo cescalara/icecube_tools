@@ -76,7 +76,7 @@ We find the energy resolution, i.e. $p(E_\mathrm{reco} \vert E_\mathrm{true}, \d
 The `R2021IRF()`class is able to do so:
 
 ```python
-irf = R2021IRF(fetch=False)
+irf = R2021IRF()
 ```
 
 ```python

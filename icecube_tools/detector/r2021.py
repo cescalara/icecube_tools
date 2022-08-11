@@ -87,6 +87,11 @@ class R2021IRF(EnergyResolution, AngularResolution):
             logging.basicConfig(level=logging.CRITICAL)
 
         ra, dec = coord
+        if not isinstance(ra, np.ndarray):
+            ra = np.array([ra])
+        if not isinstance(dec, np.ndarray):
+            dec = np.array([dec])
+
         sky_coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
         sky_coord.representation_type = "cartesian"
         unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z]).T
@@ -95,6 +100,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
             size = Etrue.size
         else:
             size = 1
+            Etrue = np.array([Etrue])
 
         c_e, _, c_d, _ = self._return_etrue_bins(Etrue, dec)
         Ereco = np.zeros(size)
@@ -135,7 +141,13 @@ class R2021IRF(EnergyResolution, AngularResolution):
             logging.basicConfig(level=logging.INFO)
         else:
             logging.basicConfig(level=logging.CRITICAL)
+
         ra, dec = coord
+        if not isinstance(ra, np.ndarray):
+            ra = np.array([ra])
+        if not isinstance(dec, np.ndarray):
+            dec = np.array([dec])
+
         sky_coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
         sky_coord.representation_type = "cartesian"
         unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
@@ -144,6 +156,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
             size = Etrue.size
         else:
             size = 1
+            Etrue = np.array([Etrue])
 
         #Initialise empty arrays for data
         c_e, _, c_d, _ = self._return_etrue_bins(Etrue, dec)
@@ -221,6 +234,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
         logging.info(kappa.shape)
         logging.info(unit_vector.shape)
         new_unit_vector = sample_vMF(unit_vector, kappa)
+        if new_unit_vector.shape != (3, Etrue.size):
+            new_unit_vector = new_unit_vector.T
 
         #create sky coordinates from rotated/deflected vector
         new_sky_coord = SkyCoord(
@@ -313,6 +328,9 @@ class R2021IRF(EnergyResolution, AngularResolution):
         :raises ValueError: if energy is outside of IRF-file range
         :raises ValueError: if declination is outside of $[-\pi/2, \pi/2]$
         """
+
+        if not isinstance(energy, np.ndarray):
+            energy = np.array([energy])
 
         if np.all(energy >= self.true_energy_bins[0]) and np.all(energy <= self.true_energy_bins[-1]):
             c_e = np.digitize(energy, self.true_energy_bins)
