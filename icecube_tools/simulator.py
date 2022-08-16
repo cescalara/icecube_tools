@@ -2,7 +2,10 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 import h5py
+from scipy.stats import uniform
+import logging
 
+# from memory_profiler import profile
 from tqdm import tqdm as progress_bar
 
 from .detector.detector import Detector
@@ -10,12 +13,12 @@ from .source.source_model import Source, DIFFUSE, POINT
 from .source.flux_model import PowerLawFlux, BrokenPowerLawFlux
 from .neutrino_calculator import NeutrinoCalculator
 from .detector.angular_resolution import FixedAngularResolution, AngularResolution
+from .detector.r2021 import R2021IRF
 
 """
 Module for running neutrino production 
 and detection simulations.
 """
-
 
 class Simulator:
     def __init__(self, sources, detector):
@@ -36,6 +39,7 @@ class Simulator:
         self.max_cosz = 1
 
         self.time = 1  # year
+
 
     @property
     def sources(self):
@@ -78,19 +82,157 @@ class Simulator:
 
         self._source_weights = np.array(self._Nex) / sum(self._Nex)
 
-    def run(self, N=None, show_progress=True, seed=1234):
+    #@profile
+    def run_energy(self, N=None, seed=1234):
         """
-        Run a simulation for the given set of sources
+        Run a simulation of energy reconstruction for the given set of sources
         and detector configuration.
-
         The expected number of neutrinos will be
         calculated for each source. If total N is forced,
         then the number from each source will be weighted
         accordingly.
-
         :param N: Set expected number of neutrinos manually.
-        :param show_progress: Show the progress bar.
+        :return: Arrival energy, reconstructed energy in GeV.
         """
+
+        np.random.seed(seed)
+
+        self._get_expected_number()
+
+        if not N:
+
+            self.N = np.random.poisson(sum(self._Nex))
+
+        else:
+
+            self.N = int(N)
+
+        v_lim = (np.cos(np.pi - np.arccos(self.max_cosz)) + 1) / 2
+
+
+
+        self.true_energy = []
+        self.arrival_energy = []
+        self.reco_energy = []
+        self.coordinate = []
+        self.ra = []
+        self.dec = []
+        self.source_label = np.zeros(self.N, dtype=int)
+        self.ang_err = []        
+
+        #During detector simulation, many events are discarded due to 
+        #the detection probability (scaled version of the effective area).
+        #To increase speed, take many more events at once and only keep
+        #the accepted ones.
+
+        #TODO maybe change the factor to something spectral index dependent
+        num = self.N * 1000
+        label = np.random.choice(range(len(self.sources)), self.N, p=self._source_weights)
+        l_set = set(label)
+        l_num = {i: np.argwhere(i == label).shape[0] for i in l_set}
+        max_energy = {}
+        #create dicts of empty arrays of matching length (i.e. expected events) for each surce
+        ra_d = {i: np.zeros(l_num[i]) for i in l_set}
+        dec_d = {i: np.zeros(l_num[i]) for i in l_set}
+        Etrue_d = {i: np.zeros(l_num[i]) for i in l_set}
+        Earr_d = {i: np.zeros(l_num[i]) for i in l_set}
+        
+        accepted = np.zeros(self.N, dtype=bool)
+ 
+        #go over each source
+        for i in l_set:
+            #simulate until appropriate number of events is accepted
+
+            max_energy[i] = self.sources[i].flux_model._upper_energy
+
+            logging.info(f"source: {i}")
+
+            while True:
+                #check if data is needed, else break loop
+                where_zero = np.argwhere(Etrue_d[i] == 0.)
+                if where_zero.size == 0:
+                    logging.debug("no more empty slots, done")
+                    break
+
+                Etrue_ = self.sources[i].flux_model.sample(num)
+                if self.sources[i].source_type == DIFFUSE:
+
+                    ra_, dec_ = sphere_sample(v_lim=v_lim, N=num)
+
+                else:
+
+                    ra_, dec_ = np.full(num, self.sources[i].coord[0]), np.full(num, self.sources[i].coord[1])
+
+                cosz = -np.sin(dec_)
+
+
+                Earr_ = Etrue_ / (1 + self.sources[i].z)
+                detection_prob = self.detector.effective_area.detection_probability(
+                        Earr_, cosz, max_energy[i]
+                ).astype(float)
+                
+
+                samples = uniform.rvs(size=num)
+                accepted_ = samples <= detection_prob
+                idx = np.nonzero(accepted_)
+                if idx[0].size == 0:
+                    continue
+                else:
+                    start = np.min(where_zero)
+                    end = start + idx[0].size
+                    try:
+                        Etrue_d[i][start:end] = Etrue_[idx]
+                        Earr_d[i][start:end] = Earr_[idx]
+                        ra_d[i][start:end] = ra_[idx]
+                        dec_d[i][start:end] = dec_[idx]
+                        logging.debug("All data placed.")
+                    except (IndexError, ValueError):
+                        logging.debug("Not enough slots, cutting short.")
+                        remaining = np.argwhere(Etrue_d[i] == 0.).size
+                        Etrue_d[i][start:] = Etrue_[idx][0:remaining]
+                        Earr_d[i][start:] = Earr_[idx][0:remaining]
+                        ra_d[i][start:] = ra_[idx][0:remaining]
+                        dec_d[i][start:] = dec_[idx][0:remaining]
+                        break
+            
+            
+            if not isinstance(self.detector.energy_resolution, R2021IRF):
+                Ereco = self.detector.energy_resolution.sample(Earr_d[i])
+                try:
+                    self.reco_energy += list(Ereco)
+                except TypeError:
+                    self.reco_energy += [Ereco]
+            else:
+                Ereco = self.detector.energy_resolution.sample_energy(
+                    (ra_d[i], dec_d[i]), np.log10(Earr_d[i], seed=seed)
+                )
+                try:
+                    self.reco_energy += list(np.power(10,Ereco))
+                except TypeError:
+                    self.reco_energy += [np.power(10, Ereco)]
+
+        self.arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
+
+        return self.arrival_energy, self.reco_energy
+
+    # @profile
+    def run(self, N=None, seed=1234, show_progress=False):
+        """
+        Run a simulation for the given set of sources
+        and detector configuration.
+        The expected number of neutrinos will be
+        calculated for each source. If total N is forced,
+        then the number from each source will be weighted
+        accordingly.
+        :param N: Set expected number of neutrinos manually.
+        :param seed: Set random seed.
+        """
+
+        if show_progress:
+            logging.basicConfig(level=logging.INFO)
+
+        else:
+            logging.basicConfig(level=logging.CRITICAL)
 
         np.random.seed(seed)
 
@@ -112,74 +254,142 @@ class Simulator:
         self.coordinate = []
         self.ra = []
         self.dec = []
-        self.source_label = []
         self.ang_err = []
+        self.source_label = []
+        #During detector simulation, many events are discarded due to 
+        #the detection probability (scaled version of the effective area).
+        #To increase speed, take many more events at once and only keep
+        #the accepted ones.
 
-        for i in progress_bar(
-            range(self.N), desc="Sampling", disable=(not show_progress)
-        ):
+        #TODO maybe change the factor to something spectral index dependent
+        num = self.N * 2000
+        label = np.random.choice(range(len(self.sources)), self.N, p=self._source_weights)
+        l_set = set(label)
+        l_num = {i: np.argwhere(i == label).shape[0] for i in l_set}
+        max_energy = {}
+        #create dicts of empty arrays of matching length (i.e. expected events) for each surce
+        ra_d = {i: np.zeros(l_num[i]) for i in l_set}
+        dec_d = {i: np.zeros(l_num[i]) for i in l_set}
+        Etrue_d = {i: np.zeros(l_num[i]) for i in l_set}
+        Earr_d = {i: np.zeros(l_num[i]) for i in l_set}
+        
+        accepted = np.zeros(self.N, dtype=bool)
+        
+        #go over each source
+        for i in l_set:
+            #simulate until appropriate number of events is accepted
+            
+            max_energy[i] = self.sources[i].flux_model._upper_energy
+            
+            logging.info(f"source: {i}")
+            while True:
+                #check if data is needed, else break loop
+                where_zero = np.argwhere(Etrue_d[i] == 0.)
+                if where_zero.size == 0:
+                    logging.debug("no more empty slots, done")
+                    break
+                
+                Etrue_ = self.sources[i].flux_model.sample(num)
+                if self.sources[i].source_type == DIFFUSE:
 
-            label = np.random.choice(range(len(self.sources)), p=self._source_weights)
-
-            max_energy = self.sources[label].flux_model._upper_energy
-
-            accepted = False
-
-            while not accepted:
-
-                Etrue = self.sources[label].flux_model.sample(1)[0]
-
-                if self.sources[label].source_type == DIFFUSE:
-
-                    ra, dec = sphere_sample(v_lim=v_lim)
+                    ra_, dec_ = sphere_sample(v_lim=v_lim, N=num)
 
                 else:
 
-                    ra, dec = self.sources[label].coord
+                    ra_, dec_ = np.full(num, self.sources[i].coord[0]), np.full(num, self.sources[i].coord[1])
 
-                cosz = -np.sin(dec)
+                cosz = -np.sin(dec_)
 
-                Earr = Etrue / (1 + self.sources[label].z)
 
-                detection_prob = float(
-                    self.detector.effective_area.detection_probability(
-                        Earr, cosz, max_energy
+                Earr_ = Etrue_ / (1 + self.sources[i].z)
+                detection_prob = self.detector.effective_area.detection_probability(
+                        Earr_, cosz, max_energy[i]
+                ).astype(float)
+
+                samples = uniform.rvs(size=num, random_state=seed)
+                accepted_ = samples <= detection_prob
+                idx = np.nonzero(accepted_)
+                if idx[0].size == 0:
+                    continue
+                else:
+                    start = np.min(where_zero)
+                    end = start + idx[0].size
+                    try:
+                        Etrue_d[i][start:end] = Etrue_[idx]
+                        Earr_d[i][start:end] = Earr_[idx]
+                        ra_d[i][start:end] = ra_[idx]
+                        dec_d[i][start:end] = dec_[idx]
+                        logging.debug("All data placed.")
+                    except (IndexError, ValueError):
+                        logging.debug("Not enough slots, cutting short.")
+                        remaining = np.argwhere(Etrue_d[i] == 0.).size
+                        Etrue_d[i][start:] = Etrue_[idx][0:remaining]
+                        Earr_d[i][start:] = Earr_[idx][0:remaining]
+                        ra_d[i][start:] = ra_[idx][0:remaining]
+                        dec_d[i][start:] = dec_[idx][0:remaining]
+                        break
+            # print("Sampling spectrum is done")
+            logging.info("Done sampling the spectrum") 
+            if not isinstance(self.detector.energy_resolution, R2021IRF):
+                logging.info("Sampled reco energy")
+                Ereco = self.detector.energy_resolution.sample(Earr_d[i])
+                #this and all following try-except TypeError blocks
+                #are needed if only a single event is sampled
+                #then list() will not work bc float is not an iterable
+                try:
+                    self.reco_energy += list(Ereco)           
+                except TypeError:
+                    self.reco_energy += [Ereco]
+
+            #do source type specific things here
+            if self.sources[i].source_type == DIFFUSE:
+
+
+                if isinstance(self.detector.angular_resolution, R2021IRF):
+                    _, _, reco_ang_err, Ereco = self.detector.angular_resolution.sample(
+                        (ra_d[i], dec_d[i]), np.log10(Earr_d[i]), seed=seed
                     )
-                )
-
-                accepted = np.random.choice(
-                    [True, False], p=[detection_prob, 1 - detection_prob]
-                )
-
-            self.source_label.append(label)
-            self.true_energy.append(Etrue)
-            self.arrival_energy.append(Earr)
-            Ereco = self.detector.energy_resolution.sample(Earr)
-            self.reco_energy.append(Ereco)
-
-            if self.sources[label].source_type == DIFFUSE:
-
-                self.coordinate.append(SkyCoord(ra * u.rad, dec * u.rad, frame="icrs"))
-                self.ra.append(ra)
-                self.dec.append(dec)
-
-                if isinstance(self.detector.angular_resolution, AngularResolution):
+                    try:
+                        self.ang_err += list(reco_ang_err)
+                        self.reco_energy += list(Ereco)
+                    except TypeError as e:
+                        print(e)
+                        self.ang_err += [reco_ang_err]
+                        self.reco_energy += [Ereco]
+                        
+                elif isinstance(self.detector.angular_resolution, AngularResolution):
                     reco_ang_err = self.detector.angular_resolution.get_ret_ang_err(
-                        Earr
+                        Earr_d[i]
                     )
-
+                    try:
+                        self.ang_err += list(reco_ang_err)
+                    except TypeError:
+                        self.ang_err += [reco_ang_err]
                 elif isinstance(
                     self.detector.angular_resolution, FixedAngularResolution
                 ):
                     reco_ang_err = self.detector.angular_resolution.ret_ang_err
+                    temp = [reco_ang_err] * l_num[i]
 
-                self.ang_err.append(reco_ang_err)
-
+                try:
+                    self.dec += list(dec_d[i])
+                    self.ra += list(ra_d[i])
+                except TypeError:
+                    self.dec += [dec_d[i]]
+                    self.ra += [ra_d[i]]
+                logging.info("Sampled angular uncertainty for diffuse source")
             else:
 
-                if isinstance(self.detector.angular_resolution, AngularResolution):
+
+                if isinstance(self.detector.angular_resolution, R2021IRF):
+                    #loop over events handled inside R2021IRF
+                    reco_ra, reco_dec, reco_ang_err, Ereco  = self.detector.angular_resolution.sample(
+                        (ra_d[i], dec_d[i]), np.log10(Earr_d[i]), seed=seed)
+                    self.reco_energy += list(Ereco)
+
+                elif isinstance(self.detector.angular_resolution, AngularResolution):
                     reco_ra, reco_dec = self.detector.angular_resolution.sample(
-                        Earr, (ra, dec)
+                        Earr_d[i], (ra_d[i], dec_d[i])
                     )
                     reco_ang_err = self.detector.angular_resolution.ret_ang_err
 
@@ -187,17 +397,27 @@ class Simulator:
                     self.detector.angular_resolution, FixedAngularResolution
                 ):
                     reco_ra, reco_dec = self.detector.angular_resolution.sample(
-                        (ra, dec)
+                        (ra_d[i], dec_d[i])
                     )
                     reco_ang_err = self.detector.angular_resolution.ret_ang_err
+                try:
+                    self.ang_err +=list(reco_ang_err)
+                    self.dec += list(reco_dec)
+                    self.ra += list(reco_ra)
+                except TypeError as e:
+                    print(e)
+                    self.ang_err += [reco_ang_err]
+                    self.dec += [reco_dec]
+                    self.ra += [reco_ra]
+                logging.info("Sampled angular uncertainty for point source")
 
-                self.coordinate.append(
-                    SkyCoord(reco_ra * u.rad, reco_dec * u.rad, frame="icrs")
-                )
-                self.ra.append(reco_ra)
-                self.dec.append(reco_dec)
-                self.ang_err.append(reco_ang_err)
+        self.true_energy = np.concatenate(tuple(Etrue_d[k] for k in Earr_d.keys()))
+        self.arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
+        self.source_label = np.concatenate(tuple(np.full(l_num[l], l, dtype=int) for l in Earr_d.keys()))
+        logging.info("Created array of simulation data")       
 
+
+ 
     def save(self, filename):
         """
         Save the output to filename.
@@ -390,13 +610,13 @@ class Braun2008Simulator:
             )
 
 
-def sphere_sample(radius=1, v_lim=0):
+def sphere_sample(radius=1, v_lim=0, N=1):
     """
     Sample points uniformly on a sphere.
     """
 
-    u = np.random.uniform(0, 1)
-    v = np.random.uniform(v_lim, 1)
+    u = np.random.uniform(0, 1, size=N)
+    v = np.random.uniform(v_lim, 1, size=N)
 
     phi = 2 * np.pi * u
     theta = np.arccos(2 * v - 1)

@@ -1,7 +1,6 @@
 import numpy as np
 import os
 from abc import ABC, abstractmethod
-
 from icecube_tools.utils.data import (
     IceCubeData,
     find_files,
@@ -18,8 +17,9 @@ R2013_AEFF_FILENAME = "effective_areas"
 R2015_AEFF_FILENAME = "effective_area.h5"
 R2018_AEFF_FILENAME = "TabulatedAeff.txt"
 BRAUN2008_AEFF_FILENAME = "AeffBraun2008.csv"
+R2021_AEFF_FILENAME = "IC86_II_effectiveArea.csv"
 
-_supported_dataset_ids = ["20131121", "20150820", "20181018"]
+_supported_dataset_ids = ["20131121", "20150820", "20181018", "20210126"]
 
 
 class IceCubeAeffReader(ABC):
@@ -205,6 +205,76 @@ class R2015AeffReader(IceCubeAeffReader):
         self.effective_area_values *= self.scale_factor
 
 
+
+class R2021AeffReader(IceCubeAeffReader):
+    """
+    Reader for the 2021 January 26 release.
+    Link: https://icecube.wisc.edu/data-releases/2021/01/all-sky-point-source-icecube-data-years-2008-2018/
+    """
+
+    def __init__(self, filename, **kwargs):
+
+        if "year" in kwargs:
+            self.year = kwargs["year"]
+        else:
+            self.year = 2012
+
+        # is this applicable? Simulation done using muon neutrino events
+        if "nu_type" in kwargs:
+            self.nu_type = kwargs["nu_type"]
+        else:
+            self.nu_type = "nu_mu"
+
+        if "scale_factor" in kwargs:
+
+            self.scale_factor = kwargs["scale_factor"]
+
+        else:
+
+            self.scale_factor = 1
+
+        super().__init__(filename)
+
+
+    def read(self):
+
+        import pandas as pd
+
+        self.nu_type = "nu_mu"    # all entries valid for muons
+
+        filelayout = ["Emin", "Emax", "DECmin", "DECmax", "Aeff"]
+        # Aeff values are given in cm^2, multiply by 1e-4 to get m^2
+
+        output = pd.read_csv(
+            self._filename, comment="#", delim_whitespace=True, names=filelayout
+        ).to_dict()
+
+        true_energy_lower = set(output["Emin"].values())
+        true_energy_upper = set(output["Emax"].values())
+
+        dec_lower = set(output["DECmin"].values())
+        dec_upper = set(output["DECmax"].values())
+
+        self.true_energy_bins = np.array(
+            list(true_energy_upper.union(true_energy_lower))
+        )
+        self.true_energy_bins.sort()
+        self.true_energy_bins = np.power(10, self.true_energy_bins)
+
+        dec_bins = np.radians(np.array(list(dec_upper.union(dec_lower))))
+        dec_bins.sort()
+        self.cos_zenith_bins = np.cos(dec_bins + np.pi / 2 )    # convert DEC to z and take cosine
+        self.cos_zenith_bins.sort()    # sort to conform to existing data format
+
+        self.effective_area_values = np.reshape(
+            np.array(list(output["Aeff"].values())) * 1e-4,
+            (len(dec_lower), len(true_energy_lower)),
+        ).T
+        self.effective_area_values = np.flip(self.effective_area_values, axis=1)    # flip due to sort, see above
+
+        self.effective_area_values *= self.scale_factor
+
+
 class R2018AeffReader(IceCubeAeffReader):
     """
     Reader for the 2018 Oct 18 release.
@@ -318,7 +388,7 @@ class EffectiveArea(object):
 
             return R2013AeffReader(self._filename, **kwargs)
 
-        if R2015_AEFF_FILENAME in self._filename:
+        elif R2015_AEFF_FILENAME in self._filename:
 
             return R2015AeffReader(self._filename, **kwargs)
 
@@ -329,6 +399,10 @@ class EffectiveArea(object):
         elif BRAUN2008_AEFF_FILENAME in self._filename:
 
             return Braun2008AeffReader(self._filename)
+
+        elif R2021_AEFF_FILENAME in self._filename:
+
+             return R2021AeffReader(self._filename, **kwargs)
 
         else:
 
@@ -373,23 +447,35 @@ class EffectiveArea(object):
         energy_index = np.digitize(true_energy, self.true_energy_bins) - 1
 
         # Guard against overflow
-        if energy_index >= self.true_energy_bins.size - 1:
+        if isinstance(energy_index, np.ndarray):
+            idx = np.nonzero(energy_index >= self.true_energy_bins.size - 1)
+            energy_index[idx] = self.true_energy_bins.size - 2
 
-            energy_index = self.true_energy_bins.size - 2
+            idx = np.nonzero(energy_index < 0)
+            energy_index[idx] = 0
 
-        elif energy_index < 0:
-
-            energy_index = 0
-
-        if len(self.cos_zenith_bins) > 2:
-
-            cosz_index = np.digitize(true_cos_zenith, self.cos_zenith_bins) - 1
-
-            return scaled_values[energy_index][cosz_index]
+            if len(self.cos_zenith_bins) > 2:
+                cosz_index = np.digitize(true_cos_zenith, self.cos_zenith_bins) - 1
+                return scaled_values[energy_index, cosz_index]
+            else:
+                return scaled_values[energy_index]
 
         else:
+            if energy_index >= self.true_energy_bins.size - 1:
 
-            return scaled_values[energy_index]
+                energy_index = self.true_energy_bins.size - 2
+
+            elif energy_index < 0:
+
+                energy_index = 0
+            if len(self.cos_zenith_bins) > 2:
+
+                cosz_index = np.digitize(true_cos_zenith, self.cos_zenith_bins) - 1
+                return scaled_values[energy_index][cosz_index]
+
+            else:
+
+                return scaled_values[energy_index]
 
     @classmethod
     def from_dataset(cls, dataset_id, fetch=True, **kwargs):
@@ -442,5 +528,11 @@ class EffectiveArea(object):
 
             # Folder containing all Aeff info
             aeff_file_name = folders[0]
+
+        elif dataset_id == "20210126":
+
+            files = find_files(dataset_dir, R2021_AEFF_FILENAME)
+            # Pick one at random?
+            aeff_file_name = files[0]
 
         return cls(aeff_file_name, **kwargs)

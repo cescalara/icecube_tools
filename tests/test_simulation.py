@@ -51,6 +51,6 @@ def test_simulation():
     simulator = Simulator(sources, detector)
     simulator.time = 1
 
-    simulator.run(show_progress=True, seed=42)
+    simulator.run(seed=42)
 
     assert min(simulator.true_energy) >= 1e4

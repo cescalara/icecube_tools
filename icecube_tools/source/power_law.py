@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import bernoulli
+from scipy.stats import bernoulli, uniform
 
 
 class BoundedPowerLaw(object):
@@ -98,7 +98,7 @@ class BoundedPowerLaw(object):
         """
         Inverse CDF sample from the bounded power law distribution.
         """
-        u = np.random.uniform(0, 1, nsamples)
+        u = np.random.uniform(0, 1, size=nsamples)
         return self.inv_cdf(u)
 
 

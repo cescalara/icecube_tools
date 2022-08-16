@@ -4,7 +4,8 @@ from vMF import sample_vMF
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from scipy import stats
-
+from scipy.stats import rv_histogram, uniform
+from scipy.spatial.transform import Rotation as R
 from icecube_tools.utils.data import IceCubeData, find_files, data_directory
 from icecube_tools.utils.vMF import get_kappa, get_theta_p
 
@@ -159,7 +160,7 @@ class AngularResolution(object):
         self._filename = filename
 
         self._reader = self.get_reader()
-
+        #put self.values somewhere else, not needed for every child class
         self.values = (self._reader.ang_res_values + offset) * scale
 
         if self._energy_type == TRUE_ENERGY:
@@ -200,6 +201,7 @@ class AngularResolution(object):
             self._energy_type = RECO_ENERGY
 
             return R2015AngResReader(self._filename)
+
 
         elif ".csv" in self._filename:
 
@@ -242,24 +244,37 @@ class AngularResolution(object):
             a = (self._minimum - ang_res) / self._scatter
             b = (self._maximum - ang_res) / self._scatter
 
-            ang_res = stats.truncnorm(a, b, loc=ang_res, scale=self._scatter,).rvs(
-                1
-            )[0]
+            if isinstance(ang_res, np.ndarray):
+                #shouldn't this be rvs(size=ang_res.size)?
+                ang_res = stats.truncnorm(a, b, loc=ang_res, scale=np.full(ang_res.shape, self._scatter)).rvs(
+                )
+            else: 
+                ang_res = stats.truncnorm(a, b, loc=ang_res, scale=self._scatter,).rvs(
+                    1
+                )[0]
 
         # Check bounds
-        if ang_res < self._minimum:
+        if isinstance(ang_res, np.ndarray):
+            idx = np.nonzero(ang_res < self._minimum)
+            ang_res[idx] = self._minimum
 
-            ang_res = self._minimum
+            idx = np.nonzero(ang_res > self._maximum)
+            ang_res[idx] = self._maximum
 
-        if ang_res > self._maximum:
+        else:
+            if ang_res < self._minimum:
 
-            ang_res = self._maximum
+                ang_res = self._minimum
+
+            if ang_res > self._maximum:
+
+                ang_res = self._maximum
 
         return ang_res
 
     def get_ret_ang_err(self, E):
         """
-        Get the median angualr resolution for the
+        Get the median angular resolution for the
         given Etrue/Ereco, corresponsing to ret_ang_err_p.
         """
 
@@ -274,8 +289,22 @@ class AngularResolution(object):
         Sample new ra, dec values given a true energy
         and direction.
         """
-
+        isarray = True
         ra, dec = coord
+
+        if not isinstance(ra, np.ndarray):
+            ra = np.array([ra])
+            isarray=False
+        if not isinstance(dec, np.ndarray):
+            dec = np.array([dec])
+
+        assert dec.shape == ra.shape
+
+        if not isinstance(Etrue, np.ndarray):
+            Etrue = np.array([Etrue])
+            
+
+        assert dec.shape == Etrue.shape
 
         ang_err = self._get_ang_err(Etrue)
 
@@ -284,10 +313,11 @@ class AngularResolution(object):
         sky_coord.representation_type = "cartesian"
 
         unit_vector = np.array([sky_coord.x, sky_coord.y, sky_coord.z])
-
         kappa = get_kappa(ang_err, self.ang_err_p)
-
-        new_unit_vector = sample_vMF(unit_vector, kappa, 1)[0]
+        new_unit_vector = sample_vMF(unit_vector, kappa)
+        
+        if new_unit_vector.shape != (3, Etrue.size):
+            new_unit_vector = new_unit_vector.T
 
         new_sky_coord = SkyCoord(
             x=new_unit_vector[0],
@@ -303,6 +333,9 @@ class AngularResolution(object):
         new_dec = new_sky_coord.dec.rad
 
         self._ret_ang_err = get_theta_p(kappa, self.ret_ang_err_p)
+
+        if not isarray:
+            self._ret_ang_err = self._ret_ang_err[0]
 
         return new_ra, new_dec
 
@@ -344,8 +377,14 @@ class AngularResolution(object):
             files = find_files(dataset_dir, R2018_ANG_RES_FILENAME)
 
             angres_file_name = files[2]
+        """
+        elif dataset_id == "20210126":
 
-        return cls(angres_file_name, **kwargs)
+            files = find_files(dataset_dir, R2021_ANG_RES_FILENAME)
+            angres_file_name = files[0]
+            return R2021AngularResolution(angres_file_name, **kwargs)
+        """
+        return AngularResolution(angres_file_name, **kwargs)
 
 
 class FixedAngularResolution:

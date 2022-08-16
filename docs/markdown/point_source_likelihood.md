@@ -5,9 +5,9 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.11.0
+      jupytext_version: 1.13.8
   kernelspec:
-    display_name: Python 3
+    display_name: Python 3 (ipykernel)
     language: python
     name: python3
 ---
@@ -31,10 +31,10 @@ from matplotlib import pyplot as plt
 import h5py
 
 from icecube_tools.point_source_likelihood.spatial_likelihood import (
-    SpatialGaussianLikelihood
+    EventDependentSpatialGaussianLikelihood
 )
 from icecube_tools.point_source_likelihood.energy_likelihood import (
-    MarginalisedEnergyLikelihoodBraun2008, read_input_from_file,
+    MarginalisedEnergyLikelihood2021, read_input_from_file,
 )
 from icecube_tools.point_source_likelihood.point_source_likelihood import (
     PointSourceLikelihood
@@ -44,12 +44,14 @@ from icecube_tools.point_source_likelihood.point_source_likelihood import (
 ## Spatial likelihood
 
 
-We can start with the spatial/directional term. Let's approximate our detector as having a fixed angular resolution of 1 degree. We can then define the source spatial term as a 2D Gaussian with a fixed width. The background case will simply be an isotropic distribution on the sphere.
+We can start with the spatial/directional term. Let's use the energy dependent spatial likelihood. It is build from a Gaussian with an event-wise uncertainty sampled from the IRF data. The background case will simply be an isotropic distribution on the sphere.
 
 ```python
 angular_resolution = 1 # deg
-spatial_likelihood = SpatialGaussianLikelihood(angular_resolution)
+spatial_likelihood = EventDependentSpatialGaussianLikelihood(angular_resolution)
 ```
+
+We show the likelihood profile for a single event with an assumed uncertainty of 1 degree.
 
 ```python
 source_coord = (np.pi, np.pi/4)
@@ -57,7 +59,7 @@ test_coords = [(np.pi+_, source_coord[1]) for _ in np.linspace(-0.1, 0.1, 100)]
 
 fig, ax = plt.subplots()
 ax.plot(np.rad2deg([tc[0] for tc in test_coords]), 
-        [spatial_likelihood(tc, source_coord) for tc in test_coords])
+        [spatial_likelihood(1., tc, source_coord) for tc in test_coords])
 ax.axvline(np.rad2deg(source_coord[0]), color="k", linestyle=":", 
            label="Source location")
 ax.set_xlabel("RA [deg]")
@@ -70,27 +72,25 @@ ax.legend();
 
 Now let's think about the energy-dependent term. The way this is handled is to marginalise over the true neutrino energies, to directly connect the reconstructed neutrino energies to the spectral index of a simple power-law source model. 
 
-Doing this properly requires a knowledge of the relationship between the true and reconstructed energies as well as the details of the power law model. The most straightforward way to implement this is to simulate the a large number of events using the `Simulator` and build a likelihood using the output of this simulation and `MarginalisedEnergyLikelihoodFromSim`. However, this can take a while to run, so here let's just use an implementation based on a plot from the original Braun et al. paper.
+Doing this properly requires a knowledge of the relationship between the true and reconstructed energies as well as the details of the power law model. The most straightforward way to implement this is to simulate the a large number of events using the `Simulator` and build a likelihood using the output of this simulation and `MarginalisedEnergyLikelihoodFromSim`. We do exactly this with pre-computed lists of events, to be found in the data subdirectory: `sim_output_{index}.h5`. These were simulated using point sources with spectral index `index` at 45 degrees declination. The likelihood is restricted to a small band of declination around the assumed source. Using the same declination for our test source, this is fine. For different source declinations further simulations would be needed to account for the declination dependence of the detector acceptance.
 
 ```python
-energy_list, pdf_list, index_list = read_input_from_file("data/Braun2008Fig4b.h5")
-energy_likelihood = MarginalisedEnergyLikelihoodBraun2008(energy_list, 
-                                                          pdf_list, index_list)
+energy_likelihood = MarginalisedEnergyLikelihood2021([1.5, 2.0, 2.5, 3.0, 3.5, 3.7, 4.0], 'data', 'sim_output', np.pi/4,)
 ```
 
 ```python
 test_energies = np.geomspace(10, 1e7) # GeV
-test_indices = [2, 2.5, 3, 4]
+test_indices = [2, 2.5, 3, 3.5]
 
 fig, ax = plt.subplots()
 for index in test_indices:
     ax.plot(test_energies, [energy_likelihood(e, index) for e in test_energies], 
-            label="index=%i" % index)
+            label=f"index {index:.1f}")
 ax.set_xscale("log")
 ax.set_yscale("log")
 ax.set_xlabel("E_reco [GeV]")
 ax.set_ylabel("Energy likelihood")
-ax.legend();
+ax.legend()
 ```
 
 ## Point source likelihood
@@ -112,6 +112,7 @@ Now lets put our likelihood structure and data in together, along with a propose
 likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood, 
                                   data["ra"], data["dec"], data["reco_energy"],
                                   source_coord)
+likelihood._bg_index = 3.0
 ```
 
 The likelihood will automatically select a declination band around the proposed source location. Because of the Gaussian spatial likelihood, neutrinos far from the source will have negligible contribution. We can control the width of this band with the optional argument `band_width_factor`. Let's see how many events ended up in the band, compared to the total number:
@@ -171,6 +172,10 @@ for n_rm in range(ntot_ps_events):
 ```
 
 ```python
+likelihood._energy_likelihood._min_index
+```
+
+```python
 fig, ax = plt.subplots()
 ax.plot([_ for _ in range(ntot_ps_events)], test_statistics)
 ax.set_xlabel("Number of point source events in dataset")
@@ -178,6 +183,50 @@ ax.set_ylabel("Test statistic value")
 ```
 
 So the more neutrinos are seen from a source, the easier that source is to detect.
+
+
+We can further inspect the likelihood profiles by using the Minuit object returned by `likelihood._minimize()`. The one for the index has sharp changes. This is due to the interpolation done by the energy likelihood. We fed it simulation for discreet values of `index`. We cannot sensibly interpolate the likelihood of a given energy to any index, this leads to Heaviside-like discontinuities in the global (spatial + energy) likelihood. Instead, `PointSourceLikelihood` calculates the likelihood for the next simulated values of `index`, e.g. asking for an index 2.3 would lead to 2.0 and 2.5, and interpolate linearly between the resulting likelihoods. The precision of this method can be improved by providing simulations on a denser grid of spectral indices.
+
+The error provided by `migrad()` is unreasonably small.
+
+```python
+likelihood._energy_likelihood.index_list
+```
+
+```python
+m = likelihood._minimize()
+m.migrad()
+```
+
+```python
+_ = m.draw_profile("ns")
+```
+
+```python
+_ = m.draw_profile("index", bound=(likelihood._energy_likelihood._min_index, likelihood._energy_likelihood._max_index))
+```
+
+As a final step we show the likelihood values across a 2d grid.
+
+```python
+index = np.arange(1.7, 3.4, step=0.2)
+index_pl = np.arange(1.6, 3.5, step=0.2)
+ns_pl = np.arange(5.5, 15.5, step=1.)
+ns = np.arange(6, 15, step=1.)
+ii, nn = np.meshgrid(index, ns, indexing='ij')
+ll = np.zeros(ii.flatten().shape)
+
+for c, (i, n) in enumerate(zip(ii.flatten(), nn.flatten())):
+    ll[c] = likelihood._func_to_minimize(n, i)
+
+fig, ax = plt.subplots(dpi=150)
+
+pcol = ax.pcolor(index_pl, ns_pl, ll.reshape(ii.shape).T)
+pcol_ax = fig.colorbar(pcol)
+pcol_ax.set_label("negative loglike")
+ax.set_xlabel("index")
+ax.set_ylabel("ns")
+```
 
 ```python
 

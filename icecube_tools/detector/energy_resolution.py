@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import lognorm
+from scipy.stats import rv_histogram
 from scipy.optimize import curve_fit
 from abc import ABC, abstractmethod
 
@@ -155,7 +156,8 @@ class EnergyResolution(EnergyResolutionBase):
 
             eres_file_name = files[0]
 
-        return cls(eres_file_name, **kwargs)
+            return cls(eres_file_name, **kwargs)
+
 
     def _integrate_out_cos_zenith(self):
         """
@@ -394,3 +396,4 @@ class EnergyResolution(EnergyResolutionBase):
         mu, sigma = self._get_lognormal_params(E)
 
         return lognorm.rvs(sigma, loc=0, scale=mu)
+
