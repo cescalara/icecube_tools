@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -290,6 +291,7 @@ div.nboutput.container div.output_area > div[class^='highlight']{
 }
 
 /* Some additional styling taken form the Jupyter notebook CSS */
+.jp-RenderedHTMLCommon table,
 div.rendered_html table {
   border: none;
   border-collapse: collapse;
@@ -298,10 +300,14 @@ div.rendered_html table {
   font-size: 12px;
   table-layout: fixed;
 }
+.jp-RenderedHTMLCommon thead,
 div.rendered_html thead {
   border-bottom: 1px solid black;
   vertical-align: bottom;
 }
+.jp-RenderedHTMLCommon tr,
+.jp-RenderedHTMLCommon th,
+.jp-RenderedHTMLCommon td,
 div.rendered_html tr,
 div.rendered_html th,
 div.rendered_html td {
@@ -313,12 +319,15 @@ div.rendered_html td {
   max-width: none;
   border: none;
 }
+.jp-RenderedHTMLCommon th,
 div.rendered_html th {
   font-weight: bold;
 }
+.jp-RenderedHTMLCommon tbody tr:nth-child(odd),
 div.rendered_html tbody tr:nth-child(odd) {
   background: #f5f5f5;
 }
+.jp-RenderedHTMLCommon tbody tr:hover,
 div.rendered_html tbody tr:hover {
   background: rgba(66, 165, 245, 0.2);
 }
@@ -346,7 +355,7 @@ div.rendered_html tbody tr:hover {
 }
 </style>
 <section id="Data-access">
-<h1>Data access<a class="headerlink" href="#Data-access" title="Permalink to this headline"></a></h1>
+<h1>Data access<a class="headerlink" href="#Data-access" title="Permalink to this heading"></a></h1>
 <p>IceCube has a bunch of public datasets available at <a class="reference external" href="https://icecube.wisc.edu/science/data-releases/">https://icecube.wisc.edu/science/data-releases/</a>. <code class="docutils literal notranslate"><span class="pre">icecube_tools</span></code> provides an easy interface to this repository so that you can download and organise your data through python.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -400,7 +409,7 @@ div.rendered_html tbody tr:hover {
  &#39;20210126_PS-IC40-IC86_VII.zip&#39;,
  &#39;20210310_IceCube_data_for_the_first_Glashow_resonance_candidate.zip&#39;,
  &#39;20211217_HESE-7-5-year-data.zip&#39;,
- &#39;20220114_Density_of_GeV_muons_in_air_showers_measured_with_IceTop.zip&#39;,
+ &#39;20220201_Density_of_GeV_muons_in_air_showers_measured_with_IceTop.zip&#39;,
  &#39;ic22-solar-wimp-histograms.zip&#39;]
 </pre></div></div>
 </div>
@@ -455,7 +464,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:00&lt;00:00, 14824404.88it/s]
+20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:02&lt;00:00, 5173738.97it/s]
 </pre></div></div>
 </div>
 <p>You may not want to use <code class="docutils literal notranslate"><span class="pre">icecube_tools</span></code> for other stuff, so you can also fetch to a specificed location with the keyword <code class="docutils literal notranslate"><span class="pre">write_to</span></code>.</p>
@@ -472,7 +481,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:00&lt;00:00, 15545121.67it/s]
+20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:05&lt;00:00, 2026564.03it/s]
 </pre></div></div>
 </div>
 <p>For convenience, there is also the <code class="docutils literal notranslate"><span class="pre">fetch_all_to</span></code> method to download all the available data to a specified location. We comment this here as it can take a while to execute.</p>

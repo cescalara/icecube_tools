@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -295,6 +296,7 @@ div.nboutput.container div.output_area > div[class^='highlight']{
 }
 
 /* Some additional styling taken form the Jupyter notebook CSS */
+.jp-RenderedHTMLCommon table,
 div.rendered_html table {
   border: none;
   border-collapse: collapse;
@@ -303,10 +305,14 @@ div.rendered_html table {
   font-size: 12px;
   table-layout: fixed;
 }
+.jp-RenderedHTMLCommon thead,
 div.rendered_html thead {
   border-bottom: 1px solid black;
   vertical-align: bottom;
 }
+.jp-RenderedHTMLCommon tr,
+.jp-RenderedHTMLCommon th,
+.jp-RenderedHTMLCommon td,
 div.rendered_html tr,
 div.rendered_html th,
 div.rendered_html td {
@@ -318,12 +324,15 @@ div.rendered_html td {
   max-width: none;
   border: none;
 }
+.jp-RenderedHTMLCommon th,
 div.rendered_html th {
   font-weight: bold;
 }
+.jp-RenderedHTMLCommon tbody tr:nth-child(odd),
 div.rendered_html tbody tr:nth-child(odd) {
   background: #f5f5f5;
 }
+.jp-RenderedHTMLCommon tbody tr:hover,
 div.rendered_html tbody tr:hover {
   background: rgba(66, 165, 245, 0.2);
 }
@@ -351,7 +360,7 @@ div.rendered_html tbody tr:hover {
 }
 </style>
 <section id="Simulation">
-<h1>Simulation<a class="headerlink" href="#Simulation" title="Permalink to this headline"></a></h1>
+<h1>Simulation<a class="headerlink" href="#Simulation" title="Permalink to this heading"></a></h1>
 <p>We can bring together the detector and source modelling to calculate the expected number of neutrino events and run simulations.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -366,7 +375,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <section id="Defining-a-source-and-detector-model">
-<h2>Defining a source and detector model<a class="headerlink" href="#Defining-a-source-and-detector-model" title="Permalink to this headline"></a></h2>
+<h2>Defining a source and detector model<a class="headerlink" href="#Defining-a-source-and-detector-model" title="Permalink to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -377,6 +386,7 @@ div.rendered_html tbody tr:hover {
 <span class="kn">from</span> <span class="nn">icecube_tools.detector.detector</span> <span class="kn">import</span> <span class="n">IceCube</span>
 <span class="kn">from</span> <span class="nn">icecube_tools.source.flux_model</span> <span class="kn">import</span> <span class="n">PowerLawFlux</span>
 <span class="kn">from</span> <span class="nn">icecube_tools.source.source_model</span> <span class="kn">import</span> <span class="n">DiffuseSource</span><span class="p">,</span> <span class="n">PointSource</span>
+<span class="kn">from</span> <span class="nn">icecube_tools.detector.r2021</span> <span class="kn">import</span> <span class="n">R2021IRF</span>
 </pre></div>
 </div>
 </div>
@@ -385,10 +395,13 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define detector (see detector model notebook for more info)</span>
-<span class="n">aeff</span> <span class="o">=</span> <span class="n">EffectiveArea</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20181018&quot;</span><span class="p">)</span>
-<span class="n">angres</span> <span class="o">=</span> <span class="n">AngularResolution</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20181018&quot;</span><span class="p">)</span>
-<span class="n">eres</span> <span class="o">=</span> <span class="n">EnergyResolution</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20150820&quot;</span><span class="p">)</span>
-<span class="n">detector</span> <span class="o">=</span> <span class="n">IceCube</span><span class="p">(</span><span class="n">aeff</span><span class="p">,</span> <span class="n">eres</span><span class="p">,</span> <span class="n">angres</span><span class="p">)</span>
+<span class="n">aeff</span> <span class="o">=</span> <span class="n">EffectiveArea</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20210126&quot;</span><span class="p">)</span>
+<span class="n">irf</span> <span class="o">=</span> <span class="n">R2021IRF</span><span class="p">()</span>
+<span class="c1"># IceCube expects an instance of EffectiveAerea, AngularResolution and</span>
+<span class="c1"># EnergyResolution.</span>
+<span class="c1"># R2021IRF inherits from AngularResolution and EnergyResolution</span>
+<span class="c1"># just to be able to be used as both</span>
+<span class="n">detector</span> <span class="o">=</span> <span class="n">IceCube</span><span class="p">(</span><span class="n">aeff</span><span class="p">,</span> <span class="n">irf</span><span class="p">,</span> <span class="n">irf</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -397,26 +410,26 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define simple sources (see source model notebook for more info)</span>
-<span class="n">diff_flux_norm</span> <span class="o">=</span> <span class="mf">1e-18</span>  <span class="c1"># Flux normalisation in units of GeV^-1 cm^-2 s^-1 sr^-1</span>
-<span class="n">point_flux_norm</span> <span class="o">=</span> <span class="mf">1e-18</span>  <span class="c1"># Flux normalisation in units of GeV^-1 cm^-2 s^-1</span>
+<span class="n">diff_flux_norm</span> <span class="o">=</span> <span class="mf">1e-19</span>  <span class="c1"># Flux normalisation in units of GeV^-1 cm^-2 s^-1 sr^-1</span>
+<span class="n">point_flux_norm</span> <span class="o">=</span> <span class="mf">3e-19</span>  <span class="c1"># Flux normalisation in units of GeV^-1 cm^-2 s^-1</span>
 <span class="n">norm_energy</span> <span class="o">=</span> <span class="mf">1e5</span>  <span class="c1"># Energy of normalisation in units of GeV</span>
-<span class="n">min_energy</span> <span class="o">=</span> <span class="mf">1e4</span>  <span class="c1"># GeV</span>
-<span class="n">max_energy</span> <span class="o">=</span> <span class="mf">1e7</span>  <span class="c1"># GeV</span>
+<span class="n">min_energy</span> <span class="o">=</span> <span class="mf">1e2</span>  <span class="c1"># GeV</span>
+<span class="n">max_energy</span> <span class="o">=</span> <span class="mf">1e8</span>  <span class="c1"># GeV</span>
 
 <span class="n">diff_power_law</span> <span class="o">=</span> <span class="n">PowerLawFlux</span><span class="p">(</span><span class="n">diff_flux_norm</span><span class="p">,</span> <span class="n">norm_energy</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="n">min_energy</span><span class="p">,</span> <span class="n">max_energy</span><span class="p">)</span>
 <span class="n">diff_source</span> <span class="o">=</span> <span class="n">DiffuseSource</span><span class="p">(</span><span class="n">diff_power_law</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 
 <span class="n">point_power_law</span> <span class="o">=</span> <span class="n">PowerLawFlux</span><span class="p">(</span>
-    <span class="n">point_flux_norm</span><span class="p">,</span> <span class="n">norm_energy</span><span class="p">,</span> <span class="mf">2.6</span><span class="p">,</span> <span class="n">min_energy</span><span class="p">,</span> <span class="n">max_energy</span>
+    <span class="n">point_flux_norm</span><span class="p">,</span> <span class="n">norm_energy</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="n">min_energy</span><span class="p">,</span> <span class="n">max_energy</span>
 <span class="p">)</span>
-<span class="n">point_source</span> <span class="o">=</span> <span class="n">PointSource</span><span class="p">(</span><span class="n">point_power_law</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">point_source</span> <span class="o">=</span> <span class="n">PointSource</span><span class="p">(</span><span class="n">point_power_law</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">))</span>
 <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">diff_source</span><span class="p">,</span> <span class="n">point_source</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
 </section>
 <section id="Expected-number-of-neutrino-events">
-<h2>Expected number of neutrino events<a class="headerlink" href="#Expected-number-of-neutrino-events" title="Permalink to this headline"></a></h2>
+<h2>Expected number of neutrino events<a class="headerlink" href="#Expected-number-of-neutrino-events" title="Permalink to this heading"></a></h2>
 <p>Sometimes we just want to predict the number of events from sources in a detector without specifying all detector properties or running a simulation. We can do this with the <code class="docutils literal notranslate"><span class="pre">NeutrinoCalculator</span></code>. For this, we just need a source list and an effective area.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
@@ -447,7 +460,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[236.9716992042547, 11.765820429571848]
+[203.69948567249213, 14.236383229755331]
 </pre></div></div>
 </div>
 <p>The calculator returns a list of expected neutrino event numbers, one for each source.</p>
@@ -470,12 +483,12 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-8.693864521682422e-19
+6.245448289268418e-19
 </pre></div></div>
 </div>
 </section>
 <section id="Set-up-and-run-simulation">
-<h2>Set up and run simulation<a class="headerlink" href="#Set-up-and-run-simulation" title="Permalink to this headline"></a></h2>
+<h2>Set up and run simulation<a class="headerlink" href="#Set-up-and-run-simulation" title="Permalink to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
@@ -484,7 +497,7 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
@@ -496,14 +509,6 @@ div.rendered_html tbody tr:hover {
 <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">show_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-Sampling: 100%|██████████| 243/243 [00:14&lt;00:00, 16.23it/s]
-</pre></div></div>
 </div>
 <p>This way, the simulator calculates the expected number of neutrinos from these sources given the observation period, effective area and relevant source properties. We note that we could also run a simulation for a fixed number of neutrinos if we want, simply by passing the optional argument <code class="docutils literal notranslate"><span class="pre">N</span></code> to <code class="docutils literal notranslate"><span class="pre">simulator.run()</span></code>.</p>
 <div class="nbinput nblast docutils container">
@@ -554,7 +559,7 @@ Sampling: 100%|██████████| 243/243 [00:14&lt;00:00, 16.23it/
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7fab44a67790&gt;
+&lt;matplotlib.legend.Legend at 0x7fbbd0a7bc40&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -598,6 +603,14 @@ Sampling: 100%|██████████| 243/243 [00:14&lt;00:00, 16.23it/
 </div>
 <div class="output_area docutils container">
 <img alt="../_images/notebooks_simulation_18_0.png" src="../_images/notebooks_simulation_18_0.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
 </div>
 </div>
 </section>

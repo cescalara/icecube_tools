@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -44,7 +45,14 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="public_data_access.html">Data access</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Detector model interface</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#Effective-area,-angular-resolution-and-energy-resolution">Effective area, angular resolution and energy resolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Effective-area,-angular-resolution-and-energy-resolution-of-10-year-data">Effective area, angular resolution and energy resolution of 10 year data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Energy-resolution">Energy resolution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Etrue-vs. Ereco">Etrue vs. Ereco</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Angular-resolution">Angular resolution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Mean-angular-uncertainty">Mean angular uncertainty</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#Effective-area,-angular-resolution-and-energy-resolution-of-earlier-releases">Effective area, angular resolution and energy resolution of earlier releases</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Detector-model">Detector model</a></li>
 </ul>
 </li>
@@ -294,6 +302,7 @@ div.nboutput.container div.output_area > div[class^='highlight']{
 }
 
 /* Some additional styling taken form the Jupyter notebook CSS */
+.jp-RenderedHTMLCommon table,
 div.rendered_html table {
   border: none;
   border-collapse: collapse;
@@ -302,10 +311,14 @@ div.rendered_html table {
   font-size: 12px;
   table-layout: fixed;
 }
+.jp-RenderedHTMLCommon thead,
 div.rendered_html thead {
   border-bottom: 1px solid black;
   vertical-align: bottom;
 }
+.jp-RenderedHTMLCommon tr,
+.jp-RenderedHTMLCommon th,
+.jp-RenderedHTMLCommon td,
 div.rendered_html tr,
 div.rendered_html th,
 div.rendered_html td {
@@ -317,12 +330,15 @@ div.rendered_html td {
   max-width: none;
   border: none;
 }
+.jp-RenderedHTMLCommon th,
 div.rendered_html th {
   font-weight: bold;
 }
+.jp-RenderedHTMLCommon tbody tr:nth-child(odd),
 div.rendered_html tbody tr:nth-child(odd) {
   background: #f5f5f5;
 }
+.jp-RenderedHTMLCommon tbody tr:hover,
 div.rendered_html tbody tr:hover {
   background: rgba(66, 165, 245, 0.2);
 }
@@ -350,7 +366,7 @@ div.rendered_html tbody tr:hover {
 }
 </style>
 <section id="Detector-model-interface">
-<h1>Detector model interface<a class="headerlink" href="#Detector-model-interface" title="Permalink to this headline"></a></h1>
+<h1>Detector model interface<a class="headerlink" href="#Detector-model-interface" title="Permalink to this heading"></a></h1>
 <p>In addition to the neutrino data itself, the IceCube collaboration provides some information about the detector that can be useful to construct simple simulations and fits. For example, the effective area is needed to connect between incident neutrino fluxes and expected number of events in the detector.</p>
 <p><code class="docutils literal notranslate"><span class="pre">icecube_tools</span></code> also provides an quick interface to loading and working with such information. This is a work in progress and only certain datasets are currently implemented, such as the ones demonstrated below.</p>
 <div class="nbinput nblast docutils container">
@@ -407,31 +423,40 @@ div.rendered_html tbody tr:hover {
  &#39;20210126_PS-IC40-IC86_VII.zip&#39;,
  &#39;20210310_IceCube_data_for_the_first_Glashow_resonance_candidate.zip&#39;,
  &#39;20211217_HESE-7-5-year-data.zip&#39;,
- &#39;20220114_Density_of_GeV_muons_in_air_showers_measured_with_IceTop.zip&#39;,
+ &#39;20220201_Density_of_GeV_muons_in_air_showers_measured_with_IceTop.zip&#39;,
  &#39;ic22-solar-wimp-histograms.zip&#39;]
 </pre></div></div>
 </div>
-<section id="Effective-area,-angular-resolution-and-energy-resolution">
-<h2>Effective area, angular resolution and energy resolution<a class="headerlink" href="#Effective-area,-angular-resolution-and-energy-resolution" title="Permalink to this headline"></a></h2>
-<p>We can now use the date string to identify certain datasets. Let’s say we want to use the effective area and angular resolution from the <code class="docutils literal notranslate"><span class="pre">20181018</span></code> dataset. If you don’t already have the dataset downloaded, <code class="docutils literal notranslate"><span class="pre">icecube_tools</span></code> will do this for you automatically.</p>
+<section id="Effective-area,-angular-resolution-and-energy-resolution-of-10-year-data">
+<h2>Effective area, angular resolution and energy resolution of 10 year data<a class="headerlink" href="#Effective-area,-angular-resolution-and-energy-resolution-of-10-year-data" title="Permalink to this heading"></a></h2>
+<p>We can now use the date string to identify certain datasets. Let’s say we want to use the effective area and angular resolution from the <code class="docutils literal notranslate"><span class="pre">20210126</span></code> dataset. If you don’t already have the dataset downloaded, <code class="docutils literal notranslate"><span class="pre">icecube_tools</span></code> will do this for you automatically. This 10 year data release provides more detailed IRF data.</p>
+<p>We restrict our examples to the Northern hemisphere.</p>
+<p>The simpler, earlier versions are explained afterwards.</p>
+<p>The format of the effective area has not changed, though.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.detector.effective_area</span> <span class="kn">import</span> <span class="n">EffectiveArea</span>
-<span class="kn">from</span> <span class="nn">icecube_tools.detector.energy_resolution</span> <span class="kn">import</span> <span class="n">EnergyResolution</span>
-<span class="kn">from</span> <span class="nn">icecube_tools.detector.angular_resolution</span> <span class="kn">import</span> <span class="n">AngularResolution</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.detector.r2021</span> <span class="kn">import</span> <span class="n">R2021IRF</span>
+<span class="kn">from</span> <span class="nn">icecube_tools.detector.effective_area</span> <span class="kn">import</span> <span class="n">EffectiveArea</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_aeff</span> <span class="o">=</span> <span class="n">EffectiveArea</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20181018&quot;</span><span class="p">)</span>
-<span class="n">my_angres</span> <span class="o">=</span> <span class="n">AngularResolution</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20181018&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_aeff</span> <span class="o">=</span> <span class="n">EffectiveArea</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20210126&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+20210126_PS-IC40-IC86_VII.zip: 100%|██████████| 39848048/39848048 [00:42&lt;00:00, 945063.08it/s]
+</pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
@@ -443,6 +468,7 @@ div.rendered_html tbody tr:hover {
 <span class="p">)</span>
 <span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mf">1e2</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;True energy [GeV]&quot;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;cos(zenith)&quot;</span><span class="p">)</span>
 <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;Aeff [m^2]&quot;</span><span class="p">)</span>
@@ -456,107 +482,214 @@ div.rendered_html tbody tr:hover {
 <img alt="../_images/notebooks_detector_model_7_0.png" src="../_images/notebooks_detector_model_7_0.png" />
 </div>
 </div>
-<div class="nbinput docutils container">
+<section id="Energy-resolution">
+<h3>Energy resolution<a class="headerlink" href="#Energy-resolution" title="Permalink to this heading"></a></h3>
+<p>Angular resolution depends on the energy resolution. The <a class="reference external" href="https://arxiv.org/pdf/2101.09836.pdf">paper</a> accompaying the data release explains the dependency: For each bin of true energy and declination a certain amount of events is simulated. These are sorted first into bins of reconstructed energy. These are then reconstructed in terms of <code class="docutils literal notranslate"><span class="pre">PSF</span></code>(the kinematic angle between the incoming neutrino and the outgoing muon after a collision) and actual angular error. Data is given as fractional
+counts in the bin <span class="math notranslate nohighlight">\((E_\mathrm{reco}, \mathrm{PSF}, \mathrm{ang\_err})\)</span> of all counts in bin (E_:nbsphinx-math:<cite>mathrm{true}</cite>, <span class="math">\delta</span>). This is nothing but a histogram, corresponding to a probability of finding an event with given true energy and true declination: <span class="math notranslate nohighlight">\(p(E_\mathrm{reco}, \mathrm{PSF}, \mathrm{ang\_err} \vert E_\mathrm{true}, \delta)\)</span>.</p>
+<p>We find the energy resolution, i.e. <span class="math notranslate nohighlight">\(p(E_\mathrm{reco} \vert E_\mathrm{true}, \delta)\)</span>, by summing over (marginalising over) all entries of <span class="math notranslate nohighlight">\(\mathrm{PSF}, \mathrm{ang\_err}\)</span> for the reconstructed energy we are interested in.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">R2021IRF()</span></code>class is able to do so:</p>
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">irf</span> <span class="o">=</span> <span class="n">R2021IRF</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">my_angres</span><span class="o">.</span><span class="n">true_energy_values</span><span class="p">,</span> <span class="n">my_angres</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;True energy [GeV]&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Mean angular error [deg]&quot;</span><span class="p">)</span>
+<span class="n">idx</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">]</span>
+<span class="c1"># plotting Ereco for different true energy bins, the declination bin here is always from +10 to +90 degrees.</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">:</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">irf</span><span class="o">.</span><span class="n">reco_energy</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">support</span><span class="p">(),</span> <span class="n">num</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">irf</span><span class="o">.</span><span class="n">reco_energy</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="n">irf</span><span class="o">.</span><span class="n">true_energy_bins</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Text(0, 0.5, &#39;Mean angular error [deg]&#39;)
+&lt;matplotlib.legend.Legend at 0x7f45fa67c6a0&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_detector_model_8_1.png" src="../_images/notebooks_detector_model_8_1.png" />
+<img alt="../_images/notebooks_detector_model_10_1.png" src="../_images/notebooks_detector_model_10_1.png" />
 </div>
 </div>
-<p>We can also easily check what datasets are supported by the different detector information classes:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">EffectiveArea</span><span class="o">.</span><span class="n">supported_datasets</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-[&#39;20131121&#39;, &#39;20150820&#39;, &#39;20181018&#39;]
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
+<p>This should look like the Fig.4, left panel, of the mentioned paper, the y-axis is only scaled by a constant factor, corresponding to a properly normalised distribution. On this topic, it should be mentioned that the quantities distributed according to these histograms are the logarithms of reconstructed energy, PSF and angular uncertainty! Accordingly, logarithmic quantities are drawn as samples and only exponentiated for calculations and final data products.</p>
+</section>
+<section id="Etrue-vs. Ereco">
+<h3>Etrue vs. Ereco<a class="headerlink" href="#Etrue-vs. Ereco" title="Permalink to this heading"></a></h3>
+<p>Below, a colormap of the conditional probability <span class="math notranslate nohighlight">\(P(E_\mathrm{reco} \vert E_\mathrm{true})\)</span> is shown. It is normalised for each Etrue bin.</p>
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">AngularResolution</span><span class="o">.</span><span class="n">supported_datasets</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">etrue</span> <span class="o">=</span> <span class="n">irf</span><span class="o">.</span><span class="n">true_energy_bins</span>
+<span class="n">ereco</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-[&#39;20181018&#39;]
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">EnergyResolution</span><span class="o">.</span><span class="n">supported_datasets</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">etrue</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">ereco</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">et</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">etrue</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="n">vals</span><span class="p">[</span><span class="n">c</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">irf</span><span class="o">.</span><span class="n">reco_energy</span><span class="p">[</span><span class="n">c</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">ereco</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-[&#39;20150820&#39;]
-</pre></div></div>
-</div>
-<p>If you would like to see some other datasets supported, please feel free to open an issue or contribute your own!</p>
-<p>For the <code class="docutils literal notranslate"><span class="pre">20150820</span></code> dataset, for which we also have the energy resolution available…</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_aeff</span> <span class="o">=</span> <span class="n">EffectiveArea</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20150820&quot;</span><span class="p">)</span>
-<span class="n">my_eres</span> <span class="o">=</span> <span class="n">EnergyResolution</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20150820&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">etrue</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">ereco</span><span class="p">),</span> <span class="n">vals</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">LogNorm</span><span class="p">())</span>
+<span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mf">1e2</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mf">1e1</span><span class="p">,</span> <span class="mf">1e8</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;True energy [GeV]&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Reconstructed energy [GeV]&quot;</span><span class="p">)</span>
+<span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;P(Ereco|Etrue)&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-20150820_Astrophysical_muon_neutrino_flu...: 100%|██████████| 43711022/43711022 [00:01&lt;00:00, 24614648.95it/s]
-</pre></div></div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_detector_model_15_0.png" src="../_images/notebooks_detector_model_15_0.png" />
 </div>
+</div>
+</section>
+<section id="Angular-resolution">
+<h3>Angular resolution<a class="headerlink" href="#Angular-resolution" title="Permalink to this heading"></a></h3>
+<p>Now that we have the reconstructed energy for an event with some <span class="math notranslate nohighlight">\(E_\mathrm{true}, \delta\)</span>, we can proceed in finding the angular resolution.</p>
+<p>First, from the given “history” of the event, we sample the matching distribution/histogram of <span class="math notranslate nohighlight">\(\mathrm{PSF}\)</span>, again my marginalising over the uninteresting quantities, in this case only <span class="math notranslate nohighlight">\(\mathrm{ang\_err}\)</span>. We thus sample a value of <span class="math notranslate nohighlight">\(\mathrm{PSF}\)</span>, to whom a distribution of <span class="math notranslate nohighlight">\(\mathrm{ang\_err}\)</span> belongs, which we subsequently sample. This is now to be understood as a cone of a given angular radius, within which the true arrival direction lies with a probability of 50%.</p>
+<p>For both steps, the histograms are created by <code class="docutils literal notranslate"><span class="pre">R2021IRF()</span></code> when instructed to do so: we pass a tuple of vectors (ra, dec) in radians and a vector of <span class="math notranslate nohighlight">\(\log_{10}(E_\mathrm{true})\)</span> to the method <code class="docutils literal notranslate"><span class="pre">sample()</span></code>. Returned are sampled ra, dec (both in radians), angular error (68%, in degrees) and reconstructed energy in GeV.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">irf</span><span class="o">.</span><span class="n">sample</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(array([3.15954578, 3.12030497, 3.12394901, 3.12396843]),
+ array([0.77468254, 0.77668352, 0.78434616, 0.80565586]),
+ array([1.04465202, 1.51769649, 1.07965682, 1.99991027]),
+ array([ 638.45805228, 1580.39738365,  985.09144625,  837.29369041]))
+</pre></div></div>
+</div>
+<p>If you are interested in the actual distributions, they are accessible through the attributes <code class="docutils literal notranslate"><span class="pre">R2021IRF().reco_energy</span></code> (2d numpy array storing <code class="docutils literal notranslate"><span class="pre">scipy.stats.rv_histogram</span></code> instances) and <code class="docutils literal notranslate"><span class="pre">R2021IRF().maginal_pdf_psf</span></code> (a modified ditionary class instance, indexed by a chain of keys):</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">etrue_bin</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">dec_bin</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">ereco_bin</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">irf</span><span class="o">.</span><span class="n">marginal_pdf_psf</span><span class="p">(</span><span class="n">etrue_bin</span><span class="p">,</span> <span class="n">dec_bin</span><span class="p">,</span> <span class="n">ereco_bin</span><span class="p">,</span> <span class="s2">&quot;bins&quot;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">irf</span><span class="o">.</span><span class="n">marginal_pdf_psf</span><span class="p">(</span><span class="n">etrue_bin</span><span class="p">,</span> <span class="n">dec_bin</span><span class="p">,</span> <span class="n">ereco_bin</span><span class="p">,</span> <span class="s2">&quot;pdf&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[-3.13065092 -2.86582289 -2.60084567 -2.33592241 -2.07109231 -1.80631897
+ -1.54136215 -1.27646224 -1.01153023 -0.74666199 -0.48174935 -0.21688286
+  0.04805317  0.31281183  0.57772152  0.84267163  1.10754913  1.37235958
+  1.63728955  1.90222053  2.1670218 ]
+&lt;scipy.stats._continuous_distns.rv_histogram object at 0x7f45fa1385e0&gt;
+</pre></div></div>
+</div>
+<p>The same works for <code class="docutils literal notranslate"><span class="pre">marginal_pdf_angerr</span></code>. The entries are only created once the <code class="docutils literal notranslate"><span class="pre">sample()</span></code> method needs to. See the class defintion of <code class="docutils literal notranslate"><span class="pre">ddict</span></code> in <code class="docutils literal notranslate"><span class="pre">icecube_tools.utils.data</span></code> for more details.</p>
+</section>
+<section id="Mean-angular-uncertainty">
+<h3>Mean angular uncertainty<a class="headerlink" href="#Mean-angular-uncertainty" title="Permalink to this heading"></a></h3>
+<p>We can find the mean angular uncertainty by sampling a large amount of events for different true energies, assuming that the average is sensibly defined as the average of logarithmic quantities.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">num</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">loge</span> <span class="o">=</span> <span class="n">irf</span><span class="o">.</span><span class="n">true_energy_bins</span>
+<span class="n">mean_uncertainty</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">loge</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">loge</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">irf</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">mean_uncertainty</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">samples</span><span class="p">)))</span>
+<span class="n">mean_uncertainty</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_uncertainty</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">loge</span><span class="p">,</span> <span class="n">mean_uncertainty</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="s2">&quot;post&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&lt;matplotlib.lines.Line2D at 0x7f45f929afa0&gt;]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_detector_model_22_1.png" src="../_images/notebooks_detector_model_22_1.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="Effective-area,-angular-resolution-and-energy-resolution-of-earlier-releases">
+<h2>Effective area, angular resolution and energy resolution of earlier releases<a class="headerlink" href="#Effective-area,-angular-resolution-and-energy-resolution-of-earlier-releases" title="Permalink to this heading"></a></h2>
+<p>Repeating the prodecure for the <code class="docutils literal notranslate"><span class="pre">20181018</span></code> dataset.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.detector.effective_area</span> <span class="kn">import</span> <span class="n">EffectiveArea</span>
+<span class="kn">from</span> <span class="nn">icecube_tools.detector.energy_resolution</span> <span class="kn">import</span> <span class="n">EnergyResolution</span>
+<span class="kn">from</span> <span class="nn">icecube_tools.detector.angular_resolution</span> <span class="kn">import</span> <span class="n">AngularResolution</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_aeff</span> <span class="o">=</span> <span class="n">EffectiveArea</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20181018&quot;</span><span class="p">)</span>
+<span class="n">my_angres</span> <span class="o">=</span> <span class="n">AngularResolution</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20181018&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
@@ -575,11 +708,133 @@ Text(0, 0.5, &#39;Mean angular error [deg]&#39;)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_detector_model_15_0.png" src="../_images/notebooks_detector_model_15_0.png" />
+<img alt="../_images/notebooks_detector_model_26_0.png" src="../_images/notebooks_detector_model_26_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">my_angres</span><span class="o">.</span><span class="n">true_energy_values</span><span class="p">,</span> <span class="n">my_angres</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;True energy [GeV]&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Mean angular error [deg]&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Text(0, 0.5, &#39;Mean angular error [deg]&#39;)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_detector_model_27_1.png" src="../_images/notebooks_detector_model_27_1.png" />
+</div>
+</div>
+<p>We can also easily check what datasets are supported by the different detector information classes:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">EffectiveArea</span><span class="o">.</span><span class="n">supported_datasets</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&#39;20131121&#39;, &#39;20150820&#39;, &#39;20181018&#39;, &#39;20210126&#39;]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">AngularResolution</span><span class="o">.</span><span class="n">supported_datasets</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&#39;20181018&#39;]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">EnergyResolution</span><span class="o">.</span><span class="n">supported_datasets</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&#39;20150820&#39;]
+</pre></div></div>
+</div>
+<p>If you would like to see some other datasets supported, please feel free to open an issue or contribute your own!</p>
+<p>For the <code class="docutils literal notranslate"><span class="pre">20150820</span></code> dataset, for which we also have the energy resolution available…</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_aeff</span> <span class="o">=</span> <span class="n">EffectiveArea</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20150820&quot;</span><span class="p">)</span>
+<span class="n">my_eres</span> <span class="o">=</span> <span class="n">EnergyResolution</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20150820&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+20150820_Astrophysical_muon_neutrino_flu...: 100%|██████████| 43711022/43711022 [00:14&lt;00:00, 3071095.83it/s]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolor</span><span class="p">(</span>
+    <span class="n">my_aeff</span><span class="o">.</span><span class="n">true_energy_bins</span><span class="p">,</span> <span class="n">my_aeff</span><span class="o">.</span><span class="n">cos_zenith_bins</span><span class="p">,</span> <span class="n">my_aeff</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">LogNorm</span><span class="p">()</span>
+<span class="p">)</span>
+<span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;True energy [GeV]&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;cos(zenith)&quot;</span><span class="p">)</span>
+<span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;Aeff [m^2]&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_detector_model_34_0.png" src="../_images/notebooks_detector_model_34_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
@@ -599,15 +854,15 @@ Text(0, 0.5, &#39;Mean angular error [deg]&#39;)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_detector_model_16_0.png" src="../_images/notebooks_detector_model_16_0.png" />
+<img alt="../_images/notebooks_detector_model_35_0.png" src="../_images/notebooks_detector_model_35_0.png" />
 </div>
 </div>
 </section>
 <section id="Detector-model">
-<h2>Detector model<a class="headerlink" href="#Detector-model" title="Permalink to this headline"></a></h2>
+<h2>Detector model<a class="headerlink" href="#Detector-model" title="Permalink to this heading"></a></h2>
 <p>We can bring together these properties to make a detector model that can be used for simulations.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.detector.detector</span> <span class="kn">import</span> <span class="n">IceCube</span>
@@ -615,10 +870,18 @@ Text(0, 0.5, &#39;Mean angular error [deg]&#39;)
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_detector</span> <span class="o">=</span> <span class="n">IceCube</span><span class="p">(</span><span class="n">my_aeff</span><span class="p">,</span> <span class="n">my_eres</span><span class="p">,</span> <span class="n">my_angres</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 </div>

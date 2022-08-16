@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -296,6 +297,7 @@ div.nboutput.container div.output_area > div[class^='highlight']{
 }
 
 /* Some additional styling taken form the Jupyter notebook CSS */
+.jp-RenderedHTMLCommon table,
 div.rendered_html table {
   border: none;
   border-collapse: collapse;
@@ -304,10 +306,14 @@ div.rendered_html table {
   font-size: 12px;
   table-layout: fixed;
 }
+.jp-RenderedHTMLCommon thead,
 div.rendered_html thead {
   border-bottom: 1px solid black;
   vertical-align: bottom;
 }
+.jp-RenderedHTMLCommon tr,
+.jp-RenderedHTMLCommon th,
+.jp-RenderedHTMLCommon td,
 div.rendered_html tr,
 div.rendered_html th,
 div.rendered_html td {
@@ -319,12 +325,15 @@ div.rendered_html td {
   max-width: none;
   border: none;
 }
+.jp-RenderedHTMLCommon th,
 div.rendered_html th {
   font-weight: bold;
 }
+.jp-RenderedHTMLCommon tbody tr:nth-child(odd),
 div.rendered_html tbody tr:nth-child(odd) {
   background: #f5f5f5;
 }
+.jp-RenderedHTMLCommon tbody tr:hover,
 div.rendered_html tbody tr:hover {
   background: rgba(66, 165, 245, 0.2);
 }
@@ -352,7 +361,7 @@ div.rendered_html tbody tr:hover {
 }
 </style>
 <section id="Point-source-likelihood">
-<h1>Point source likelihood<a class="headerlink" href="#Point-source-likelihood" title="Permalink to this headline"></a></h1>
+<h1>Point source likelihood<a class="headerlink" href="#Point-source-likelihood" title="Permalink to this heading"></a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">icecube_tools</span></code> also provides an interface to the likelihoods often used in point source searches of the neutrino data (see <a class="reference external" href="https://arxiv.org/abs/0801.1604">this paper</a> by Braun et al.).</p>
 <div class="math notranslate nohighlight">
 \[\mathcal{L} = \prod_{i=1}^N \Bigg[ \frac{n_s}{N} \mathcal{S}(\theta_i, E_i, \gamma) + (1-\frac{n_s}{N}) \mathcal{B}(\theta_i, E_i) \Bigg],\]</div>
@@ -369,10 +378,10 @@ Also, there may be a temporal dependence added, but this is not yet implemented 
 <span class="kn">import</span> <span class="nn">h5py</span>
 
 <span class="kn">from</span> <span class="nn">icecube_tools.point_source_likelihood.spatial_likelihood</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">SpatialGaussianLikelihood</span><span class="p">,</span>
+    <span class="n">EventDependentSpatialGaussianLikelihood</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">icecube_tools.point_source_likelihood.energy_likelihood</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">MarginalisedEnergyLikelihoodBraun2008</span><span class="p">,</span>
+    <span class="n">MarginalisedEnergyLikelihood2021</span><span class="p">,</span>
     <span class="n">read_input_from_file</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">icecube_tools.point_source_likelihood.point_source_likelihood</span> <span class="kn">import</span> <span class="p">(</span>
@@ -382,17 +391,18 @@ Also, there may be a temporal dependence added, but this is not yet implemented 
 </div>
 </div>
 <section id="Spatial-likelihood">
-<h2>Spatial likelihood<a class="headerlink" href="#Spatial-likelihood" title="Permalink to this headline"></a></h2>
-<p>We can start with the spatial/directional term. Let’s approximate our detector as having a fixed angular resolution of 1 degree. We can then define the source spatial term as a 2D Gaussian with a fixed width. The background case will simply be an isotropic distribution on the sphere.</p>
+<h2>Spatial likelihood<a class="headerlink" href="#Spatial-likelihood" title="Permalink to this heading"></a></h2>
+<p>We can start with the spatial/directional term. Let’s use the energy dependent spatial likelihood. It is build from a Gaussian with an event-wise uncertainty sampled from the IRF data. The background case will simply be an isotropic distribution on the sphere.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">angular_resolution</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># deg</span>
-<span class="n">spatial_likelihood</span> <span class="o">=</span> <span class="n">SpatialGaussianLikelihood</span><span class="p">(</span><span class="n">angular_resolution</span><span class="p">)</span>
+<span class="n">spatial_likelihood</span> <span class="o">=</span> <span class="n">EventDependentSpatialGaussianLikelihood</span><span class="p">(</span><span class="n">angular_resolution</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
+<p>We show the likelihood profile for a single event with an assumed uncertainty of 1 degree.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -403,7 +413,7 @@ Also, there may be a temporal dependence added, but this is not yet implemented 
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
     <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">([</span><span class="n">tc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">tc</span> <span class="ow">in</span> <span class="n">test_coords</span><span class="p">]),</span>
-    <span class="p">[</span><span class="n">spatial_likelihood</span><span class="p">(</span><span class="n">tc</span><span class="p">,</span> <span class="n">source_coord</span><span class="p">)</span> <span class="k">for</span> <span class="n">tc</span> <span class="ow">in</span> <span class="n">test_coords</span><span class="p">],</span>
+    <span class="p">[</span><span class="n">spatial_likelihood</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">source_coord</span><span class="p">)</span> <span class="k">for</span> <span class="n">tc</span> <span class="ow">in</span> <span class="n">test_coords</span><span class="p">],</span>
 <span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span>
     <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">source_coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Source location&quot;</span>
@@ -420,29 +430,31 @@ Also, there may be a temporal dependence added, but this is not yet implemented 
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7f4ba5281700&gt;
+&lt;matplotlib.legend.Legend at 0x7f10b754ab50&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_point_source_likelihood_5_1.png" src="../_images/notebooks_point_source_likelihood_5_1.png" />
+<img alt="../_images/notebooks_point_source_likelihood_6_1.png" src="../_images/notebooks_point_source_likelihood_6_1.png" />
 </div>
 </div>
 </section>
 <section id="Energy-likelihood">
-<h2>Energy likelihood<a class="headerlink" href="#Energy-likelihood" title="Permalink to this headline"></a></h2>
+<h2>Energy likelihood<a class="headerlink" href="#Energy-likelihood" title="Permalink to this heading"></a></h2>
 <p>Now let’s think about the energy-dependent term. The way this is handled is to marginalise over the true neutrino energies, to directly connect the reconstructed neutrino energies to the spectral index of a simple power-law source model.</p>
-<p>Doing this properly requires a knowledge of the relationship between the true and reconstructed energies as well as the details of the power law model. The most straightforward way to implement this is to simulate the a large number of events using the <code class="docutils literal notranslate"><span class="pre">Simulator</span></code> and build a likelihood using the output of this simulation and <code class="docutils literal notranslate"><span class="pre">MarginalisedEnergyLikelihoodFromSim</span></code>. However, this can take a while to run, so here let’s just use an implementation based on a plot from the original Braun et
-al. paper.</p>
+<p>Doing this properly requires a knowledge of the relationship between the true and reconstructed energies as well as the details of the power law model. The most straightforward way to implement this is to simulate the a large number of events using the <code class="docutils literal notranslate"><span class="pre">Simulator</span></code> and build a likelihood using the output of this simulation and <code class="docutils literal notranslate"><span class="pre">MarginalisedEnergyLikelihoodFromSim</span></code>. We do exactly this with pre-computed lists of events, to be found in the data subdirectory: <code class="docutils literal notranslate"><span class="pre">sim_output_{index}.h5</span></code>. These were
+simulated using point sources with spectral index <code class="docutils literal notranslate"><span class="pre">index</span></code> at 45 degrees declination. The likelihood is restricted to a small band of declination around the assumed source. Using the same declination for our test source, this is fine. For different source declinations further simulations would be needed to account for the declination dependence of the detector acceptance.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">energy_list</span><span class="p">,</span> <span class="n">pdf_list</span><span class="p">,</span> <span class="n">index_list</span> <span class="o">=</span> <span class="n">read_input_from_file</span><span class="p">(</span><span class="s2">&quot;data/Braun2008Fig4b.h5&quot;</span><span class="p">)</span>
-<span class="n">energy_likelihood</span> <span class="o">=</span> <span class="n">MarginalisedEnergyLikelihoodBraun2008</span><span class="p">(</span>
-    <span class="n">energy_list</span><span class="p">,</span> <span class="n">pdf_list</span><span class="p">,</span> <span class="n">index_list</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">energy_likelihood</span> <span class="o">=</span> <span class="n">MarginalisedEnergyLikelihood2021</span><span class="p">(</span>
+    <span class="p">[</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.7</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">],</span>
+    <span class="s2">&quot;data&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;sim_output&quot;</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -452,14 +464,14 @@ al. paper.</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">test_energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">geomspace</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mf">1e7</span><span class="p">)</span>  <span class="c1"># GeV</span>
-<span class="n">test_indices</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<span class="n">test_indices</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">]</span>
 
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
 <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">test_indices</span><span class="p">:</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
         <span class="n">test_energies</span><span class="p">,</span>
         <span class="p">[</span><span class="n">energy_likelihood</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">test_energies</span><span class="p">],</span>
-        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;index=</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">index</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;index </span><span class="si">{</span><span class="n">index</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
@@ -475,19 +487,19 @@ al. paper.</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7f4ba31577c0&gt;
+&lt;matplotlib.legend.Legend at 0x7f10b543c3d0&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_point_source_likelihood_9_1.png" src="../_images/notebooks_point_source_likelihood_9_1.png" />
+<img alt="../_images/notebooks_point_source_likelihood_10_1.png" src="../_images/notebooks_point_source_likelihood_10_1.png" />
 </div>
 </div>
 </section>
 <section id="id1">
-<h2>Point source likelihood<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h2>
+<h2>Point source likelihood<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
 <p>Now we can bring together the spatial and energy terms to build a full <code class="docutils literal notranslate"><span class="pre">PointSourceLikelihood</span></code>. First, let’s load some data from the simulation notebook to allow us to demonstrate.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
@@ -514,6 +526,7 @@ al. paper.</p>
     <span class="n">data</span><span class="p">[</span><span class="s2">&quot;reco_energy&quot;</span><span class="p">],</span>
     <span class="n">source_coord</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="n">likelihood</span><span class="o">.</span><span class="n">_bg_index</span> <span class="o">=</span> <span class="mf">3.0</span>
 </pre></div>
 </div>
 </div>
@@ -532,7 +545,7 @@ al. paper.</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-27
+29
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -549,7 +562,7 @@ al. paper.</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-243
+212
 </pre></div></div>
 </div>
 <p>We also note that the background likelihood is implemented automatically, for more information on the options here, check out the API docs. This is just a function of energy, with a constant factor to account for the isotropic directional likelihood.</p>
@@ -579,12 +592,12 @@ Text(0, 0.5, &#39;Background likelihood&#39;)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_point_source_likelihood_19_1.png" src="../_images/notebooks_point_source_likelihood_19_1.png" />
+<img alt="../_images/notebooks_point_source_likelihood_20_1.png" src="../_images/notebooks_point_source_likelihood_20_1.png" />
 </div>
 </div>
 </section>
 <section id="Point-source-search">
-<h2>Point source search<a class="headerlink" href="#Point-source-search" title="Permalink to this headline"></a></h2>
+<h2>Point source search<a class="headerlink" href="#Point-source-search" title="Permalink to this heading"></a></h2>
 <p>A point source search is usually carried out by defining the likelihood ratio of source and background hypotheses, then maximising this ratio as a function of <span class="math notranslate nohighlight">\(n_s\)</span> and <span class="math notranslate nohighlight">\(\gamma\)</span>. The log likelihood ratio evaluated at the maximum likelihood values is then reffered to as the <em>test statistic</em>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">icecube_tools</span></code> includes calculation of the test statistic, with optimisation performed by <code class="docutils literal notranslate"><span class="pre">iminuit</span></code>.</p>
 <div class="nbinput docutils container">
@@ -601,7 +614,7 @@ Text(0, 0.5, &#39;Background likelihood&#39;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-97.41963927921903
+84.8774722695945
 </pre></div></div>
 </div>
 <p>To understand the significance of this results, we would have to calculate the test statistic for a large number of background-only simulations. These could then be used to calculate a p-value. Given there is a strong point source in the simulation we used, we can expect the test stastic to be lower if we remove the source events. Let’s try this:</p>
@@ -640,6 +653,23 @@ Text(0, 0.5, &#39;Background likelihood&#39;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">likelihood</span><span class="o">.</span><span class="n">_energy_likelihood</span><span class="o">.</span><span class="n">_min_index</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+1.55
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntot_ps_events</span><span class="p">)],</span> <span class="n">test_statistics</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Number of point source events in dataset&quot;</span><span class="p">)</span>
@@ -648,7 +678,7 @@ Text(0, 0.5, &#39;Background likelihood&#39;)
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -660,10 +690,182 @@ Text(0, 0.5, &#39;Test statistic value&#39;)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_point_source_likelihood_24_1.png" src="../_images/notebooks_point_source_likelihood_24_1.png" />
+<img alt="../_images/notebooks_point_source_likelihood_26_1.png" src="../_images/notebooks_point_source_likelihood_26_1.png" />
 </div>
 </div>
 <p>So the more neutrinos are seen from a source, the easier that source is to detect.</p>
+<p>We can further inspect the likelihood profiles by using the Minuit object returned by <code class="docutils literal notranslate"><span class="pre">likelihood._minimize()</span></code>. The one for the index has sharp changes. This is due to the interpolation done by the energy likelihood. We fed it simulation for discreet values of <code class="docutils literal notranslate"><span class="pre">index</span></code>. We cannot sensibly interpolate the likelihood of a given energy to any index, this leads to Heaviside-like discontinuities in the global (spatial + energy) likelihood. Instead, <code class="docutils literal notranslate"><span class="pre">PointSourceLikelihood</span></code> calculates the
+likelihood for the next simulated values of <code class="docutils literal notranslate"><span class="pre">index</span></code>, e.g. asking for an index 2.3 would lead to 2.0 and 2.5, and interpolate linearly between the resulting likelihoods. The precision of this method can be improved by providing simulations on a denser grid of spectral indices.</p>
+<p>The error provided by <code class="docutils literal notranslate"><span class="pre">migrad()</span></code> is unreasonably small.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">likelihood</span><span class="o">.</span><span class="n">_energy_likelihood</span><span class="o">.</span><span class="n">index_list</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[1.5, 2.0, 2.5, 3.0, 3.5, 3.7, 4.0]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">m</span> <span class="o">=</span> <span class="n">likelihood</span><span class="o">.</span><span class="n">_minimize</span><span class="p">()</span>
+<span class="n">m</span><span class="o">.</span><span class="n">migrad</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<table>
+    <tr>
+        <td colspan="2" style="text-align:left" title="Minimum value of function"> FCN = -42.44 </td>
+        <td colspan="3" style="text-align:center" title="No. of function evaluations in last call and total number"> Nfcn = 24 (191 total) </td>
+    </tr>
+    <tr>
+        <td colspan="2" style="text-align:left" title="Estimated distance to minimum and goal"> EDM = 1.94e-06 (Goal: 0.0001) </td>
+        <td colspan="3" style="text-align:center" title="No. of gradient evaluations in last call and total number">  </td>
+    </tr>
+    <tr>
+        <td style="text-align:center;background-color:#92CCA6;color:black"> Valid Minimum </td>
+        <td style="text-align:center;background-color:#92CCA6;color:black"> Valid Parameters </td>
+        <td colspan="3" style="text-align:center;background-color:#92CCA6;color:black"> No Parameters at limit </td>
+    </tr>
+    <tr>
+        <td colspan="2" style="text-align:center;background-color:#92CCA6;color:black"> Below EDM threshold (goal x 10) </td>
+        <td colspan="3" style="text-align:center;background-color:#92CCA6;color:black"> Below call limit </td>
+    </tr>
+    <tr>
+        <td style="text-align:center;background-color:#92CCA6;color:black"> Hesse ok </td>
+        <td style="text-align:center;background-color:#92CCA6;color:black"> Has Covariance </td>
+        <td style="text-align:center;background-color:#92CCA6;color:black" title="Is covariance matrix accurate?"> Accurate </td>
+        <td style="text-align:center;background-color:#92CCA6;color:black" title="Is covariance matrix positive definite?"> Pos. def. </td>
+        <td style="text-align:center;background-color:#92CCA6;color:black" title="Was positive definiteness enforced by Minuit?"> Not forced </td>
+    </tr>
+</table><table>
+    <tr>
+        <td></td>
+        <th title="Variable name"> Name </th>
+        <th title="Value of parameter"> Value </th>
+        <th title="Hesse error"> Hesse Error </th>
+        <th title="Minos lower error"> Minos Error- </th>
+        <th title="Minos upper error"> Minos Error+ </th>
+        <th title="Lower limit of the parameter"> Limit- </th>
+        <th title="Upper limit of the parameter"> Limit+ </th>
+        <th title="Is the parameter fixed in the fit"> Fixed </th>
+    </tr>
+    <tr>
+        <th> 0 </th>
+        <td> ns </td>
+        <td> 10.9 </td>
+        <td> 2.6 </td>
+        <td>  </td>
+        <td>  </td>
+        <td> 0 </td>
+        <td> 29 </td>
+        <td>  </td>
+    </tr>
+    <tr>
+        <th> 1 </th>
+        <td> index </td>
+        <td> 2.5000 </td>
+        <td> 0.0021 </td>
+        <td>  </td>
+        <td>  </td>
+        <td> 1.55 </td>
+        <td> 3.95 </td>
+        <td>  </td>
+    </tr>
+</table></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">_</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">draw_profile</span><span class="p">(</span><span class="s2">&quot;ns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_point_source_likelihood_31_0.png" src="../_images/notebooks_point_source_likelihood_31_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">_</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">draw_profile</span><span class="p">(</span>
+    <span class="s2">&quot;index&quot;</span><span class="p">,</span>
+    <span class="n">bound</span><span class="o">=</span><span class="p">(</span>
+        <span class="n">likelihood</span><span class="o">.</span><span class="n">_energy_likelihood</span><span class="o">.</span><span class="n">_min_index</span><span class="p">,</span>
+        <span class="n">likelihood</span><span class="o">.</span><span class="n">_energy_likelihood</span><span class="o">.</span><span class="n">_max_index</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_point_source_likelihood_32_0.png" src="../_images/notebooks_point_source_likelihood_32_0.png" />
+</div>
+</div>
+<p>As a final step we show the likelihood values across a 2d grid.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">1.7</span><span class="p">,</span> <span class="mf">3.4</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+<span class="n">index_pl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">1.6</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+<span class="n">ns_pl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">5.5</span><span class="p">,</span> <span class="mf">15.5</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">ns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">ii</span><span class="p">,</span> <span class="n">nn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">ns</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
+<span class="n">ll</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">ii</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ii</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">flatten</span><span class="p">())):</span>
+    <span class="n">ll</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">likelihood</span><span class="o">.</span><span class="n">_func_to_minimize</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">pcol</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolor</span><span class="p">(</span><span class="n">index_pl</span><span class="p">,</span> <span class="n">ns_pl</span><span class="p">,</span> <span class="n">ll</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ii</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">pcol_ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">pcol</span><span class="p">)</span>
+<span class="n">pcol_ax</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;negative loglike&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;ns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Text(0, 0.5, &#39;ns&#39;)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_point_source_likelihood_34_1.png" src="../_images/notebooks_point_source_likelihood_34_1.png" />
+</div>
+</div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>

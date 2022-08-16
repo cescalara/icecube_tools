@@ -14,12 +14,13 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="icecube_tools.detector.reco_energy_sampler module" href="icecube_tools.detector.reco_energy_sampler.html" />
+    <link rel="next" title="icecube_tools.detector.r2021 module" href="icecube_tools.detector.r2021.html" />
     <link rel="prev" title="icecube_tools.detector.effective_area module" href="icecube_tools.detector.effective_area.html" /> 
 </head>
 
@@ -101,11 +102,11 @@
 }
 </style>
 <section id="module-icecube_tools.detector.energy_resolution">
-<span id="icecube-tools-detector-energy-resolution-module"></span><h1>icecube_tools.detector.energy_resolution module<a class="headerlink" href="#module-icecube_tools.detector.energy_resolution" title="Permalink to this headline"></a></h1>
+<span id="icecube-tools-detector-energy-resolution-module"></span><h1>icecube_tools.detector.energy_resolution module<a class="headerlink" href="#module-icecube_tools.detector.energy_resolution" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="icecube_tools.detector.energy_resolution.EnergyResolution">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.detector.energy_resolution.</span></span><span class="sig-name descname"><span class="pre">EnergyResolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditional</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.energy_resolution.EnergyResolution" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#icecube_tools.detector.energy_resolution.EnergyResolutionBase" title="icecube_tools.detector.energy_resolution.EnergyResolutionBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">icecube_tools.detector.energy_resolution.EnergyResolutionBase</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#icecube_tools.detector.energy_resolution.EnergyResolutionBase" title="icecube_tools.detector.energy_resolution.EnergyResolutionBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnergyResolutionBase</span></code></a></p>
 <p>Muon neutrino energy resolution using public data.
 Makes use of the 2015 effective area release and its
 corresponding reader class.</p>
@@ -140,7 +141,7 @@ available data.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="icecube_tools.detector.energy_resolution.EnergyResolutionBase">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.detector.energy_resolution.</span></span><span class="sig-name descname"><span class="pre">EnergyResolutionBase</span></span><a class="headerlink" href="#icecube_tools.detector.energy_resolution.EnergyResolutionBase" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
 <p>Abstract base class for energy resolution.
 Stores information on how the reconstructed
 energy in the detector relates to the true
@@ -178,7 +179,7 @@ y-axis &lt;=&gt; reco_energy</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="icecube_tools.detector.effective_area.html" class="btn btn-neutral float-left" title="icecube_tools.detector.effective_area module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="icecube_tools.detector.reco_energy_sampler.html" class="btn btn-neutral float-right" title="icecube_tools.detector.reco_energy_sampler module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="icecube_tools.detector.r2021.html" class="btn btn-neutral float-right" title="icecube_tools.detector.r2021 module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
