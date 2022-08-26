@@ -36,6 +36,7 @@ class PointSourceLikelihood:
         energies,
         source_coord,
         ang_errs=[],
+        which='both',
         bg_energy_likelihood=None,
         index_prior=None,
         band_width_factor=3.0,
@@ -52,6 +53,11 @@ class PointSourceLikelihood:
         :param source_coord: (ra, dec) pf the point to test.
         :param index_prior: Optional prior on the spectral index, instance of Prior.
         """
+
+        if which not in ["both", "energy", "spatial"]:
+            raise ValueError("No other type of likelihood available.")
+        else:
+            self.which = which
 
         self._direction_likelihood = direction_likelihood
 
@@ -161,52 +167,188 @@ class PointSourceLikelihood:
         self.N = len(selected_dec_band)
 
     def _signal_likelihood(self, ra, dec, source_coord, energy, index, ang_err=1):
+        """
+        Calculate the signal likelihood of a given event.
+        :param ra: RA of event
+        :param dec: DEC of event
+        :param source_coord: Tuple of source coordinate (ra, dec)
+        :param energy: Energy of event in GeV
+        :param index: Spectral index of source model
+        :param ang_err: Angular error on the event, defaults to 1 degree.
+        """
 
         if isinstance(
             self._direction_likelihood, EnergyDependentSpatialGaussianLikelihood
         ):
-
-            likelihood = self._direction_likelihood(
+            ll_sp = self._direction_likelihood(
                 (ra, dec), source_coord, energy, index
-            ) * self._energy_likelihood(energy, index)
+            ) 
+            ll_en = self._energy_likelihood(energy, index)
 
         elif isinstance(
             self._direction_likelihood, EventDependentSpatialGaussianLikelihood
         ):
-            likelihood = self._direction_likelihood(
+            ll_sp = self._direction_likelihood(
                  ang_err, (ra, dec), source_coord
-            ) * self._energy_likelihood(energy, index)
+            )
+            ll_en = self._energy_likelihood(energy, index)
 
         else:
 
-            likelihood = self._direction_likelihood(
+            ll_sp = self._direction_likelihood(
                 (ra, dec), source_coord
-            ) * self._energy_likelihood(energy, index)
-        return likelihood
+            )
+            ll_en = self._energy_likelihood(energy, index)
+        
+        if self.which == 'spatial':
+            output = ll_sp
+        elif self.which == 'energy':
+            output = ll_en
+        else:
+            output = ll_en * ll_sp
+
+        return output
 
 
     def _background_likelihood(self, energy):
+        """
+        Calculate the background likelihood for an event of given energy.
+        :param energy: Energy of event in GeV
+        """
 
         if self._bg_energy_likelihood:
-
-            output = self._bg_energy_likelihood(energy)  / self._band_solid_angle
-
-            if output == 0.0:
-
-                output = 1e-10
-
-            return output
-
+            ll_en = self._bg_energy_likelihood(energy) 
+            ll_sp = 1. / self._band_solid_angle
         else:
+            ll_en = self._energy_likelihood(energy, self._bg_index) 
+            ll_sp = 1. / self._band_solid_angle
 
-            output = self._energy_likelihood(energy, self._bg_index) / self._band_solid_angle
+        #Check which part is used for likelihood calculation
+        if self.which == 'spatial':
+            output = ll_sp
+        elif self.which == 'energy':
+            output = ll_en
+        else:
+            output = ll_en * ll_sp
 
-            if output == 0.0:
+        if output == 0.0:
+            output = 1e-10
 
-                output = 1e-10
+        return output
 
-            return output
-    
+
+    def _func_to_minimize(self, ns, index):
+        """
+        Calculate the -log(likelihood_ratio) for minimization.
+
+        Uses calculation described in:
+        https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf
+
+        If there is a prior, it is added here, as this is equivalent to maximising
+        the likelihood.
+
+        :param ns: Number of source counts.
+        :param index: Spectral index of the source.
+        """
+
+        one_plus_alpha = 1e-10
+        alpha = one_plus_alpha - 1
+
+        idx = np.digitize(index, self._energy_likelihood.index_list)
+        llhs = np.zeros(2)
+        for c, indx in enumerate(self._energy_likelihood.index_list[idx-1:idx+1]):
+            log_likelihood_ratio = 0.0
+            for i in range(self.Nprime):
+                signal = self._signal_likelihood(
+                    self._selected_ras[i],
+                    self._selected_decs[i],
+                    self._source_coord,
+                    self._selected_energies[i],
+                    indx,
+                    ang_err=self._selected_ang_errs[i]
+                )
+
+                bg = self._background_likelihood(self._selected_energies[i])
+
+                chi = (1 / self.N) * (signal / bg - 1)
+
+                alpha_i = ns * chi
+
+                if (1 + alpha_i) < one_plus_alpha:
+
+                    alpha_tilde = (alpha_i - alpha) / one_plus_alpha
+                    log_likelihood_ratio += (
+                        np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde ** 2)
+                    )
+
+                else:
+
+                    log_likelihood_ratio += np.log1p(alpha_i)
+
+            log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
+
+
+
+            llhs[c] = log_likelihood_ratio
+
+        log_likelihood_ratio = np.interp(index, self._energy_likelihood.index_list[idx-1:idx+1], llhs)
+
+        if self._index_prior:
+
+            log_likelihood_ratio += np.log(self._index_prior(index))
+        
+        return -log_likelihood_ratio
+
+
+    def _func_to_minimize_sp(self, ns, index=2.0):
+        """
+        Calculate the -log(likelihood_ratio) for minimization using energy only.
+
+        Uses calculation described in:
+        https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf
+
+        If there is a prior, it is added here, as this is equivalent to maximising
+        the likelihood.
+
+        :param ns: Number of source counts.
+        :param index: Dummy argument
+        """
+
+        one_plus_alpha = 1e-10
+        alpha = one_plus_alpha - 1
+
+        log_likelihood_ratio = 0.0
+        for i in range(self.Nprime):
+            signal = self._signal_likelihood(
+                self._selected_ras[i],
+                self._selected_decs[i],
+                self._source_coord,
+                self._selected_energies[i],
+                2.0,
+                ang_err=self._selected_ang_errs[i]
+            )
+
+            bg = self._background_likelihood(self._selected_energies[i])
+
+            chi = (1 / self.N) * (signal / bg - 1)
+
+            alpha_i = ns * chi
+
+            if (1 + alpha_i) < one_plus_alpha:
+
+                alpha_tilde = (alpha_i - alpha) / one_plus_alpha
+                log_likelihood_ratio += (
+                    np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde ** 2)
+                )
+
+            else:
+
+                log_likelihood_ratio += np.log1p(alpha_i)
+
+        log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
+
+        return -log_likelihood_ratio
+
 
     def _func_to_minimize(self, ns, index):
         """
@@ -289,8 +431,14 @@ class PointSourceLikelihood:
         init_index = 2.19  # self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2
         init_ns = self._ns_min + (self._ns_max - self._ns_min) / 2
 
+        if self.which == 'spatial':
+            #Only spatial-only likelihood needs special function, because no spectral index is used
+            func_to_minimize = self._func_to_minimize_sp
+        else:
+            func_to_minimize = self._func_to_minimize
+
         m = Minuit(
-            self._func_to_minimize,
+            func_to_minimize,
             ns=init_ns,
             index=init_index,
             error_ns=1,
@@ -299,7 +447,10 @@ class PointSourceLikelihood:
             limit_ns=(self._ns_min, self._ns_max),
             limit_index=(self._energy_likelihood._min_index, self._energy_likelihood._max_index),
         )
-        # m.fixed["index"] = True
+
+        if self.which == 'spatial':
+            m.fixed["index"] = True
+            m.values["index"] = 2.
         m.migrad()
 
         if not m.migrad_ok() or not m.matrix_accurate():
