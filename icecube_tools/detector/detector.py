@@ -1,8 +1,13 @@
 from abc import ABC
+from ast import Pass
+from typing import Dict
 
 from .effective_area import EffectiveArea
 from .energy_resolution import EnergyResolution
 from .angular_resolution import AngularResolution
+from .r2021 import R2021IRF
+
+
 
 """
 Detector modules, bringing together 
@@ -14,6 +19,11 @@ class Detector(ABC):
     """
     Abstract base class for a neutrino detector.
     """
+
+    @property
+    def period(self):
+
+        return self._period
 
     @property
     def effective_area(self):
@@ -65,7 +75,7 @@ class IceCube(Detector):
     IceCube detector.
     """
 
-    def __init__(self, effective_area, energy_resolution, angular_resolution):
+    def __init__(self, effective_area, energy_resolution, angular_resolution, period):
         """
         IceCube detector.
 
@@ -80,4 +90,46 @@ class IceCube(Detector):
 
         self._angular_resolution = angular_resolution
 
+        self._period = period
+
         super().__init__()
+
+
+class TimeDependentDetector(ABC):
+
+    @property
+    def available_periods(self):
+        return self._available_periods
+
+    @property
+    def detectors(self):
+        return self._detectors
+    
+    @property
+    def periods(self):
+        return list(self._detectors.keys())
+
+
+class TimeDependentIceCube(TimeDependentDetector):
+
+    def __init__(self, detectors):
+        self._detectors = detectors
+
+
+    _available_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
+
+    @classmethod
+    def from_periods(cls, *periods):
+        #should add a detector for each period provided as string
+        if not all(_ in cls._available_periods for _ in periods):
+            raise ValueError(f"Some period not supported.")
+
+        #Empty dict to store detectors for all periods, key is period
+        detectors = {}
+        for p in periods:
+            print(p)
+            aeff = EffectiveArea.from_dataset("20210126", p, fetch=False)
+            irf = R2021IRF.from_period(p, fetch=False)
+            detectors[p] = IceCube(aeff, irf, irf, p)
+        return cls(detectors)
+

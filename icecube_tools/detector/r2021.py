@@ -12,6 +12,8 @@ from icecube_tools.detector.angular_resolution import AngularResolution
 from icecube_tools.utils.data import find_files, data_directory, IceCubeData, ddict
 from icecube_tools.utils.vMF import get_kappa, get_theta_p
 
+R2021_IRF_FILENAME = "smearing.csv"
+
 
 class R2021IRF(EnergyResolution, AngularResolution):
     """
@@ -21,19 +23,43 @@ class R2021IRF(EnergyResolution, AngularResolution):
     3) misreconstruction of tracks, what the readme calls "AngErr"
     """
     
-    def __init__(self, fetch=True, **kwargs):
+    def __init__(self, filename, **kwargs):
         """
         Special class to handle smearing effects given in the 2021 data release.
         """
 
-        self.read(fetch)
+        #self.read(fetch)
+        self._filename = filename
         self.ret_ang_err_p = kwargs.get("ret_ang_err_p", 0.68)
+        self.prob_contained = 0.68
         self.year = 2012    # subject to change
         self.nu_type = "nu_mu"
 
         self.uniform = uniform(0, 2*np.pi)
 
 
+        self.output = np.loadtxt(self._filename, comments="#")
+        self.dataset = self.output
+        true_energy_lower = np.array(list(set(self.output[:, 0])))
+        true_energy_upper = np.array(list(set(self.output[:, 1])))
+
+        #convert PSF and AngErr values to log(angle/degree)
+        self.dataset[:, 6:-1] = np.log10(self.dataset[:, 6:-1])
+
+        self.true_energy_bins = np.union1d(true_energy_lower, true_energy_upper)
+        self.true_energy_bins.sort()
+
+        dec_lower = np.array(list(set(self.output[:, 2])))
+        dec_higher = np.array(list(set(self.output[:, 3])))
+
+        self.declination_bins = np.radians(np.union1d(dec_lower, dec_higher))
+        self.declination_bins.sort()
+
+        self.ang_res_values = 1    # placeholder, isn't used anyway
+
+        self.true_energy_values = (
+            self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins) / 2
+        )
 
         logging.debug('Creating Ereco distributions')
         #Reco energy is handled without ddict() because it's not that much calculation
@@ -250,49 +276,27 @@ class R2021IRF(EnergyResolution, AngularResolution):
         logging.info(f"reco_ang_error shape: {reco_ang_err.shape}")
         return new_ras, new_decs, reco_ang_err, np.power(10, Ereco)
 
-
-    def read(self, fetch):
+    @classmethod
+    def from_period(cls, period, **kwargs):
         """
         Reads in IRFs of data set.
         For consistency and reducing the error-prone...iness, kinematic angles ("PSF") and angular errors are converted to log(degrees).
         :param fetch: True if data should be downloaded
         """
 
-        self.prob_contained = 0.68
+        
 
-        self.year = 2012    # subject to change
-        self.nu_type = "nu_mu"
-
-        if fetch:
+        if kwargs.get("fetch", True):
             data_interface = IceCubeData()
             dataset = data_interface.find("20210126")
             data_interface.fetch(dataset)
             dataset_dir = data_interface.get_path_to(dataset[0])
 
-        filename = find_files(data_directory, "IC86_II_smearing.csv")[0]
-        self._filename = filename
-        self.output = np.loadtxt(self._filename, comments="#")
-        self.dataset = self.output
-        true_energy_lower = np.array(list(set(self.output[:, 0])))
-        true_energy_upper = np.array(list(set(self.output[:, 1])))
+        files = find_files(data_directory, R2021_IRF_FILENAME)
+        for f in files:
+                if "_".join((period, R2021_IRF_FILENAME)) in f:
+                    return cls(f, **kwargs)
 
-        #convert PSF and AngErr values to log(angle/degree)
-        self.dataset[:, 6:-1] = np.log10(self.dataset[:, 6:-1])
-
-        self.true_energy_bins = np.union1d(true_energy_lower, true_energy_upper)
-        self.true_energy_bins.sort()
-
-        dec_lower = np.array(list(set(self.output[:, 2])))
-        dec_higher = np.array(list(set(self.output[:, 3])))
-
-        self.declination_bins = np.radians(np.union1d(dec_lower, dec_higher))
-        self.declination_bins.sort()
-
-        self.ang_res_values = 1    # placeholder, isn't used anyway
-
-        self.true_energy_values = (
-            self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins) / 2
-        )
 
 
     def _get_angerr_dist(self, c_e, c_d, c_e_r, c_psf):
