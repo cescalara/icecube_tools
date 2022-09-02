@@ -120,14 +120,22 @@ class TimeDependentIceCube(TimeDependentDetector):
 
     @classmethod
     def from_periods(cls, *periods):
-        #should add a detector for each period provided as string
+        """
+        Creates class instance with a detector model for each given
+        data taking period.
+        :param periods: Tuple of strings, available ones listed above.
+        :return: 
+        """
+        
+        # Check if all periods are supported
         if not all(_ in cls._available_periods for _ in periods):
-            raise ValueError(f"Some period not supported.")
+            raise ValueError("Some period not supported.")
 
-        #Empty dict to store detectors for all periods, key is period
+        # Empty dict to store detectors for all periods, key is period
         detectors = {}
+
+        # Create detector instance for each period, return class instance
         for p in periods:
-            print(p)
             aeff = EffectiveArea.from_dataset("20210126", p, fetch=False)
             irf = R2021IRF.from_period(p, fetch=False)
             detectors[p] = IceCube(aeff, irf, irf, p)

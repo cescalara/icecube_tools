@@ -4,16 +4,18 @@ from astropy import units as u
 import h5py
 from scipy.stats import uniform
 import logging
+from typing import List, Dict
 
 # from memory_profiler import profile
 from tqdm import tqdm as progress_bar
 
-from .detector.detector import Detector
+from .detector.detector import Detector, TimeDependentIceCube
 from .source.source_model import Source, DIFFUSE, POINT
 from .source.flux_model import PowerLawFlux, BrokenPowerLawFlux
 from .neutrino_calculator import NeutrinoCalculator
 from .detector.angular_resolution import FixedAngularResolution, AngularResolution
 from .detector.r2021 import R2021IRF
+from .utils.data import Uptime
 
 """
 Module for running neutrino production 
@@ -227,6 +229,7 @@ class Simulator:
         :param N: Set expected number of neutrinos manually.
         :param seed: Set random seed.
         """
+        print("simulating")
 
         if show_progress:
             logging.basicConfig(level=logging.INFO)
@@ -608,6 +611,83 @@ class Braun2008Simulator:
                 "normalisation_energy",
                 data=self.source.flux_model._normalisation_energy,
             )
+
+class TimeDependentSimulation():
+
+    _available_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
+
+    _time_limits = {}
+
+    # need to find time limits of data taking periods
+    # s.t. starting point (in years, days, whatever)
+    # can be defined, endpoint as well
+    # class instance then calculates the according times
+    # for each period
+
+    def __init__(self, periods, sources, **kwargs):
+        self.uptimes = {}
+        self.simulators = {}
+        if not all(_ in self._available_periods for _ in periods):
+            raise ValueError("Some periods not supported.")
+
+        time_dependent_detector = TimeDependentIceCube.from_periods(*periods)
+        for p in periods:
+            self.simulators[p] = Simulator(sources, time_dependent_detector._detectors[p])
+            self.uptimes[p] = Uptime(p)
+
+
+    def run(self, N: List=None, seed=1234, show_progress=False):
+        for p, sim in self.simulators.items():
+            print(f"{p} currently running")
+            sim.run(N=None, seed=1234, show_progress=False)
+
+
+    def save(self, file_prefix):
+        for p, sim in self.simulators.items():
+            sim.save(f"{file_prefix}_{p}.h5")
+
+
+    def _get_expected_number(self):
+        #loop over all periods and call _get_expected_number() with properly chosen time
+        # TODO add way of extracting these numbers
+        for sim in self.simulators.values():
+            sim._get_expected_number()
+
+
+    def _yield_time(self):
+        for p, sim in self.simulators.items():
+            yield sim.time
+
+
+    @property
+    def time(self):
+        return [t for t in self._yield_time()]
+
+
+    @time.setter
+    def time(self, times: Dict):
+        for p, t in times.items():
+            t_max = self.uptimes[p].integrated_time.value
+            if t > t_max:
+                print(f"Time {t} is too large for past campaign, setting value to {t_max}")
+                #TODO change to logging
+                #TODO change to sensible limits for observations in the future, i.e. extend IC86_II
+                self.simulators[p].time = t_max
+            else:
+                self.simulators[p].time = t
+            
+
+    @property
+    def sources(self):
+        return self._sources
+    
+
+    @sources.setter
+    def sources(self, source_list):
+        self._sources = source_list
+        for sim in self.simulators.values():
+            sim._sources = source_list
+
 
 
 def sphere_sample(radius=1, v_lim=0, N=1):
