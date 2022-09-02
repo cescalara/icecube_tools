@@ -7,9 +7,12 @@ import tarfile
 from zipfile import ZipFile
 from bs4 import BeautifulSoup
 from tqdm import tqdm
+from astropy import units as u
 
 icecube_data_base_url = "https://icecube.wisc.edu/data-releases"
 data_directory = os.path.abspath(os.path.join(os.path.expanduser("~"), ".icecube_data"))
+
+available_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
 
 
 class IceCubeData:
@@ -248,6 +251,54 @@ class ddict(dict):
             temp = temp[key]
         return temp
 
+
+
+class Uptime():
+    """
+    Class to handle calculations of detector live time.
+    """
+
+    def __init__(self, period):
+        """
+        Reads in uptime information provided in 10 year data release.
+        :param period: Str of data taking period.
+        """
+
+        if period not in available_periods:
+            raise ValueError("Period not found.")
+
+        self.data = np.loadtxt(os.path.join(
+            data_directory,
+            "20210126_PS-IC40-IC86_VII", 
+            "icecube_10year_ps",
+            "uptime",
+            f"{period}_exp.csv")
+        )
+
+
+    @property
+    def time_span(self):
+        """
+        :return: total time between start and end of data period.
+        """
+
+        time = self.data[-1, -1] - self.data[0, 0]
+        time = time * u.d
+        return time.to("year")
+
+
+    @property
+    def integrated_time(self):
+        """
+        :return: uptime of data period.
+        """
+
+        intervals = self.data[:, 1] - self.data[:, 0]
+        time = np.sum(intervals) * u.d
+        time = time.to("year")
+        return time
+
+    
 
 def crawl_delay():
     """
