@@ -612,7 +612,7 @@ class Braun2008Simulator:
                 data=self.source.flux_model._normalisation_energy,
             )
 
-class TimeDependentSimulation():
+class TimeDependentSimulator():
 
     _available_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
 

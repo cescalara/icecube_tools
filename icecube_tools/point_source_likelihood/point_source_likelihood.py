@@ -64,9 +64,10 @@ class PointSourceLikelihood:
         self._energy_likelihood = energy_likelihood
 
         if bg_energy_likelihood is not None:
-            self._bg_energy_likelihood = bg_enery_likelihood
-        elif 3.7 in energy_likelihood.index_list:
-            self._bg_energy_likelihood = energy_likelihood.likelihood['3.7']
+            self._bg_energy_likelihood = bg_energy_likelihood
+        elif 3.50 in energy_likelihood.index_list:
+            self._bg_energy_likelihood = energy_likelihood.likelihood['3.5']
+        
         
 
         if isinstance(
@@ -350,75 +351,13 @@ class PointSourceLikelihood:
         return -log_likelihood_ratio
 
 
-    def _func_to_minimize(self, ns, index):
-        """
-        Calculate the -log(likelihood_ratio) for minimization.
-
-        Uses calculation described in:
-        https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf
-
-        If there is a prior, it is added here, as this is equivalent to maximising
-        the likelihood.
-
-        :param ns: Number of source counts.
-        :param index: Spectral index of the source.
-        """
-
-        one_plus_alpha = 1e-10
-        alpha = one_plus_alpha - 1
-
-        idx = np.digitize(index, self._energy_likelihood.index_list)
-        llhs = np.zeros(2)
-        for c, indx in enumerate(self._energy_likelihood.index_list[idx-1:idx+1]):
-            log_likelihood_ratio = 0.0
-            for i in range(self.Nprime):
-                signal = self._signal_likelihood(
-                    self._selected_ras[i],
-                    self._selected_decs[i],
-                    self._source_coord,
-                    self._selected_energies[i],
-                    indx,
-                    ang_err=self._selected_ang_errs[i]
-                )
-
-                bg = self._background_likelihood(self._selected_energies[i])
-
-                chi = (1 / self.N) * (signal / bg - 1)
-
-                alpha_i = ns * chi
-
-                if (1 + alpha_i) < one_plus_alpha:
-
-                    alpha_tilde = (alpha_i - alpha) / one_plus_alpha
-                    log_likelihood_ratio += (
-                        np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde ** 2)
-                    )
-
-                else:
-
-                    log_likelihood_ratio += np.log1p(alpha_i)
-
-            log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
-
-
-
-            llhs[c] = log_likelihood_ratio
-
-        log_likelihood_ratio = np.interp(index, self._energy_likelihood.index_list[idx-1:idx+1], llhs)
-
-        if self._index_prior:
-
-            log_likelihood_ratio += np.log(self._index_prior(index))
-        
-        return -log_likelihood_ratio
-
-
     def __call__(self, ns, index):
         """
         Wrapper function for convenience.
         """
 
         return self._func_to_minimize(ns, index)
+
 
     def _minimize(self):
         """
@@ -496,6 +435,7 @@ class PointSourceLikelihood:
             self._best_fit_index = index_grid[sel[1]][0]
         self.grid = out
 
+
     def _first_derivative_likelihood_ratio(self, ns=0, index=2.0):
         """
         First derivative of the likelihood ratio.
@@ -541,6 +481,7 @@ class PointSourceLikelihood:
 
         return sum(self._first_derivative) - ((self.N - self.Nprime) / (self.N - ns))
 
+
     def _second_derivative_likelihood_ratio(self, ns=0):
         """
         Second derivative of the likelihood ratio.
@@ -553,6 +494,7 @@ class PointSourceLikelihood:
         return sum(self._second_derivative) - (
             (self.N - self.Nprime) / (self.N - ns) ** 2
         )
+
 
     def get_test_statistic(self):
         """
@@ -760,6 +702,83 @@ class SpatialOnlyPointSourceLikelihood:
         self.test_statistic = -2 * neg_log_lik
 
         return self.test_statistic
+
+
+class TimeDependentPointSourceLikelihood:
+    def __init__(self, source_coords, periods, event_files, index_list, path):
+        """
+        Create likelihood covering multiple data taking periods.
+        :param source_coords: Tuple of ra, dec.
+        :param periods: List of str of period names, eg. `IC40`
+        :param event_files: List of event files corresponding the the above periods.
+        :param index_list: List of indices covered by the events used to build the energy likelihood.
+        :param path: Path to directory where the simulated events (see above) are located.
+        """
+        print("init time dependent llh")
+        #files should be dict of files, with period string as the key
+        self.source_coords = source_coords
+        self.event_files = event_files
+        self.periods = periods
+        self.index_list = index_list
+        print("assering")
+        assert len(event_files) == len(periods)
+        #TODO change this to named tuples?
+        self.likelihoods = {}
+        # Can use one spatial llh for all periods, 'tis but a Gaussian
+        spatial_llh = EventDependentSpatialGaussianLikelihood()
+
+        for p, data in zip(self.periods, self.event_files):
+            print(p)
+            # Open event files
+            with h5py.File(data, "r") as f:
+                reco_energy = f["reco_energy"][()]
+                ra = f["ra"][()]
+                dec = f["dec"][()]
+                ang_err = f["ang_err"][()]
+            
+            energy_llh = MarginalisedEnergyLikelihood2021(
+                index_list, path, f"{p}_global_sim", self.source_coords[1]
+            )
+
+            #create likelihood objects
+            self.likelihoods[p] = PointSourceLikelihood(
+                spatial_llh, energy_llh, ra, dec, reco_energy,
+                self.source_coords, ang_err
+            )
+
+
+    def __call__(self, ns, index):
+        """
+        Calculate negative log-like ratio as function of ns and index.
+        ns is now vector with an entry for each period.
+        :param ns: List of numbers of source events.
+        :param index: Spectral index of source spectrum.
+        """
+        neg_log_like = 0
+        for (n, llh) in zip(ns, self.likelihoods.values()):
+            neg_log_like += llh(n, index)
+        return neg_log_like
+
+    #Need these 2? idk
+    def _background_likelihood(self):
+        pass
+
+
+    def _signal_likelihood(self):
+        pass
+
+
+    def _func_to_minimize(self, ns, index):
+        """
+        According to https://github.com/icecube/skyllh/blob/master/doc/user_manual.pdf,
+        Eq. (59), the returned values of each period's llh._func_to_minimize() can be added.
+        """
+        pass
+
+
+    def _minimize(self):
+        pass
+
 
 
 class EnergyDependentSpatialPointSourceLikelihood:
