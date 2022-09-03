@@ -1,5 +1,6 @@
 import numpy as np
 from iminuit import Minuit
+from functools import singledispatch
 
 from .energy_likelihood import *
 from .spatial_likelihood import *
@@ -716,6 +717,7 @@ class TimeDependentPointSourceLikelihood:
         """
         print("init time dependent llh")
         #files should be dict of files, with period string as the key
+        self.which = 'both'
         self.source_coords = source_coords
         self.event_files = event_files
         self.periods = periods
@@ -754,31 +756,68 @@ class TimeDependentPointSourceLikelihood:
         :param ns: List of numbers of source events.
         :param index: Spectral index of source spectrum.
         """
-        neg_log_like = 0
-        for (n, llh) in zip(ns, self.likelihoods.values()):
-            neg_log_like += llh(n, index)
-        return neg_log_like
-
-    #Need these 2? idk
-    def _background_likelihood(self):
-        pass
+        return self._func_to_minimize(np.hstack((ns, index)))
 
 
-    def _signal_likelihood(self):
-        pass
-
-
-    def _func_to_minimize(self, ns, index):
+    def _func_to_minimize(self, arg):
         """
         According to https://github.com/icecube/skyllh/blob/master/doc/user_manual.pdf,
         Eq. (59), the returned values of each period's llh._func_to_minimize() can be added.
+        :param arg: numpy.ndarray, last entry is index, all before are number of source events.
         """
-        pass
+        neg_log_like = 0
+        for (n, llh) in zip(arg[:-1], self.likelihoods.values()):
+            neg_log_like += llh(n, arg[-1])
+        return neg_log_like
 
 
     def _minimize(self):
-        pass
+        """
+        Minimize -log(likelihood_ratio) for the source hypothesis,
+        returning the best fit ns and index.
 
+        Uses the iMiuint wrapper.
+        """
+
+        init_index = 2.19  # self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2
+        init_ns = self._ns_min + (self._ns_max - self._ns_min) / 2
+
+        if self.which == 'spatial':
+            #Only spatial-only likelihood needs special function, because no spectral index is used
+            func_to_minimize = self._func_to_minimize_sp
+        else:
+            func_to_minimize = self.__call__
+
+        """
+        #limit_ns now 2d array
+        #limit_index from arbitrary instance of energy likelihood
+        init_ns = np.array([])
+        init_index = np.array([2.19])
+        error_arg = np.vstack((np.full(len(self.periods), 1), 0.1))
+        m = Minuit(
+            func_to_minimize,
+            arg=init_arg,
+            error_arg=error_arg
+            errordef=0.5,
+            limit_arg=(self._ns_min, self._ns_max),
+            #limit_index=(self._energy_likelihood._min_index, self._energy_likelihood._max_index),
+        )
+
+        if self.which == 'spatial':
+            m.fixed["index"] = True
+            m.values["index"] = 2.
+        m.migrad()
+
+        if not m.migrad_ok() or not m.matrix_accurate():
+
+            # Fix the index as can be uninformative
+            m.fixed["index"] = True
+            m.migrad()
+
+        self._best_fit_ns = m.values["ns"]
+        self._best_fit_index = m.values["index"]
+        return m
+        """
 
 
 class EnergyDependentSpatialPointSourceLikelihood:
