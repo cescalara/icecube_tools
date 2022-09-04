@@ -293,16 +293,16 @@ class PointSourceLikelihood:
             self._func_to_minimize,
             ns=init_ns,
             index=init_index,
-            error_ns=1,
-            error_index=0.1,
-            errordef=0.5,
-            limit_ns=(self._ns_min, self._ns_max),
-            limit_index=(self._energy_likelihood._min_index, self._energy_likelihood._max_index),
         )
         # m.fixed["index"] = True
+        m.limits["ns"] = (self._ns_min, self._ns_max)
+        m.errors["index"] = 0.1
+        m.errors["ns"] = 1
+        m.limits["index"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
+        m.errordef = 0.5
         m.migrad()
 
-        if not m.migrad_ok() or not m.matrix_accurate():
+        if not m.valid or not m.fmin.has_accurate_covar or not m.fmin.has_covariance:
 
             # Fix the index as can be uninformative
             m.fixed["index"] = True
@@ -442,6 +442,10 @@ class SpatialOnlyPointSourceLikelihood:
 
     This class is exactly as in PointSourceLikelihood,
     but without the energy depedence.
+
+    Should be removed at some point, this case is already
+    included in the main class with the keyword "which",
+    defaulting to "both".
     """
 
     def __init__(self, direction_likelihood, event_coords, source_coord):
@@ -583,17 +587,20 @@ class SpatialOnlyPointSourceLikelihood:
         """
 
         init_ns = self._ns_min + (self._ns_max - self._ns_min) / 2
-
+        
         m = Minuit(
-            self._get_neg_log_likelihood_ratio,
+            self._func_to_minimize,
             ns=init_ns,
-            error_ns=0.1,
-            errordef=0.5,
-            limit_ns=(self._ns_min, self._ns_max),
         )
+        m.limits["ns"] = (self._ns_min, self._ns_max)
+        m.errors["ns"] = 1
+        m.errordef = 0.5
         m.migrad()
 
         self._best_fit_ns = m.values["ns"]
+
+        return m
+
 
     def get_test_statistic(self):
         """
@@ -778,17 +785,21 @@ class EnergyDependentSpatialPointSourceLikelihood:
         """
 
         init_ns = self._ns_min + (self._ns_max - self._ns_min) / 2
-
+        
         m = Minuit(
-            self._get_neg_log_likelihood_ratio,
+            self._func_to_minimize,
             ns=init_ns,
-            error_ns=0.1,
-            errordef=0.5,
-            limit_ns=(self._ns_min, self._ns_max),
+            index=init_index,
         )
+        m.limits["ns"] = (self._ns_min, self._ns_max)
+        m.errors["ns"] = 1
+        m.errordef = 0.5
         m.migrad()
 
         self._best_fit_ns = m.values["ns"]
+
+        return m
+
 
     def _minimize_grid(self):
         """
