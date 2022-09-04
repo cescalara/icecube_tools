@@ -625,15 +625,15 @@ class TimeDependentSimulator():
     # for each period
 
     def __init__(self, periods, sources, **kwargs):
-        self.uptimes = {}
         self.simulators = {}
         if not all(_ in self._available_periods for _ in periods):
             raise ValueError("Some periods not supported.")
 
         time_dependent_detector = TimeDependentIceCube.from_periods(*periods)
-        for p in periods:
-            self.simulators[p] = Simulator(sources, time_dependent_detector._detectors[p])
-            self.uptimes[p] = Uptime(p)
+        self.simulators = {
+            p: sim for p, sim in time_dependent_detector.yield_detectors()
+        }
+        self.sources = sources
 
 
     def run(self, N: List=None, seed=1234, show_progress=False):
@@ -661,11 +661,15 @@ class TimeDependentSimulator():
 
     @property
     def time(self):
-        return [t for t in self._yield_time()]
+        return [sim.time for sim in self.simulators.values()]
 
 
     @time.setter
     def time(self, times: Dict):
+        """
+        :param times: Dict returned by Uptime.find_time_obs()
+        """
+        #TODO rewrite method
         for p, t in times.items():
             t_max = self.uptimes[p].integrated_time.value
             if t > t_max:

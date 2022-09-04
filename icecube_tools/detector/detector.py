@@ -141,3 +141,7 @@ class TimeDependentIceCube(TimeDependentDetector):
             detectors[p] = IceCube(aeff, irf, irf, p)
         return cls(detectors)
 
+    
+    def yield_detectors(self):
+        for p, det in self.detectors.items():
+            yield p, det

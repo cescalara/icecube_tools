@@ -779,7 +779,7 @@ class TimeDependentPointSourceLikelihood:
         Minimize -log(likelihood_ratio) for the source hypothesis,
         returning the best fit ns and index.
 
-        Uses the iMiuint wrapper.
+        Uses the iMinuint wrapper.
         """
 
         init_index = 2.19  # self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2

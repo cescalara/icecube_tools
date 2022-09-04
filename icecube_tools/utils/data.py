@@ -1,3 +1,4 @@
+from re import A
 import numpy as np
 import os
 import requests
@@ -258,47 +259,138 @@ class Uptime():
     Class to handle calculations of detector live time.
     """
 
-    def __init__(self, period):
+    def __init__(self):
+        self.data = {}
+        #Store start and end times of each period separately
         """
-        Reads in uptime information provided in 10 year data release.
-        :param period: Str of data taking period.
+        self.times = ddict()
+        for c, p in enumerate(available_periods):
+            self.data[p] = np.loadtxt(os.path.join(
+                data_directory,
+                "20210126_PS-IC40-IC86_VII", 
+                "icecube_10year_ps",
+                "uptime",
+                f"{p}_exp.csv")
+            )
+            self.times.add(self.data[p][0, 0], p, "start")
+            self.times.add(self.data[p][-1, -1], p, "end")
         """
+        self.times= np.zeros((len(available_periods), 2))
+        for c, p in enumerate(available_periods):
+            self.data[p] = np.loadtxt(os.path.join(
+                data_directory,
+                "20210126_PS-IC40-IC86_VII", 
+                "icecube_10year_ps",
+                "uptime",
+                f"{p}_exp.csv")
+            )
+            self.times[c, 0] = self.data[p][0, 0]
+            self.times[c, 1] = self.data[p][-1, -1]
 
-        if period not in available_periods:
-            raise ValueError("Period not found.")
+            
 
-        self.data = np.loadtxt(os.path.join(
-            data_directory,
-            "20210126_PS-IC40-IC86_VII", 
-            "icecube_10year_ps",
-            "uptime",
-            f"{period}_exp.csv")
-        )
-
-
-    @property
-    def time_span(self):
+    def time_span(self, period):
         """
+        :param period: String of data period.
         :return: total time between start and end of data period.
         """
 
-        time = self.data[-1, -1] - self.data[0, 0]
+        time = self.data[period][-1, -1] - self.data[period][0, 0]
         time = time * u.d
         return time.to("year")
 
 
-    @property
-    def integrated_time(self):
+    def time_obs(self, period):
         """
-        :return: uptime of data period.
+        :param period: String of data period.
+        :return: Return total observation time of data period.
         """
 
-        intervals = self.data[:, 1] - self.data[:, 0]
+        intervals = self.data[period][:, 1] - self.data[period][:, 0]
         time = np.sum(intervals) * u.d
         time = time.to("year")
         return time
 
-    
+
+    def find_obs_time(self, **kwargs):
+        """
+        Calculate the amounts of time in each period covered for either:
+         - given start and end time (should be MJD)
+         - duration and end date
+         - duration and start date
+        Duration should be in float in years.
+        """
+
+        start = kwargs.get("start", False)
+        end = kwargs.get("end", False)
+        duration = kwargs.get("duration", False)
+
+        if start and end and not duration:
+            duration = (end - start) * u.day
+            duration = duration.to("year")
+        elif start and duration and not end:
+            duration = duration * u.year
+            duration = duration.to("day")
+            end = start + duration.value
+            duration = duration.to("year")
+        elif end and duration and not start:
+            duration = duration * u.year
+            duration = duration.to("day")
+            start = end - duration.value
+            duration = duration.to("year")
+        else:
+            raise ValueError("Not a supported combination of arguments.")
+
+        if start < self.times[0, 0]:
+            print("Start time outside of running experiment, setting to earliest possible time.")
+            start = self.times[0, 0]
+
+        p_start = np.searchsorted(self.times[:, 0], start)
+        p_end = np.searchsorted(self.times[:, 1], end)
+
+        # repeat searchsorted procedure for the periods containing start/end:
+        # add up all the detector uptime in those to get the resulting obs time
+        # or... just go for 'reasonable approximation':
+        # weigh the uptime in one period with the amount of time covered in that period
+        # assumes downtime is distributed uniformly
+        # since time_obs/time_span \approx 1, doesn't really matter anyway
+
+        obs_times = {}
+        if p_start == p_end:
+            fraction = duration / self.time_span(available_periods[p_start])
+            t_obs = fraction * self.time_obs(available_periods[p_start])
+            obs_times[available_periods[p_start]] = t_obs.value
+        else:
+            # find duration in start period:
+            duration = ((self.times[p_start, 1] - start) * u.day).to("year")
+            fraction = duration / self.time_span(available_periods[p_start])
+            t_obs_start = fraction * self.time_obs(available_periods[p_start])
+            obs_times[available_periods[p_start]] = t_obs_start.value
+                        
+            # now for the middle periods:
+            for c_p in range(p_start+1, p_end):
+                obs_times[available_periods[c_p]] = self.time_obs(available_periods[c_p]).value
+            
+            # end
+            duration = ((end - self.times[p_end, 0]) * u.day).to("year")
+            fraction= duration / self.time_span(available_periods[p_end])
+            t_obs_end = fraction * self.time_obs(available_periods[p_end])
+            obs_times[available_periods[p_end]] = t_obs_end.value
+
+        return obs_times
+
+
+
+
+        """
+        #this ain't working
+        for p_start, time in zip(available_periods, self.times):
+            if start >= time[0]:
+                break
+        for p_end, time in reversed(zip(available_periods, self.times)):
+            if end <= 
+        """
+
 
 def crawl_delay():
     """
