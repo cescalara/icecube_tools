@@ -2,7 +2,7 @@
  "cells": [
   {
    "cell_type": "markdown",
-   "id": "242643cf",
+   "id": "ec0bb537",
    "metadata": {},
    "source": [
     "# Data access\n",
@@ -13,13 +13,13 @@
   {
    "cell_type": "code",
    "execution_count": 1,
-   "id": "d0881189",
+   "id": "d2706cbb",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2022-08-16T10:03:21.329051Z",
-     "iopub.status.busy": "2022-08-16T10:03:21.328728Z",
-     "iopub.status.idle": "2022-08-16T10:03:21.584615Z",
-     "shell.execute_reply": "2022-08-16T10:03:21.583868Z"
+     "iopub.execute_input": "2022-09-04T12:22:13.962518Z",
+     "iopub.status.busy": "2022-09-04T12:22:13.962200Z",
+     "iopub.status.idle": "2022-09-04T12:22:14.281689Z",
+     "shell.execute_reply": "2022-09-04T12:22:14.280693Z"
     }
    },
    "outputs": [],
@@ -29,7 +29,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "ef8a189c",
+   "id": "30142e82",
    "metadata": {},
    "source": [
     "The `IceCubeData` class provides this functionality. Upon initialisation, `IceCubeData` queries the website using HTTP requests to check what datasets are currently available. By default, this request is cached to avoid spamming the IceCube website. However, you can use the keyword argument `update` to override this."
@@ -38,13 +38,13 @@
   {
    "cell_type": "code",
    "execution_count": 2,
-   "id": "f00bb963",
+   "id": "2be0df46",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2022-08-16T10:03:21.589043Z",
-     "iopub.status.busy": "2022-08-16T10:03:21.588575Z",
-     "iopub.status.idle": "2022-08-16T10:03:22.015835Z",
-     "shell.execute_reply": "2022-08-16T10:03:22.015125Z"
+     "iopub.execute_input": "2022-09-04T12:22:14.286983Z",
+     "iopub.status.busy": "2022-09-04T12:22:14.286466Z",
+     "iopub.status.idle": "2022-09-04T12:22:14.670547Z",
+     "shell.execute_reply": "2022-09-04T12:22:14.669415Z"
     }
    },
    "outputs": [
@@ -78,6 +78,7 @@
        " '20210310_IceCube_data_for_the_first_Glashow_resonance_candidate.zip',\n",
        " '20211217_HESE-7-5-year-data.zip',\n",
        " '20220201_Density_of_GeV_muons_in_air_showers_measured_with_IceTop.zip',\n",
+       " '20220902_Evidence_for_neutrino_emission_from_the_nearby_active_galaxy_NGC_1068_data.zip',\n",
        " 'ic22-solar-wimp-histograms.zip']"
       ]
      },
@@ -95,7 +96,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "bcfeacd4",
+   "id": "170abbf9",
    "metadata": {},
    "source": [
     "You can use the `find` method to pick out datasets you are interested in."
@@ -104,13 +105,13 @@
   {
    "cell_type": "code",
    "execution_count": 3,
-   "id": "2a8089ce",
+   "id": "34a5e70e",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2022-08-16T10:03:22.019353Z",
-     "iopub.status.busy": "2022-08-16T10:03:22.018894Z",
-     "iopub.status.idle": "2022-08-16T10:03:22.022980Z",
-     "shell.execute_reply": "2022-08-16T10:03:22.022490Z"
+     "iopub.execute_input": "2022-09-04T12:22:14.675195Z",
+     "iopub.status.busy": "2022-09-04T12:22:14.674597Z",
+     "iopub.status.idle": "2022-09-04T12:22:14.680575Z",
+     "shell.execute_reply": "2022-09-04T12:22:14.679651Z"
     }
    },
    "outputs": [
@@ -132,7 +133,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "e0cb3b4c",
+   "id": "c84c69f0",
    "metadata": {},
    "source": [
     "The `my_data` object has been inititalised to store data in the package's default location (\"~/.icecube_data\"). This is where other `icecube_tools` modules will look for stored data."
@@ -141,13 +142,13 @@
   {
    "cell_type": "code",
    "execution_count": 4,
-   "id": "d3a1afa8",
+   "id": "b2de5252",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2022-08-16T10:03:22.025980Z",
-     "iopub.status.busy": "2022-08-16T10:03:22.025549Z",
-     "iopub.status.idle": "2022-08-16T10:03:22.029905Z",
-     "shell.execute_reply": "2022-08-16T10:03:22.029250Z"
+     "iopub.execute_input": "2022-09-04T12:22:14.686299Z",
+     "iopub.status.busy": "2022-09-04T12:22:14.685757Z",
+     "iopub.status.idle": "2022-09-04T12:22:14.691353Z",
+     "shell.execute_reply": "2022-09-04T12:22:14.690445Z"
     }
    },
    "outputs": [
@@ -168,7 +169,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "fc3ae17c",
+   "id": "da5eceef",
    "metadata": {},
    "source": [
     "The `fetch` method will download this dataset to this default location for later use by `icecube_tools`. This method takes a list of names, so can also be used to download multiple datasets. `fetch` has a built in delay of a few seconds between HTTP requests to avoid spamming the website. `fetch` will not overwrite files by default, but this can be forced with `overwrite=True`."
@@ -177,13 +178,13 @@
   {
    "cell_type": "code",
    "execution_count": 5,
-   "id": "d4c757ce",
+   "id": "84432fae",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2022-08-16T10:03:22.034024Z",
-     "iopub.status.busy": "2022-08-16T10:03:22.033808Z",
-     "iopub.status.idle": "2022-08-16T10:03:31.040158Z",
-     "shell.execute_reply": "2022-08-16T10:03:31.039347Z"
+     "iopub.execute_input": "2022-09-04T12:22:14.698947Z",
+     "iopub.status.busy": "2022-09-04T12:22:14.698202Z",
+     "iopub.status.idle": "2022-09-04T12:23:26.619575Z",
+     "shell.execute_reply": "2022-09-04T12:23:26.618426Z"
     }
    },
    "outputs": [
@@ -200,7 +201,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:   9%|▉         | 1048576/11730609 [00:01<00:10, 972363.87it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:   9%|▉         | 1048576/11730609 [00:04<00:49, 216250.76it/s]"
      ]
     },
     {
@@ -208,7 +209,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  18%|█▊        | 2097152/11730609 [00:01<00:05, 1686891.37it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  18%|█▊        | 2097152/11730609 [00:11<00:51, 185974.78it/s]"
      ]
     },
     {
@@ -216,7 +217,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  27%|██▋       | 3145728/11730609 [00:01<00:03, 2394154.36it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  27%|██▋       | 3145728/11730609 [00:16<00:45, 187225.03it/s]"
      ]
     },
     {
@@ -224,7 +225,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  36%|███▌      | 4194304/11730609 [00:01<00:02, 3239602.35it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  36%|███▌      | 4194304/11730609 [00:22<00:42, 177290.80it/s]"
      ]
     },
     {
@@ -232,7 +233,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  54%|█████▎    | 6291456/11730609 [00:01<00:01, 5009057.00it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  45%|████▍     | 5242880/11730609 [00:27<00:34, 188442.95it/s]"
      ]
     },
     {
@@ -240,7 +241,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  72%|███████▏  | 8388608/11730609 [00:02<00:00, 6956625.22it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  54%|█████▎    | 6291456/11730609 [00:33<00:28, 194149.83it/s]"
      ]
     },
     {
@@ -248,7 +249,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  98%|█████████▊| 11534336/11730609 [00:02<00:00, 10208092.86it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  63%|██████▎   | 7340032/11730609 [00:39<00:24, 181785.86it/s]"
      ]
     },
     {
@@ -256,7 +257,47 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:02<00:00, 5173738.97it/s] "
+      "20181018_All-sky_point-source_IceCube_da...:  72%|███████▏  | 8388608/11730609 [00:43<00:16, 198150.96it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20181018_All-sky_point-source_IceCube_da...:  80%|████████  | 9437184/11730609 [00:50<00:12, 184734.38it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20181018_All-sky_point-source_IceCube_da...:  89%|████████▉ | 10485760/11730609 [00:56<00:06, 183777.28it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20181018_All-sky_point-source_IceCube_da...:  98%|█████████▊| 11534336/11730609 [01:01<00:01, 182601.29it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [01:03<00:00, 179266.71it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [01:03<00:00, 185394.14it/s]"
      ]
     },
     {
@@ -273,7 +314,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "94ea1f61",
+   "id": "cd1c881f",
    "metadata": {},
    "source": [
     "You may not want to use `icecube_tools` for other stuff, so you can also fetch to a specificed location with the keyword `write_to`."
@@ -282,13 +323,13 @@
   {
    "cell_type": "code",
    "execution_count": 6,
-   "id": "2e883bc9",
+   "id": "8f312805",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2022-08-16T10:03:31.044146Z",
-     "iopub.status.busy": "2022-08-16T10:03:31.043528Z",
-     "iopub.status.idle": "2022-08-16T10:03:42.528835Z",
-     "shell.execute_reply": "2022-08-16T10:03:42.527962Z"
+     "iopub.execute_input": "2022-09-04T12:23:26.625249Z",
+     "iopub.status.busy": "2022-09-04T12:23:26.624390Z",
+     "iopub.status.idle": "2022-09-04T12:24:36.163557Z",
+     "shell.execute_reply": "2022-09-04T12:24:36.162402Z"
     }
    },
    "outputs": [
@@ -305,7 +346,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:   9%|▉         | 1048576/11730609 [00:01<00:10, 1008414.26it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:   9%|▉         | 1048576/11730609 [00:05<00:53, 197980.96it/s]"
      ]
     },
     {
@@ -313,7 +354,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  18%|█▊        | 2097152/11730609 [00:01<00:06, 1515263.87it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  18%|█▊        | 2097152/11730609 [00:10<00:48, 199061.65it/s]"
      ]
     },
     {
@@ -321,7 +362,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  27%|██▋       | 3145728/11730609 [00:01<00:04, 1918585.38it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  27%|██▋       | 3145728/11730609 [00:15<00:41, 208145.88it/s]"
      ]
     },
     {
@@ -329,7 +370,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  36%|███▌      | 4194304/11730609 [00:02<00:03, 2078385.64it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  36%|███▌      | 4194304/11730609 [00:20<00:37, 201649.22it/s]"
      ]
     },
     {
@@ -337,7 +378,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  45%|████▍     | 5242880/11730609 [00:02<00:02, 2296699.32it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  45%|████▍     | 5242880/11730609 [00:27<00:34, 187382.01it/s]"
      ]
     },
     {
@@ -345,7 +386,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  54%|█████▎    | 6291456/11730609 [00:03<00:02, 2457149.66it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  54%|█████▎    | 6291456/11730609 [00:32<00:29, 187228.60it/s]"
      ]
     },
     {
@@ -353,7 +394,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  63%|██████▎   | 7340032/11730609 [00:03<00:01, 2635041.43it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  63%|██████▎   | 7340032/11730609 [00:38<00:23, 186089.45it/s]"
      ]
     },
     {
@@ -361,7 +402,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  72%|███████▏  | 8388608/11730609 [00:03<00:01, 2483256.40it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  72%|███████▏  | 8388608/11730609 [00:45<00:19, 170952.85it/s]"
      ]
     },
     {
@@ -369,7 +410,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  80%|████████  | 9437184/11730609 [00:04<00:00, 2306165.55it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  80%|████████  | 9437184/11730609 [00:52<00:13, 168309.69it/s]"
      ]
     },
     {
@@ -377,7 +418,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  89%|████████▉ | 10485760/11730609 [00:04<00:00, 2115331.11it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  89%|████████▉ | 10485760/11730609 [00:55<00:06, 192658.95it/s]"
      ]
     },
     {
@@ -385,7 +426,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  98%|█████████▊| 11534336/11730609 [00:05<00:00, 1903233.60it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  98%|█████████▊| 11534336/11730609 [00:59<00:00, 208090.25it/s]"
      ]
     },
     {
@@ -393,7 +434,15 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:05<00:00, 2026564.03it/s]"
+      "20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [01:01<00:00, 203428.98it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [01:01<00:00, 192156.40it/s]"
      ]
     },
     {
@@ -410,7 +459,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "a04d7b94",
+   "id": "c04e2b7a",
    "metadata": {},
    "source": [
     "For convenience, there is also the `fetch_all_to` method to download all the available data to a specified location. We comment this here as it can take a while to execute."
@@ -419,13 +468,13 @@
   {
    "cell_type": "code",
    "execution_count": 7,
-   "id": "50954745",
+   "id": "5cb13a46",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2022-08-16T10:03:42.533348Z",
-     "iopub.status.busy": "2022-08-16T10:03:42.532906Z",
-     "iopub.status.idle": "2022-08-16T10:03:42.537662Z",
-     "shell.execute_reply": "2022-08-16T10:03:42.537029Z"
+     "iopub.execute_input": "2022-09-04T12:24:36.168382Z",
+     "iopub.status.busy": "2022-09-04T12:24:36.168033Z",
+     "iopub.status.idle": "2022-09-04T12:24:36.172121Z",
+     "shell.execute_reply": "2022-09-04T12:24:36.171204Z"
     }
    },
    "outputs": [],

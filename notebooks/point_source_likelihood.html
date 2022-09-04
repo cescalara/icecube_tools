@@ -430,7 +430,7 @@ Also, there may be a temporal dependence added, but this is not yet implemented 
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7f10b754ab50&gt;
+&lt;matplotlib.legend.Legend at 0x7f7e449c5a90&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -487,7 +487,7 @@ simulated using point sources with spectral index <code class="docutils literal 
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7f10b543c3d0&gt;
+&lt;matplotlib.legend.Legend at 0x7f7e4492f4f0&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -614,7 +614,7 @@ Text(0, 0.5, &#39;Background likelihood&#39;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-84.8774722695945
+84.87747226952409
 </pre></div></div>
 </div>
 <p>To understand the significance of this results, we would have to calculate the test statistic for a large number of background-only simulations. These could then be used to calculate a p-value. Given there is a strong point source in the simulation we used, we can expect the test stastic to be lower if we remove the source events. Let’s try this:</p>
@@ -730,16 +730,18 @@ likelihood for the next simulated values of <code class="docutils literal notran
 <div class="output_area rendered_html docutils container">
 <table>
     <tr>
+        <th colspan="5" style="text-align:center" title="Minimizer"> Migrad </th>
+    </tr>
+    <tr>
         <td colspan="2" style="text-align:left" title="Minimum value of function"> FCN = -42.44 </td>
-        <td colspan="3" style="text-align:center" title="No. of function evaluations in last call and total number"> Nfcn = 24 (191 total) </td>
+        <td colspan="3" style="text-align:center" title="Total number of function and (optional) gradient evaluations"> Nfcn = 191 </td>
     </tr>
     <tr>
         <td colspan="2" style="text-align:left" title="Estimated distance to minimum and goal"> EDM = 1.94e-06 (Goal: 0.0001) </td>
-        <td colspan="3" style="text-align:center" title="No. of gradient evaluations in last call and total number">  </td>
+        <td colspan="3" style="text-align:center" title="Total run time of algorithms">  </td>
     </tr>
     <tr>
-        <td style="text-align:center;background-color:#92CCA6;color:black"> Valid Minimum </td>
-        <td style="text-align:center;background-color:#92CCA6;color:black"> Valid Parameters </td>
+        <td colspan="2" style="text-align:center;background-color:#92CCA6;color:black"> Valid Minimum </td>
         <td colspan="3" style="text-align:center;background-color:#92CCA6;color:black"> No Parameters at limit </td>
     </tr>
     <tr>
@@ -747,8 +749,8 @@ likelihood for the next simulated values of <code class="docutils literal notran
         <td colspan="3" style="text-align:center;background-color:#92CCA6;color:black"> Below call limit </td>
     </tr>
     <tr>
+        <td style="text-align:center;background-color:#92CCA6;color:black"> Covariance </td>
         <td style="text-align:center;background-color:#92CCA6;color:black"> Hesse ok </td>
-        <td style="text-align:center;background-color:#92CCA6;color:black"> Has Covariance </td>
         <td style="text-align:center;background-color:#92CCA6;color:black" title="Is covariance matrix accurate?"> Accurate </td>
         <td style="text-align:center;background-color:#92CCA6;color:black" title="Is covariance matrix positive definite?"> Pos. def. </td>
         <td style="text-align:center;background-color:#92CCA6;color:black" title="Was positive definiteness enforced by Minuit?"> Not forced </td>
@@ -786,6 +788,22 @@ likelihood for the next simulated values of <code class="docutils literal notran
         <td> 1.55 </td>
         <td> 3.95 </td>
         <td>  </td>
+    </tr>
+</table><table>
+    <tr>
+        <td></td>
+        <th> ns </th>
+        <th> index </th>
+    </tr>
+    <tr>
+        <th> ns </th>
+        <td> 6.96 </td>
+        <td style="background-color:rgb(250,249,249);color:black"> 4.78e-05 <strong>(0.009)</strong> </td>
+    </tr>
+    <tr>
+        <th> index </th>
+        <td style="background-color:rgb(250,249,249);color:black"> 4.78e-05 <strong>(0.009)</strong> </td>
+        <td> 4.31e-06 </td>
     </tr>
 </table></div>
 </div>
