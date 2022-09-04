@@ -635,6 +635,11 @@ class TimeDependentSimulator():
         }
         self.sources = sources
 
+        if kwargs.get("time"):
+            self.time = kwargs["time"]
+        else:
+            print("Need to set simulation time")
+
 
     def run(self, N: List=None, seed=1234, show_progress=False):
         for p, sim in self.simulators.items():
@@ -671,14 +676,7 @@ class TimeDependentSimulator():
         """
         #TODO rewrite method
         for p, t in times.items():
-            t_max = self.uptimes[p].integrated_time.value
-            if t > t_max:
-                print(f"Time {t} is too large for past campaign, setting value to {t_max}")
-                #TODO change to logging
-                #TODO change to sensible limits for observations in the future, i.e. extend IC86_II
-                self.simulators[p].time = t_max
-            else:
-                self.simulators[p].time = t
+            self.simulators[p].time = t
             
 
     @property
@@ -693,7 +691,7 @@ class TimeDependentSimulator():
             sim._sources = source_list
 
 
-
+    
 def sphere_sample(radius=1, v_lim=0, N=1):
     """
     Sample points uniformly on a sphere.

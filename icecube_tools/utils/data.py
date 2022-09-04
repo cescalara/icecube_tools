@@ -346,7 +346,19 @@ class Uptime():
             start = self.times[0, 0]
 
         p_start = np.searchsorted(self.times[:, 0], start)
-        p_end = np.searchsorted(self.times[:, 1], end)
+        
+
+        if end > self.times[-1, -1]:
+            print("End time outside of provided data set, sending an owl to Professor Trelawney")
+            # Set to highest allowed value
+            p_end = len(available_periods) - 1
+            future = True
+            
+        else:    
+            p_end = np.searchsorted(self.times[:, 1], end)
+            future = False
+
+        
 
         # repeat searchsorted procedure for the periods containing start/end:
         # add up all the detector uptime in those to get the resulting obs time
@@ -356,7 +368,7 @@ class Uptime():
         # since time_obs/time_span \approx 1, doesn't really matter anyway
 
         obs_times = {}
-        if p_start == p_end:
+        if p_start == p_end and not future:
             fraction = duration / self.time_span(available_periods[p_start])
             t_obs = fraction * self.time_obs(available_periods[p_start])
             obs_times[available_periods[p_start]] = t_obs.value
@@ -373,7 +385,7 @@ class Uptime():
             
             # end
             duration = ((end - self.times[p_end, 0]) * u.day).to("year")
-            fraction= duration / self.time_span(available_periods[p_end])
+            fraction = duration / self.time_span(available_periods[p_end])
             t_obs_end = fraction * self.time_obs(available_periods[p_end])
             obs_times[available_periods[p_end]] = t_obs_end.value
 
