@@ -1,6 +1,6 @@
 import numpy as np
 from iminuit import Minuit
-from functools import singledispatch
+import logging
 
 from .energy_likelihood import *
 from .spatial_likelihood import *
@@ -17,6 +17,9 @@ in high energy neutrino telescopes. Astroparticle Physics,
 Currently well-defined for searches with
 Northern sky muon neutrinos.
 """
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class PointSourceLikelihood:
@@ -59,6 +62,7 @@ class PointSourceLikelihood:
             raise ValueError("No other type of likelihood available.")
         else:
             self.which = which
+            logger.info(f"Using {which} likelihoods.")
 
         self._direction_likelihood = direction_likelihood
 
@@ -66,8 +70,10 @@ class PointSourceLikelihood:
 
         if bg_energy_likelihood is not None:
             self._bg_energy_likelihood = bg_energy_likelihood
+            logger.info("Background likelihood provided.")
         elif 3.50 in energy_likelihood.index_list:
             self._bg_energy_likelihood = energy_likelihood.likelihood['3.5']
+            logger.info("No background likelihood provided, using index=3.50.")
         
         
 
@@ -167,6 +173,7 @@ class PointSourceLikelihood:
         self.Nprime = len(selected)
 
         self.N = len(selected_dec_band)
+
 
     def _signal_likelihood(self, ra, dec, source_coord, energy, index, ang_err=1):
         """
@@ -373,9 +380,11 @@ class PointSourceLikelihood:
 
         if self.which == 'spatial':
             #Only spatial-only likelihood needs special function, because no spectral index is used
+            logger.info("Using only spatial information.")
             func_to_minimize = self._func_to_minimize_sp
         else:
             func_to_minimize = self._func_to_minimize
+            logger.info("Using all information.")
 
         m = Minuit(
             func_to_minimize,
@@ -394,6 +403,7 @@ class PointSourceLikelihood:
         m.migrad()
 
         if not m.migrad_ok() or not m.matrix_accurate():
+            logger.warning("Fit has not converged, fixing index")
 
             # Fix the index as can be uninformative
             m.fixed["index"] = True
@@ -706,7 +716,7 @@ class SpatialOnlyPointSourceLikelihood:
 
 
 class TimeDependentPointSourceLikelihood:
-    def __init__(self, source_coords, periods, event_files, index_list, path):
+    def __init__(self, source_coords, periods, event_files, index_list, path, which="both"):
         """
         Create likelihood covering multiple data taking periods.
         :param source_coords: Tuple of ra, dec.
@@ -715,22 +725,21 @@ class TimeDependentPointSourceLikelihood:
         :param index_list: List of indices covered by the events used to build the energy likelihood.
         :param path: Path to directory where the simulated events (see above) are located.
         """
-        print("init time dependent llh")
-        #files should be dict of files, with period string as the key
-        self.which = 'both'
+
+        self.which = which
         self.source_coords = source_coords
+        #files should be dict of files, with period string as the key
         self.event_files = event_files
         self.periods = periods
         self.index_list = index_list
-        print("assering")
         assert len(event_files) == len(periods)
+
         #TODO change this to named tuples?
         self.likelihoods = {}
         # Can use one spatial llh for all periods, 'tis but a Gaussian
         spatial_llh = EventDependentSpatialGaussianLikelihood()
 
         for p, data in zip(self.periods, self.event_files):
-            print(p)
             # Open event files
             with h5py.File(data, "r") as f:
                 reco_energy = f["reco_energy"][()]
@@ -745,7 +754,7 @@ class TimeDependentPointSourceLikelihood:
             #create likelihood objects
             self.likelihoods[p] = PointSourceLikelihood(
                 spatial_llh, energy_llh, ra, dec, reco_energy,
-                self.source_coords, ang_err
+                self.source_coords, ang_err, which=self.which
             )
 
 
@@ -795,13 +804,15 @@ class TimeDependentPointSourceLikelihood:
             init_ns.append(llh._ns_min + (llh._ns_max - llh._ns_min) / 2)
             limit_ns.append((llh._ns_min, llh._ns_max))
         # Get errors to start with
-        error_ns = [1 for _ in init_ns]        
-        init_vals = init_ns + [init_index]
-        if False: #self.which == 'spatial':
+        error_ns = [1 for _ in init_ns]    
+
+        if self.which == 'spatial':
             #Only spatial-only likelihood needs special function, because no spectral index is used
             func_to_minimize = self._func_to_minimize_sp
         else:
-            func_to_minimize = self._func_to_minimize
+            pass
+        func_to_minimize = self._func_to_minimize    
+        init_vals = init_ns + [init_index]
 
         errors = error_ns + [error_index]
         limits = limit_ns + [limit_index]

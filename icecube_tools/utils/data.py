@@ -9,6 +9,10 @@ from zipfile import ZipFile
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 from astropy import units as u
+import h5py
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 icecube_data_base_url = "https://icecube.wisc.edu/data-releases"
 data_directory = os.path.abspath(os.path.join(os.path.expanduser("~"), ".icecube_data"))
@@ -342,14 +346,14 @@ class Uptime():
             raise ValueError("Not a supported combination of arguments.")
 
         if start < self.times[0, 0]:
-            print("Start time outside of running experiment, setting to earliest possible time.")
+            logger.warning("Start time outside of running experiment, setting to earliest possible time.")
             start = self.times[0, 0]
 
         p_start = np.searchsorted(self.times[:, 0], start)
         
 
         if end > self.times[-1, -1]:
-            print("End time outside of provided data set, sending an owl to Professor Trelawney")
+            logger.info("End time outside of provided data set, sending an owl to Professor Trelawney")
             # Set to highest allowed value
             p_end = len(available_periods) - 1
             future = True
@@ -402,6 +406,20 @@ class Uptime():
         for p_end, time in reversed(zip(available_periods, self.times)):
             if end <= 
         """
+
+
+class SimEvents():
+    def __init__(self, path):
+        #read in data, store in attributes
+        self.path = path
+        with h5py.File(path, "r") as f:
+            self.true_energy = f["true_energy"][()]
+            self.reco_energy = f["reco_energy"][()]
+            self.ra = f["ra"][()]
+            self.dec = f["dec"][()]
+            self.ang_err = f["ang_err"][()]
+            self.source_label = f["source_label"][()]
+
 
 
 def crawl_delay():

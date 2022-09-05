@@ -75,7 +75,7 @@ class IceCube(Detector):
     IceCube detector.
     """
 
-    def __init__(self, effective_area, energy_resolution, angular_resolution, period):
+    def __init__(self, effective_area, energy_resolution, angular_resolution, period=None):
         """
         IceCube detector.
 

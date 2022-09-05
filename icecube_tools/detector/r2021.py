@@ -28,7 +28,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         Special class to handle smearing effects given in the 2021 data release.
         """
 
-        #self.read(fetch)
+        #self.read(fetch)        
         self._filename = filename
         self.ret_ang_err_p = kwargs.get("ret_ang_err_p", 0.68)
         self.prob_contained = 0.68

@@ -38,13 +38,13 @@ from icecube_tools.detector.r2021 import R2021IRF
 
 ```python
 # Define detector (see detector model notebook for more info)
-aeff = EffectiveArea.from_dataset("20210126")
-irf = R2021IRF()
+aeff = EffectiveArea.from_dataset("20210126", "IC86_I")
+irf = R2021IRF.from_period("IC86_I")
 #IceCube expects an instance of EffectiveAerea, AngularResolution and
-#EnergyResolution.
+#EnergyResolution, optionally the period (here IC86_I)
 #R2021IRF inherits from AngularResolution and EnergyResolution
 #just to be able to be used as both
-detector = IceCube(aeff, irf, irf)
+detector = IceCube(aeff, irf, irf, "IC86_I")
 ```
 
 ```python
@@ -96,7 +96,7 @@ phi_norm # GeV^-1 cm^-2 s^-1
 ## Set up and run simulation
 
 ```python
-from icecube_tools.simulator import Simulator
+from icecube_tools.simulator import Simulator, TimeDependentSimulator
 ```
 
 ```python
@@ -163,6 +163,55 @@ ax.add_collection(df_nu)
 ax.add_collection(ps_nu)
 
 ax.grid()
+```
+
+# Time dependent simulation
+
+We can simulate an observation campaign spanning multiple data periods of IceCube through a "meta class" `TimeDependentSimulator`:
+
+```python
+tsim = TimeDependentSimulator(["IC86_I", "IC86_II"], sources)
+```
+
+We need to set simulation times for all periods. Since for past periods the simulation time shouldn't be larger than the actual observation time (that is time span - down time of the detector) we need to take care, or rather, we let the class `Uptime` take care:
+
+```python
+from icecube_tools.utils.data import Uptime
+```
+
+It lets us calculate the actual observation time through, e.g. IC86_II, vs the time covered:
+
+```python
+uptime = Uptime()
+uptime.time_obs("IC86_II"), uptime.time_span("IC86_II")
+```
+
+We can further define a start and end time of an observation and let it calculate the observation time in each period. Viable possible options are
+ - start and end time in MJD
+ - start time in MJD and duration in years
+ - end time in MJD and duration in years
+
+If the start time is before the earliest period (IC_40), the start time will be set to the earliest possible date.
+
+If the end time is past the last period (IC86_II), then we get an according message and simulate into the future
+
+```python
+times = uptime.find_obs_time(start=53569, duration=10)
+times
+```
+
+The returned dictionary can be used to set the simulation times for an instance of `TimeDependentSimulator`:
+
+```python
+tsim = TimeDependentSimulator(["IC40", "IC59", "IC79", "IC86_I", "IC86_II"], sources)
+tsim.time = times
+```
+
+The simulation is started by calling `run()`, results can be saved by `save(file_prefix)`, with the filename being `{file_prefix}_{p}.h5` with period `p`.
+
+```python
+#tsim.run()
+#tsim.save()
 ```
 
 ```python
