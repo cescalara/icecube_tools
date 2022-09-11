@@ -5,6 +5,7 @@ import h5py
 from scipy.stats import uniform
 import logging
 import sys
+from os.path import join
 from typing import List, Dict
 
 # from memory_profiler import profile
@@ -656,9 +657,13 @@ class TimeDependentSimulator():
             sim.run(N=None, seed=1234, show_progress=False)
 
 
-    def save(self, file_prefix):
+    def save(self, path, file_prefix):
+        d = {}
         for p, sim in self.simulators.items():
-            sim.save(f"{file_prefix}_{p}.h5")
+            file_name = join(path, f"p_{p}_{file_prefix}.h5")
+            d[p] = file_name
+            sim.save(file_name)
+        return d
 
 
     def _get_expected_number(self):

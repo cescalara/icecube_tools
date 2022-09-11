@@ -71,9 +71,9 @@ class PointSourceLikelihood:
         if bg_energy_likelihood is not None:
             self._bg_energy_likelihood = bg_energy_likelihood
             logger.info("Background likelihood provided.")
-        elif 3.50 in energy_likelihood.index_list:
-            self._bg_energy_likelihood = energy_likelihood.likelihood['3.5']
-            logger.info("No background likelihood provided, using index=3.50.")
+        elif 3.7 in energy_likelihood.index_list:
+            self._bg_energy_likelihood = energy_likelihood.likelihood['3.7']
+            logger.info("No background likelihood provided, using index=3.7.")
         
         
 
@@ -322,7 +322,7 @@ class PointSourceLikelihood:
         :param ns: Number of source counts.
         :param index: Dummy argument
         """
-
+        
         one_plus_alpha = 1e-10
         alpha = one_plus_alpha - 1
 
@@ -387,23 +387,19 @@ class PointSourceLikelihood:
             logger.info("Using all information.")
 
         m = Minuit(
-            func_to_minimize,
+            self._func_to_minimize,
             ns=init_ns,
             index=init_index,
-            error_ns=1,
-            error_index=0.1,
-            errordef=0.5,
-            limit_ns=(self._ns_min, self._ns_max),
-            limit_index=(self._energy_likelihood._min_index, self._energy_likelihood._max_index),
         )
-
-        if self.which == 'spatial':
-            m.fixed["index"] = True
-            m.values["index"] = 2.
+        # m.fixed["index"] = True
+        m.limits["ns"] = (self._ns_min, self._ns_max)
+        m.errors["index"] = 0.1
+        m.errors["ns"] = 1
+        m.limits["index"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
+        m.errordef = 0.5
         m.migrad()
 
-        if not m.migrad_ok() or not m.matrix_accurate():
-            logger.warning("Fit has not converged, fixing index")
+        if not m.valid or not m.fmin.has_accurate_covar or not m.fmin.has_covariance:
 
             # Fix the index as can be uninformative
             m.fixed["index"] = True
@@ -731,6 +727,15 @@ class TimeDependentPointSourceLikelihood:
         #files should be dict of files, with period string as the key
         self.event_files = event_files
         self.periods = periods
+        #self.period_dict = period_dict
+        """
+        self.period_dict = {str(p):
+            {str(index): path to data file for index in index_list} for p in periods
+        }
+
+        """
+        #self.periods = list(period_dict.keys())
+        #self.index_list = 
         self.index_list = index_list
         assert len(event_files) == len(periods)
 
@@ -740,6 +745,7 @@ class TimeDependentPointSourceLikelihood:
         spatial_llh = EventDependentSpatialGaussianLikelihood()
 
         for p, data in zip(self.periods, self.event_files):
+            print(p)
             # Open event files
             with h5py.File(data, "r") as f:
                 reco_energy = f["reco_energy"][()]
@@ -748,7 +754,7 @@ class TimeDependentPointSourceLikelihood:
                 ang_err = f["ang_err"][()]
             
             energy_llh = MarginalisedEnergyLikelihood2021(
-                index_list, path, f"{p}_global_sim", self.source_coords[1]
+                index_list, path, f"p_{p}", self.source_coords[1]
             )
 
             #create likelihood objects
@@ -778,7 +784,21 @@ class TimeDependentPointSourceLikelihood:
         neg_log_like = 0
         for (n, llh) in zip(arg[:-1], self.likelihoods.values()):
             val = llh(n, arg[-1])
-            print(val)
+            #print(val)
+            neg_log_like += val
+        return neg_log_like
+
+
+    def _func_to_minimize_sp(self, *arg):
+        """
+        According to https://github.com/icecube/skyllh/blob/master/doc/user_manual.pdf,
+        Eq. (59), the returned values of each period's llh._func_to_minimize() can be added.
+        :param arg: numpy.ndarray, last entry is index, all before are number of source events.
+        """
+        neg_log_like = 0
+        for (n, llh) in zip(arg, self.likelihoods.values()):
+            val = llh._func_to_minimize_sp(n)
+            #print(val)
             neg_log_like += val
         return neg_log_like
 
@@ -798,30 +818,34 @@ class TimeDependentPointSourceLikelihood:
             some_llh._energy_likelihood._max_index)
         # Get init_ns and limit_ns for each period
         # could be nicer with some generator method
-        init_ns = []
-        limit_ns = []
+        init = []
+        limits = []
         for llh in self.likelihoods.values():
-            init_ns.append(llh._ns_min + (llh._ns_max - llh._ns_min) / 2)
-            limit_ns.append((llh._ns_min, llh._ns_max))
+            init.append(llh._ns_min + (llh._ns_max - llh._ns_min) / 2)
+            limits.append((llh._ns_min, llh._ns_max))
+
         # Get errors to start with
-        error_ns = [1 for _ in init_ns]    
+        errors = [1 for _ in init]  
+        name = tuple(f"n{i}" for i in range(len(init)))  
 
         if self.which == 'spatial':
             #Only spatial-only likelihood needs special function, because no spectral index is used
             func_to_minimize = self._func_to_minimize_sp
         else:
-            pass
-        func_to_minimize = self._func_to_minimize    
-        init_vals = init_ns + [init_index]
+            func_to_minimize = self._func_to_minimize
+            #add errors, limits, start value and name of index
+            errors += [error_index]
+            limits += [limit_index]
+            init += [init_index]
+            name += ("index",)
 
-        errors = error_ns + [error_index]
-        limits = limit_ns + [limit_index]
-        name = tuple(f"n{i}" for i in range(len(init_ns)))
-        name += ("index",)
-        m = Minuit(func_to_minimize, *init_vals, name=name)
+        m = Minuit(func_to_minimize, *init, name=name)
         m.errordef = 0.5
         m.errors = errors
         m.limits = limits
+        print(m.limits)
+        print(m.errors)
+        print(m.values)
         """
         if self.which == 'spatial':
             m.fixed["index"] = True
@@ -829,12 +853,15 @@ class TimeDependentPointSourceLikelihood:
         """
         
         m.migrad()
-        
-        if not m.fmin.is_valid or not m.has_covariance:
+        if self.which != 'spatial':
+            if not m.fmin.is_valid or not m.fmin.has_covariance:
 
-            # Fix the index as can be uninformative
-            m.fixed["index"] = True
-            m.migrad()
+                # Fix the index as can be uninformative
+                m.fixed["index"] = True
+                m.migrad()
+        else:
+            pass
+            #what else to do?
 
         #self._best_fit_ns = m.values["ns"]
         #self._best_fit_index = m.values["index"]

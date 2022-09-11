@@ -37,7 +37,7 @@ from icecube_tools.point_source_likelihood.energy_likelihood import (
     MarginalisedEnergyLikelihood2021, read_input_from_file,
 )
 from icecube_tools.point_source_likelihood.point_source_likelihood import (
-    PointSourceLikelihood
+    PointSourceLikelihood, TimeDependentPointSourceLikelihood
 )
 ```
 
@@ -54,7 +54,7 @@ spatial_likelihood = EventDependentSpatialGaussianLikelihood(angular_resolution)
 We show the likelihood profile for a single event with an assumed uncertainty of 1 degree.
 
 ```python
-source_coord = (np.pi, np.pi/4)
+source_coord = (np.pi, np.deg2rad(30))
 test_coords = [(np.pi+_, source_coord[1]) for _ in np.linspace(-0.1, 0.1, 100)]
 
 fig, ax = plt.subplots()
@@ -75,12 +75,20 @@ Now let's think about the energy-dependent term. The way this is handled is to m
 Doing this properly requires a knowledge of the relationship between the true and reconstructed energies as well as the details of the power law model. The most straightforward way to implement this is to simulate the a large number of events using the `Simulator` and build a likelihood using the output of this simulation and `MarginalisedEnergyLikelihoodFromSim`. We do exactly this with pre-computed lists of events, to be found in the data subdirectory: `sim_output_{index}.h5`. These were simulated using point sources with spectral index `index` at 45 degrees declination. The likelihood is restricted to a small band of declination around the assumed source. Using the same declination for our test source, this is fine. For different source declinations further simulations would be needed to account for the declination dependence of the detector acceptance.
 
 ```python
-energy_likelihood = MarginalisedEnergyLikelihood2021([1.5, 2.0, 2.5, 3.0, 3.5, 3.7, 4.0], 'data', 'sim_output', np.pi/4,)
+index_list = [1.5, 1.7, 1.9, 2.1, 2.3, 2.5, 2.7, 2.9, 3.1, 3.3, 3.5, 3.7, 2.0]
+energy_likelihood = MarginalisedEnergyLikelihood2021(
+    index_list, 'data', 'p_IC86_II', np.deg2rad(30)
+)
+
 ```
 
 ```python
-test_energies = np.geomspace(10, 1e7) # GeV
-test_indices = [2, 2.5, 3, 3.5]
+energy_likelihood.likelihood["1.5"].likelihood.shape
+```
+
+```python
+test_energies = np.geomspace(100, 1e7) # GeV
+test_indices = [2.0, 2.5, 3.1, 3.5]
 
 fig, ax = plt.subplots()
 for index in test_indices:
@@ -100,10 +108,14 @@ Now we can bring together the spatial and energy terms to build a full `PointSou
 
 ```python
 data = {}
-with h5py.File("data/sim_output.h5", "r") as f:
+with h5py.File("data/p_IC86_I_test_sim.h5", "r") as f:
     for key in f:
         if "source_0" not in key and "source_1" not in key:
             data[key] = f[key][()]
+```
+
+```python
+np.where(data["source_label"] == 1)[0].size
 ```
 
 Now lets put our likelihood structure and data in together, along with a proposed source location:
@@ -112,7 +124,7 @@ Now lets put our likelihood structure and data in together, along with a propose
 likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood, 
                                   data["ra"], data["dec"], data["reco_energy"],
                                   source_coord)
-likelihood._bg_index = 3.0
+
 ```
 
 The likelihood will automatically select a declination band around the proposed source location. Because of the Gaussian spatial likelihood, neutrinos far from the source will have negligible contribution. We can control the width of this band with the optional argument `band_width_factor`. Let's see how many events ended up in the band, compared to the total number:
@@ -172,10 +184,6 @@ for n_rm in range(ntot_ps_events):
 ```
 
 ```python
-likelihood._energy_likelihood._min_index
-```
-
-```python
 fig, ax = plt.subplots()
 ax.plot([_ for _ in range(ntot_ps_events)], test_statistics)
 ax.set_xlabel("Number of point source events in dataset")
@@ -187,7 +195,7 @@ So the more neutrinos are seen from a source, the easier that source is to detec
 
 We can further inspect the likelihood profiles by using the Minuit object returned by `likelihood._minimize()`. The one for the index has sharp changes. This is due to the interpolation done by the energy likelihood. We fed it simulation for discreet values of `index`. We cannot sensibly interpolate the likelihood of a given energy to any index, this leads to Heaviside-like discontinuities in the global (spatial + energy) likelihood. Instead, `PointSourceLikelihood` calculates the likelihood for the next simulated values of `index`, e.g. asking for an index 2.3 would lead to 2.0 and 2.5, and interpolate linearly between the resulting likelihoods. The precision of this method can be improved by providing simulations on a denser grid of spectral indices.
 
-The error provided by `migrad()` is unreasonably small.
+The error provided by `migrad()` is unreasonably small. Below, we include a couple of lines to calculate a more accurate error (indices at which the negative loglike is minimum+0.5).
 
 ```python
 likelihood._energy_likelihood.index_list
@@ -203,7 +211,14 @@ _ = m.draw_profile("ns")
 ```
 
 ```python
-_ = m.draw_profile("index", bound=(likelihood._energy_likelihood._min_index, likelihood._energy_likelihood._max_index))
+#Do this because for this interpolated function minuit can't compute reliable errors
+index, llh =  m.draw_profile("index", bound=(likelihood._energy_likelihood._min_index, likelihood._energy_likelihood._max_index))
+lower_lim = np.interp(llh.min() + 0.5, np.flip(llh[:np.nonzero(llh == llh.min())[0][0]]), np.flip(index[:np.nonzero(llh == llh.min())[0][0]]))
+upper_lim = np.interp(llh.min() + 0.5, llh[np.nonzero(llh == llh.min())[0][0]:], index[np.nonzero(llh == llh.min())[0][0]:])
+lims = plt.ylim()
+plt.fill_betweenx([lims[0]-1, lims[1]+1], lower_lim, upper_lim, alpha=0.4, color='grey')
+plt.ylim(lims)
+plt.title(f"index = {m.values['index']:.1f} - {m.values['index']-lower_lim:.1f} + {abs(m.values['index']-upper_lim):.1f}")
 ```
 
 As a final step we show the likelihood values across a 2d grid.
@@ -228,6 +243,20 @@ ax.set_xlabel("index")
 ax.set_ylabel("ns")
 ```
 
-```python
+# Time dependent point source likelihood
 
+```python
+source_coords = (np.pi, np.deg2rad(30))
+#index_list = list(np.arange(1.5, 4.25, 0.25))
+event_files = ["data/p_IC86_I_test_sim.h5", "data/p_IC86_II_test_sim.h5"]
+tllh = TimeDependentPointSourceLikelihood(
+    source_coords, ["IC86_I", "IC86_II"], event_files, index_list, "data")
+```
+
+```python
+m = tllh._minimize()
+```
+
+```python
+m
 ```

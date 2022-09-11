@@ -38,30 +38,30 @@ from icecube_tools.detector.r2021 import R2021IRF
 
 ```python
 # Define detector (see detector model notebook for more info)
-aeff = EffectiveArea.from_dataset("20210126", "IC86_I")
-irf = R2021IRF.from_period("IC86_I")
+aeff = EffectiveArea.from_dataset("20210126", "IC86_II")
+irf = R2021IRF.from_period("IC86_II")
 #IceCube expects an instance of EffectiveAerea, AngularResolution and
 #EnergyResolution, optionally the period (here IC86_I)
 #R2021IRF inherits from AngularResolution and EnergyResolution
 #just to be able to be used as both
-detector = IceCube(aeff, irf, irf, "IC86_I")
+detector = IceCube(aeff, irf, irf, "IC86_II")
 ```
 
 ```python
 # Define simple sources (see source model notebook for more info)
-diff_flux_norm = 1e-19 # Flux normalisation in units of GeV^-1 cm^-2 s^-1 sr^-1
-point_flux_norm = 3e-19 # Flux normalisation in units of GeV^-1 cm^-2 s^-1 
+diff_flux_norm = 3e-21 # Flux normalisation in units of GeV^-1 cm^-2 s^-1 sr^-1
+point_flux_norm = 5e-19 # Flux normalisation in units of GeV^-1 cm^-2 s^-1 
 norm_energy = 1e5 # Energy of normalisation in units of GeV
 min_energy = 1e2 # GeV
 max_energy = 1e8 # GeV
 
-diff_power_law = PowerLawFlux(diff_flux_norm, norm_energy, 3.0, 
+diff_power_law = PowerLawFlux(diff_flux_norm, norm_energy, 3.7, 
                               min_energy, max_energy)
 diff_source = DiffuseSource(diff_power_law, z=0.0)
 
 point_power_law = PowerLawFlux(point_flux_norm, norm_energy, 2.5, 
                                min_energy, max_energy)
-point_source = PointSource(point_power_law, z=0., coord=(np.pi, np.pi/4))
+point_source = PointSource(point_power_law, z=0., coord=(np.pi, np.deg2rad(30)))
 sources = [diff_source, point_source]
 ```
 
@@ -87,7 +87,7 @@ We may also want to do the inverse, and find the `PointSource` flux normalisatio
 ```python
 phi_solver = PhiSolver(aeff, norm_energy, min_energy, max_energy, 
                        time=1, min_cosz=-1, max_cosz=1)
-phi_norm = phi_solver(Nnu=10, 
+phi_norm = phi_solver(Nnu=15, 
                       dec=30, # degrees
                       index=2.0) # spectral index
 phi_norm # GeV^-1 cm^-2 s^-1
@@ -116,16 +116,41 @@ This way, the simulator calculates the expected number of neutrinos from these s
 
 ```python
 # Save to file
-simulator.save("data/sim_output.h5")
+simulator.save("data/sim_output_86_II.h5")
 
 # Load
-with h5py.File("data/sim_output.h5", "r") as f:
+with h5py.File("data/sim_output_86_II.h5", "r") as f:
     true_energy = f["true_energy"][()]
     reco_energy = f["reco_energy"][()]
     ra = f["ra"][()]
     dec = f["dec"][()]
     ang_err = f["ang_err"][()]
     source_label = f["source_label"][()]
+```
+
+```python
+"""
+for i in [1.5, 2.0, 2.5, 3.0, 3.5, 3.7]:
+    norm_energy = 1e5 # Energy of normalisation in units of GeV
+    min_energy = 1e2 # GeV
+    max_energy = 1e8 # GeV
+    phi_solver = PhiSolver(aeff, norm_energy, min_energy, max_energy, 
+                           time=1, min_cosz=-1, max_cosz=1)
+    phi_norm = phi_solver(Nnu=2000, 
+                          dec=30, # degrees
+                          index=i) # spectral index
+    phi_norm # GeV^-1 cm^-2 s^-1
+    point_power_law = PowerLawFlux(phi_norm, norm_energy, i, 
+                                   min_energy, max_energy)
+    point_source = PointSource(point_power_law, z=0., coord=(np.pi, np.deg2rad(30)))
+    sources = [point_source]
+    simulator = Simulator(sources, detector)
+    simulator.time = 1 # year
+
+    # Run simulation
+    simulator.run(show_progress=True, seed=42)
+    simulator.save(f"data/sim_output_{i:.1f}.h5")
+"""
 ```
 
 ```python
@@ -196,22 +221,46 @@ If the start time is before the earliest period (IC_40), the start time will be 
 If the end time is past the last period (IC86_II), then we get an according message and simulate into the future
 
 ```python
-times = uptime.find_obs_time(start=53569, duration=10)
+times = uptime.find_obs_time(start=55569, duration=3)
 times
 ```
 
 The returned dictionary can be used to set the simulation times for an instance of `TimeDependentSimulator`:
 
 ```python
-tsim = TimeDependentSimulator(["IC40", "IC59", "IC79", "IC86_I", "IC86_II"], sources)
+tsim = TimeDependentSimulator(["IC86_I", "IC86_II"], sources)
 tsim.time = times
 ```
 
 The simulation is started by calling `run()`, results can be saved by `save(file_prefix)`, with the filename being `{file_prefix}_{p}.h5` with period `p`.
 
 ```python
-#tsim.run()
-#tsim.save()
+tsim.run()
+tsim.save("data", "test_sim")
+```
+
+```python
+"""
+for i in [1.5, 2.0, 2.5, 3.0, 3.5, 3.7]:
+    norm_energy = 1e5 # Energy of normalisation in units of GeV
+    min_energy = 1e2 # GeV
+    max_energy = 1e8 # GeV
+    phi_solver = PhiSolver(aeff, norm_energy, min_energy, max_energy, 
+                           time=1, min_cosz=-1, max_cosz=1)
+    phi_norm = phi_solver(Nnu=2000, 
+                          dec=30, # degrees
+                          index=i) # spectral index
+    phi_norm # GeV^-1 cm^-2 s^-1
+    point_power_law = PowerLawFlux(phi_norm, norm_energy, i, 
+                                   min_energy, max_energy)
+    point_source = PointSource(point_power_law, z=0., coord=(np.pi, np.deg2rad(30)))
+    sources = [point_source]
+    tsim = TimeDependentSimulator(["IC86_I", "IC86_II"], sources)
+    for sim in tsim.simulators.values():
+        sim.time = 1
+    tsim.run()
+    tsim.save(f"index_{i}")
+"""
 ```
 
 ```python
