@@ -95,8 +95,8 @@ class PointSourceLikelihood:
 
         self._dec_high = source_coord[1] + np.deg2rad(self._band_width)
 
-        if self._dec_low < np.arcsin(-0.1) or np.isnan(self._dec_low):
-            self._dec_low = np.arcsin(-0.1)
+        if self._dec_low < np.arcsin(-1.0) or np.isnan(self._dec_low):
+            self._dec_low = np.arcsin(-1.0)
 
         if self._dec_high > np.arcsin(1.0) or np.isnan(self._dec_high):
             self._dec_high = np.arcsin(1.0)
@@ -387,7 +387,7 @@ class PointSourceLikelihood:
             logger.info("Using all information.")
 
         m = Minuit(
-            self._func_to_minimize,
+            func_to_minimize,
             ns=init_ns,
             index=init_index,
         )
@@ -396,6 +396,8 @@ class PointSourceLikelihood:
         m.errors["index"] = 0.1
         m.errors["ns"] = 1
         m.limits["index"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
+        if self.which == 'spatial':
+            m.fixed["index"] = True
         m.errordef = 0.5
         m.migrad()
 
