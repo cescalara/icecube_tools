@@ -33,7 +33,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
 
         self.uniform = uniform(0, 2*np.pi)
 
-
+        self.ereco_pdf_max = 0.
 
         logging.debug('Creating Ereco distributions')
         #Reco energy is handled without ddict() because it's not that much calculation
@@ -43,6 +43,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
         for c_e, e in enumerate(self.true_energy_bins[:-1]):
             for c_d, d in enumerate(self.declination_bins[:-1]):
                 n, bins = self._marginalisation(c_e, c_d)
+                if n.max() > self.ereco_pdf_max:
+                    self.ereco_pdf_max = n.max()
                 self.reco_energy[c_e, c_d] = rv_histogram((n, bins))
                 self.reco_energy_bins[c_e, c_d] = bins
         self._values = []
