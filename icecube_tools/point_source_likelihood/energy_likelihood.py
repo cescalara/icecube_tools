@@ -1,7 +1,11 @@
 import numpy as np
+from scipy import integrate
 from abc import ABC, abstractmethod
 import h5py
 from os.path import join
+
+from icecube_tools.detector.r2021 import R2021IRF
+from icecube_tools.detector.effective_area import EffectiveArea
 
 """
 Module to compute the IceCube energy likelihood
@@ -31,6 +35,83 @@ class MarginalisedEnergyLikelihood(ABC):
         """
 
         pass
+
+
+class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
+    """
+    Calculates energy likelihood by integration rather than simulation.
+    """
+
+    def __init__(
+        self,
+        irf: R2021IRF,
+        aeff: EffectiveArea, 
+        reco_bins: np.ndarray,
+        ):
+
+        # TODO change reco_bins to cover the range provided by all the pdfs
+        # and have the coarsest binning of all pdfs
+        self._irf = irf
+        self._aeff = aeff
+        self.reco_bins = reco_bins
+        self.true_energy_bins = irf.true_energy_bins
+        self.declination_bins = irf.declination_bins
+
+
+    def __call__(self, log_ereco, index, dec):
+        """
+        Wrapper on _calc_likelihood to retrieve only the likelihood for a specific Ereco value.
+        """
+
+        reco_ind = np.digitize(log_ereco, self.reco_bins) - 1
+        values = self._calc_likelihood(self, index, dec)
+        return values[reco_ind]
+
+
+    def _calc_likelihood(self, index, dec):
+        """
+        Calculates likelihood for new reco energy binning for given index at given declination.
+        """
+
+        #Get index of declination for appropriate IRF
+        dec_ind = np.digitize(dec, self.declination_bins) - 1
+        # TODO implement boundaries of array
+
+        #init array for values
+        values = np.zeros(self.reco_bins[:-1].size)
+
+        #loop over all reco energy bins
+        for c_reco, (erecol, erecoh) in enumerate(
+            zip(self.reco_bins[:-1], self.reco_bins[1:])
+        ):
+            def integrate_this(loge):
+                # defines integrand, to be integrated over true energy
+                # pdf(log Ereco|log Etrue) * pdf(log Etrue|gamma) * detector acceptance(log Etrue, dec)
+                # find index of true energy value of loge
+                true_ind = np.digitize(loge, self.true_energy_bins) - 1
+                #TODO implement boundaries of array
+
+                pdf = self._irf.reco_energy[true_ind, dec_ind]
+                #integrate over each bin of reco energy bc histogram and not continuous distribution
+                cdf = (pdf.cdf(erecoh) - pdf.cdf(erecol))
+                return self.power_law_loge(loge, index) * cdf * \
+                    self._aeff.detection_probability(np.power(10, loge), np.cos(dec), 1e8)
+
+            values[c_reco] = integrate.quad(integrate_this, 2, 8)[0]
+        values = values / np.sum(values)
+        return values
+
+
+    @staticmethod
+    def integrated_power_law(loge_high, loge_low, index):
+        return 1. / (1 - index) * \
+            (np.power(10, -loge_high * (index - 1)) - np.power(10, -loge_low * (index - 1))) 
+
+
+    @staticmethod
+    def power_law_loge(loge, index):
+        return np.power(np.power(10, loge), -index + 1)
+
 
 
 class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
