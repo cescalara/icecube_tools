@@ -47,6 +47,8 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         irf: R2021IRF,
         aeff: EffectiveArea, 
         reco_bins: np.ndarray,
+        min_index: float=1.5,
+        max_index: float=4.0,
         ):
 
         # TODO change reco_bins to cover the range provided by all the pdfs
@@ -56,15 +58,17 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         self.reco_bins = reco_bins
         self.true_energy_bins = irf.true_energy_bins
         self.declination_bins = irf.declination_bins
+        self._min_index = min_index
+        self._max_index = max_index
 
 
-    def __call__(self, log_ereco, index, dec):
+    def __call__(self, ereco, index, dec):
         """
         Wrapper on _calc_likelihood to retrieve only the likelihood for a specific Ereco value.
         """
-
+        log_ereco = np.log10(ereco)
         reco_ind = np.digitize(log_ereco, self.reco_bins) - 1
-        values = self._calc_likelihood(self, index, dec)
+        values = self._calc_likelihood(index, dec)
         return values[reco_ind]
 
 
@@ -74,7 +78,9 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         """
 
         #Get index of declination for appropriate IRF
+        #print(dec)
         dec_ind = np.digitize(dec, self.declination_bins) - 1
+        #print(dec_ind)
         # TODO implement boundaries of array
 
         #init array for values
