@@ -1,3 +1,4 @@
+from re import T
 import numpy as np
 from scipy import integrate
 from abc import ABC, abstractmethod
@@ -56,10 +57,17 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         self._irf = irf
         self._aeff = aeff
         self.reco_bins = reco_bins
-        self.true_energy_bins = irf.true_energy_bins
-        self.declination_bins = irf.declination_bins
+        true_bins_irf = irf.true_energy_bins
+        self.true_bins_aeff = np.log10(aeff.true_energy_bins)
+        self.true_energy_bins = np.array(sorted(list(set(true_bins_irf).union(self.true_bins_aeff))))
+        self.true_bins_irf = true_bins_irf
+        self.declination_bins_irf = irf.declination_bins
+        cos_z_bins = aeff.cos_zenith_bins
+        self.declination_bins_aeff = np.arcsin(-cos_z_bins)
         self._min_index = min_index
         self._max_index = max_index
+        self.values_per_dec = {}
+
 
 
     def __call__(self, ereco, index, dec):
@@ -68,8 +76,15 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         """
         log_ereco = np.log10(ereco)
         reco_ind = np.digitize(log_ereco, self.reco_bins) - 1
-        values = self._calc_likelihood(index, dec)
-        return values[reco_ind]
+        np.nonzero(log_ereco == self.reco_bins[-1])
+        dec_ind = np.digitize(dec, self.declination_bins_aeff) - 1
+        try:
+            vals = self.values_per_dec[dec_ind]
+        except KeyError:
+            self._calc_likelihood(index, dec)
+            vals = self.values_per_dec[dec_ind]
+        
+        return vals[reco_ind]
 
 
     def _calc_likelihood(self, index, dec):
@@ -79,17 +94,31 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
 
         #Get index of declination for appropriate IRF
         #print(dec)
-        dec_ind = np.digitize(dec, self.declination_bins) - 1
+        irf_dec_ind = np.digitize(dec, self.declination_bins_irf) - 1
+        aeff_dec_ind = np.digitize(dec, self.declination_bins_aeff) - 1
+
         #print(dec_ind)
         # TODO implement boundaries of array
 
         #init array for values
         values = np.zeros(self.reco_bins[:-1].size)
-
+        aeff = self._aeff.detection_probability(
+            np.power(10, self.true_energy_bins[:-1]+0.01), -np.sin(dec), 1e9
+        )
+        #print(aeff)
+        
+        true_bins_ind = np.nonzero(self.true_energy_bins[:-1]+0.01 < self.true_bins_aeff.max())
+        true_bins = self.true_energy_bins[true_bins_ind]
+        aeff_ind_e = np.digitize(true_bins+0.01, self.true_bins_aeff) - 1
+        aeff_ind_d = np.digitize(-np.sin(dec), self.declination_bins_aeff) - 1
+        aeff_alt = self._aeff.values[aeff_ind_e][aeff_ind_d]
+        #print(aeff_alt)
         #loop over all reco energy bins
         for c_reco, (erecol, erecoh) in enumerate(
             zip(self.reco_bins[:-1], self.reco_bins[1:])
         ):
+
+            """ 
             def integrate_this(loge):
                 # defines integrand, to be integrated over true energy
                 # pdf(log Ereco|log Etrue) * pdf(log Etrue|gamma) * detector acceptance(log Etrue, dec)
@@ -101,11 +130,36 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
                 #integrate over each bin of reco energy bc histogram and not continuous distribution
                 cdf = (pdf.cdf(erecoh) - pdf.cdf(erecol))
                 return self.power_law_loge(loge, index) * cdf * \
-                    self._aeff.detection_probability(np.power(10, loge), np.cos(dec), 1e8)
+                    self._aeff.detection_probability(np.power(10, loge), -np.sin(dec), 1e8)
 
             values[c_reco] = integrate.quad(integrate_this, 2, 8)[0]
+            """
+            sum_this = np.zeros(self.true_energy_bins.size - 1)
+            #aeff shape is energy x cos z
+            #since we are normalising in the end, just use the data array
+            #instead of detection_probability()
+            
+            for c, (etruel, etrueh) in enumerate(zip(
+                self.true_energy_bins[:-1], self.true_energy_bins[1:])
+            ):
+
+                c_true_irf = np.digitize(etruel, self.true_bins_irf) - 1
+                #if etruel == 9.:
+                #    c_true_irf -= 1
+                #elif etruel > 9.:
+                #    continue
+                if etrueh > 9.:
+                    break   
+                #true_ind = np.digitize(etruel+0.01, self.true_energy_bins) - 1
+                pdf = self._irf.reco_energy[c_true_irf, irf_dec_ind]
+                cdf = (pdf.cdf(erecoh) - pdf.cdf(erecol))
+                pl = self.integrated_power_law(etrueh, etruel, index)
+                sum_this[c] = cdf * pl
+            values[c_reco] = np.dot(sum_this, aeff)
+
         values = values / np.sum(values)
-        return values
+        self.values_per_dec[aeff_dec_ind] = values
+        #return values
 
 
     @staticmethod
