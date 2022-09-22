@@ -4,11 +4,13 @@ from pytest import approx
 from icecube_tools.detector.effective_area import EffectiveArea
 from icecube_tools.detector.energy_resolution import EnergyResolution
 from icecube_tools.detector.angular_resolution import AngularResolution
+from icecube_tools.detector.r2021 import R2021IRF
 from icecube_tools.detector.detector import IceCube
 from icecube_tools.source.flux_model import PowerLawFlux
 from icecube_tools.source.source_model import DiffuseSource, PointSource
 from icecube_tools.neutrino_calculator import NeutrinoCalculator, PhiSolver
-from icecube_tools.simulator import Simulator
+from icecube_tools.simulator import Simulator, TimeDependentSimulator
+
 
 
 aeff = EffectiveArea.from_dataset("20181018")
@@ -54,3 +56,9 @@ def test_simulation():
     simulator.run(seed=42)
 
     assert min(simulator.true_energy) >= 1e4
+
+
+
+def test_new_simulation():
+    tsim = TimeDependentSimulator(["IC86_I", "IC86_II"], sources)
+    tsim.run(seed=42)
