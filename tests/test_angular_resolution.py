@@ -38,7 +38,7 @@ def test_angular_resolution():
 def test_r2021_irf():
 
     # Load
-    irf = R2021IRF()
+    irf = R2021IRF.from_period("IC86_I")
 
     # Sample
     ra = 0.0 # rad

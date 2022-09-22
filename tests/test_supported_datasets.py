@@ -34,7 +34,7 @@ def test_eres_load():
 
 def test_2021irf_load():
 
-    _ = R2021IRF()
+    _ = R2021IRF.from_period("IC86_II")
 
 
 def test_icecube_load():

@@ -480,7 +480,7 @@ class EffectiveArea(object):
                 return scaled_values[energy_index]
 
     @classmethod
-    def from_dataset(cls, dataset_id, period=None, fetch=True, **kwargs):
+    def from_dataset(cls, dataset_id, period="IC86_II", fetch=True, **kwargs):
         """
         Build effective area from a public dataset.
 
@@ -489,6 +489,7 @@ class EffectiveArea(object):
         effective areas.
 
         :param dataset_id: Date of dataset release e.g. 20181018
+        :param period: For 20210126, which period should be used. Defaults to IC86_II (most recent)
         :param fetch: If true, download dataset if not existing
         """
 
