@@ -13,6 +13,7 @@ from icecube_tools.utils.data import find_files, data_directory, IceCubeData, dd
 from icecube_tools.utils.vMF import get_kappa, get_theta_p
 
 R2021_IRF_FILENAME = "smearing.csv"
+_supported_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
 
 
 class R2021IRF(EnergyResolution, AngularResolution):
@@ -284,19 +285,21 @@ class R2021IRF(EnergyResolution, AngularResolution):
         :param fetch: True if data should be downloaded
         """
 
-        
+        if period not in _supported_periods:
+            raise ValueError("Period {period} is not supported.")
 
         if kwargs.get("fetch", True):
             data_interface = IceCubeData()
             dataset = data_interface.find("20210126")
             data_interface.fetch(dataset)
             dataset_dir = data_interface.get_path_to(dataset[0])
+        else:
+            dataset_dir = data_directory
 
-        files = find_files(data_directory, R2021_IRF_FILENAME)
+        files = find_files(dataset_dir, R2021_IRF_FILENAME)
         for f in files:
                 if "_".join((period, R2021_IRF_FILENAME)) in f:
                     return cls(f, **kwargs)
-
 
 
     def _get_angerr_dist(self, c_e, c_d, c_e_r, c_psf):

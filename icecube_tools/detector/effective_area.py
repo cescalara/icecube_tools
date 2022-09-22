@@ -21,6 +21,8 @@ R2021_AEFF_FILENAME = "effectiveArea.csv"
 
 _supported_dataset_ids = ["20131121", "20150820", "20181018", "20210126"]
 
+_supported_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
+
 
 class IceCubeAeffReader(ABC):
     """
@@ -530,6 +532,8 @@ class EffectiveArea(object):
             aeff_file_name = folders[0]
 
         elif dataset_id == "20210126":
+            if period not in _supported_periods:
+                raise ValueError(f"Period {period} is not supported.")
 
             files = find_files(dataset_dir, R2021_AEFF_FILENAME)
             # Pick one at random?

@@ -111,12 +111,17 @@ class TimeDependentDetector(ABC):
 
 
 class TimeDependentIceCube(TimeDependentDetector):
+    """
+    Class to organise a time-dependent detector.
+    """
+
+
+    _available_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
+
 
     def __init__(self, detectors):
         self._detectors = detectors
 
-
-    _available_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
 
     @classmethod
     def from_periods(cls, *periods):
@@ -124,7 +129,7 @@ class TimeDependentIceCube(TimeDependentDetector):
         Creates class instance with a detector model for each given
         data taking period.
         :param periods: Tuple of strings, available ones listed above.
-        :return: 
+        :return:  `TimeDependentIceCube` instance.
         """
         
         # Check if all periods are supported
