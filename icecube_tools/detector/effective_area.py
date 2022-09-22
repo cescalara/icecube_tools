@@ -17,9 +17,11 @@ R2013_AEFF_FILENAME = "effective_areas"
 R2015_AEFF_FILENAME = "effective_area.h5"
 R2018_AEFF_FILENAME = "TabulatedAeff.txt"
 BRAUN2008_AEFF_FILENAME = "AeffBraun2008.csv"
-R2021_AEFF_FILENAME = "IC86_II_effectiveArea.csv"
+R2021_AEFF_FILENAME = "effectiveArea.csv"
 
 _supported_dataset_ids = ["20131121", "20150820", "20181018", "20210126"]
+
+_supported_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
 
 
 class IceCubeAeffReader(ABC):
@@ -478,7 +480,7 @@ class EffectiveArea(object):
                 return scaled_values[energy_index]
 
     @classmethod
-    def from_dataset(cls, dataset_id, fetch=True, **kwargs):
+    def from_dataset(cls, dataset_id, period="IC86_II", fetch=True, **kwargs):
         """
         Build effective area from a public dataset.
 
@@ -487,6 +489,7 @@ class EffectiveArea(object):
         effective areas.
 
         :param dataset_id: Date of dataset release e.g. 20181018
+        :param period: For 20210126, which period should be used. Defaults to IC86_II (most recent)
         :param fetch: If true, download dataset if not existing
         """
 
@@ -530,9 +533,14 @@ class EffectiveArea(object):
             aeff_file_name = folders[0]
 
         elif dataset_id == "20210126":
+            if period not in _supported_periods:
+                raise ValueError(f"Period {period} is not supported.")
 
             files = find_files(dataset_dir, R2021_AEFF_FILENAME)
             # Pick one at random?
-            aeff_file_name = files[0]
+            for f in files:
+                if "_".join((period, R2021_AEFF_FILENAME)) in f:
+                    aeff_file_name = f
+                    break
 
         return cls(aeff_file_name, **kwargs)

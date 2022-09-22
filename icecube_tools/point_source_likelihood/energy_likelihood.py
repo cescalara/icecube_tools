@@ -62,7 +62,7 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
         
         :param index_list: List of indices provided with datasets
         :param path: Path where datasets are located
-        :param fname: Filename, bar ending of `_{index:1.f}.txt`
+        :param fname: Filename, bar ending of `_{index:.1f}.txt`
         :param src_dec: Source declination in radians
         """
         #TODO change path thing and loading of data? maybe option to pass data directly
@@ -70,8 +70,10 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
         #distinguish between used data set/likelihood for different indices
         self.index_list = sorted(index_list)
         self.likelihood = {}
+        
         for c, i in enumerate(self.index_list):
-            filename = join(path, f"{fname}_{i:1.1f}.h5")
+            filename = join(path, f"{fname}_index_{i:.1f}.h5")
+            print(filename)
             with h5py.File(filename, "r") as f:
                 reco_energy = f["reco_energy"][()]
                 dec = f["dec"][()]
@@ -87,11 +89,11 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
                 min_sind,
                 max_sind,
                 Ebins
-        )
+            )
         self.lls = np.zeros((len(index_list), self.likelihood[f"{float(i):1.1f}"]._energy_bins.shape[0]-1))
         for c, i in enumerate(self.index_list):
-            self.lls[c, :] = self.likelihood[f"{float(i):1.1f}"].likelihood
-        self._energy_bins = self.likelihood[f"{float(i):1.1f}"]._energy_bins
+            self.lls[c, :] = self.likelihood[f"{i:.1f}"].likelihood
+            self._energy_bins = self.likelihood[f"{i:.1f}"]._energy_bins
 
         #decide on max/min index based on provided simulations
         #if range of simulations is smaller, use these values
