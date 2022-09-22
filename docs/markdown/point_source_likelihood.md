@@ -114,6 +114,8 @@ with h5py.File("data/p_IC86_I_test_sim.h5", "r") as f:
             data[key] = f[key][()]
 ```
 
+Let's see how many source events are included in the simulated sample.
+
 ```python
 np.where(data["source_label"] == 1)[0].size
 ```
@@ -226,8 +228,8 @@ As a final step we show the likelihood values across a 2d grid.
 ```python
 index = np.arange(1.7, 3.4, step=0.2)
 index_pl = np.arange(1.6, 3.5, step=0.2)
-ns_pl = np.arange(5.5, 15.5, step=1.)
-ns = np.arange(6, 15, step=1.)
+ns_pl = np.arange(17.5, 57.5, step=5.)
+ns = np.arange(20, 55, step=5.)
 ii, nn = np.meshgrid(index, ns, indexing='ij')
 ll = np.zeros(ii.flatten().shape)
 
@@ -245,6 +247,9 @@ ax.set_ylabel("ns")
 
 # Time dependent point source likelihood
 
+By repeating the exercise with the time dependent likelihood we can analyse data spanning multiple data periods.
+We define the source and its coordinates as above, pass the appropriate `event_files`, an `index_list` containing the indices of simulated spectra used to build the energy likelihoods and a directory in which these files are stored.
+
 ```python
 source_coords = (np.pi, np.deg2rad(30))
 #index_list = list(np.arange(1.5, 4.25, 0.25))
@@ -259,4 +264,8 @@ m = tllh._minimize()
 
 ```python
 m
+```
+
+```python
+
 ```

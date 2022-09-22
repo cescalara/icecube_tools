@@ -218,7 +218,9 @@ We can further define a start and end time of an observation and let it calculat
 
 If the start time is before the earliest period (IC_40), the start time will be set to the earliest possible date.
 
-If the end time is past the last period (IC86_II), then we get an according message and simulate into the future
+If the end time is past the last period (IC86_II), then we get an according message and simulate into the future.
+
+We can of course bypass this time setting and operate directly on the instances of Simulator, for example if we'd want to build up large statistics for subsequent likelihood analysis.
 
 ```python
 times = uptime.find_obs_time(start=55569, duration=3)
