@@ -109,9 +109,9 @@ ereco = np.linspace(1, 8, num=100)
 ```
 
 ```python
-vals = np.zeros((etrue.size, ereco.size))
+vals = np.zeros((etrue.size-1, ereco.size-1))
 for c, et in enumerate(etrue[:-1]):
-    vals[c, :-1] = irf.reco_energy[c, 2].pdf(ereco[:-1])
+    vals[c, :] = irf.reco_energy[c, 2].pdf(ereco[:-1])
 ```
 
 ```python
@@ -131,7 +131,7 @@ cbar.set_label("P(Ereco|Etrue)")
 
 Now that we have the reconstructed energy for an event with some $E_\mathrm{true}, \delta$, we can proceed in finding the angular resolution.
 
-First, from the given "history" of the event, we sample the matching distribution/histogram of $\mathrm{PSF}$, again my marginalising over the uninteresting quantities, in this case only $\mathrm{ang\_err}$. We thus sample a value of $\mathrm{PSF}$, to whom a distribution of $\mathrm{ang\_err}$ belongs, which we subsequently sample. This is now to be understood as a cone of a given angular radius, within which the true arrival direction lies with a probability of 50%.
+First, from the given "history" of the event, we sample the matching distribution/histogram of $\mathrm{PSF}$, again by marginalising over the uninteresting quantities, in this case only $\mathrm{ang\_err}$. We thus sample a value of $\mathrm{PSF}$, to whom a distribution of $\mathrm{ang\_err}$ belongs, which we subsequently sample. This is now to be understood as a cone of a given angular radius, within which the true arrival direction lies with a probability of 50%.
 
 For both steps, the histograms are created by `R2021IRF()` when instructed to do so: we pass a tuple of vectors (ra, dec) in radians and a vector of $\log_{10}(E_\mathrm{true})$ to the method `sample()`. Returned are sampled ra, dec (both in radians), angular error (68%, in degrees) and reconstructed energy in GeV.
 
@@ -165,6 +165,8 @@ for c, e in enumerate(loge[:-1]):
     mean_uncertainty[c] = np.power(10,np.average(np.log10(samples)))
 mean_uncertainty[-1] = mean_uncertainty[-2]
 plt.step(loge, mean_uncertainty, where='post')
+plt.xlabel("$\log E_\mathrm{true} / \mathrm{GeV}$")
+plt.ylabel("mean angular uncertainty [degrees]")
 ```
 
 ## Constructing a detector
