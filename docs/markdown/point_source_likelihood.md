@@ -35,10 +35,14 @@ from icecube_tools.point_source_likelihood.spatial_likelihood import (
 )
 from icecube_tools.point_source_likelihood.energy_likelihood import (
     MarginalisedEnergyLikelihood2021, read_input_from_file,
+    MarginalisedIntegratedEnergyLikelihood
 )
 from icecube_tools.point_source_likelihood.point_source_likelihood import (
     PointSourceLikelihood
 )
+
+from icecube_tools.detector.effective_area import EffectiveArea
+from icecube_tools.detector.r2021 import R2021IRF
 ```
 
 ## Spatial likelihood
@@ -75,18 +79,28 @@ Now let's think about the energy-dependent term. The way this is handled is to m
 Doing this properly requires a knowledge of the relationship between the true and reconstructed energies as well as the details of the power law model. The most straightforward way to implement this is to simulate the a large number of events using the `Simulator` and build a likelihood using the output of this simulation and `MarginalisedEnergyLikelihoodFromSim`. We do exactly this with pre-computed lists of events, to be found in the data subdirectory: `sim_output_{index}.h5`. These were simulated using point sources with spectral index `index` at 45 degrees declination. The likelihood is restricted to a small band of declination around the assumed source. Using the same declination for our test source, this is fine. For different source declinations further simulations would be needed to account for the declination dependence of the detector acceptance.
 
 ```python
-energy_likelihood = MarginalisedEnergyLikelihood2021([1.5, 2.0, 2.5, 3.0, 3.5, 3.7, 4.0], 'data', 'sim_output', np.pi/4,)
+aeff = EffectiveArea.from_dataset("20210126")
+irf = R2021IRF(fetch=False)
+new_reco_bins = irf.reco_energy_bins[12, 2]
+energy_likelihood = MarginalisedIntegratedEnergyLikelihood(irf, aeff, new_reco_bins)
+#energy_likelihood = MarginalisedEnergyLikelihood2021([1.5, 2.0, 2.5, 3.0, 3.5, 3.7, 4.0], 'data', 'sim_output', np.pi/4,)
 ```
 
 ```python
-test_energies = np.geomspace(10, 1e7) # GeV
-test_indices = [2, 2.5, 3, 3.5]
+irf.true_energy_bins
+```
+
+```python
+#test_energies = np.geomspace(10, 1e7) # GeV
+test_indices = [2.0, 2.5, 3, 3.5]
 
 fig, ax = plt.subplots()
 for index in test_indices:
-    ax.plot(test_energies, [energy_likelihood(e, index) for e in test_energies], 
-            label=f"index {index:.1f}")
-ax.set_xscale("log")
+    energy_likelihood._calc_likelihood(index, np.deg2rad(30))
+    dec_ind = np.digitize(np.deg2rad(30), energy_likelihood.declination_bins_aeff) - 1
+    ax.step(new_reco_bins[:-1], energy_likelihood.values_per_dec[dec_ind], 
+            label=f"index {index:.1f}", where='post')
+#ax.set_xscale("log")
 ax.set_yscale("log")
 ax.set_xlabel("E_reco [GeV]")
 ax.set_ylabel("Energy likelihood")
@@ -112,27 +126,44 @@ Now lets put our likelihood structure and data in together, along with a propose
 likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood, 
                                   data["ra"], data["dec"], data["reco_energy"],
                                   source_coord)
-likelihood._bg_index = 3.0
+likelihood._bg_index = 3.7
 ```
 
 The likelihood will automatically select a declination band around the proposed source location. Because of the Gaussian spatial likelihood, neutrinos far from the source will have negligible contribution. We can control the width of this band with the optional argument `band_width_factor`. Let's see how many events ended up in the band, compared to the total number:
 
 ```python
-likelihood.N
+data["dec"].max()
+```
+
+```python
+max(np.digitize(data["dec"], energy_likelihood.declination_bins_aeff)-1)
+```
+
+```python
+likelihood.Nprime
 ```
 
 ```python
 likelihood.Ntot
 ```
 
+```python
+energy_likelihood._min_index = 1.4
+energy_likelihood._max_index = 4.0
+likelihood._bg_energy_likelihood = None
+```
+
 We also note that the background likelihood is implemented automatically, for more information on the options here, check out the API docs. This is just a function of energy, with a constant factor to account for the isotropic directional likelihood.
 
 ```python
 fig, ax = plt.subplots()
-ax.plot(test_energies, [likelihood._background_likelihood(e) for e in test_energies])
-ax.set_xscale("log")
+energy_likelihood._calc_likelihood(3.7, np.deg2rad(30))
+dec_ind = np.digitize(np.deg2rad(30), energy_likelihood.declination_bins_aeff) - 1
+ax.step(new_reco_bins[:-1], energy_likelihood.values_per_dec[dec_ind], 
+        label=f"index {index:.1f}", where='post')
+#ax.set_xscale("log")
 ax.set_yscale("log")
-ax.set_xlabel("E_reco [GeV]")
+ax.set_xlabel("$log_{10}(E_\mathrm{reco} / \mathrm{GeV})}$")
 ax.set_ylabel("Background likelihood")
 ```
 
@@ -143,7 +174,15 @@ A point source search is usually carried out by defining the likelihood ratio of
 `icecube_tools` includes calculation of the test statistic, with optimisation performed by `iminuit`.
 
 ```python
+np.log10(data["reco_energy"]).max()
+```
+
+```python
 likelihood.get_test_statistic()
+```
+
+```python
+likelihood._best_fit_index, likelihood._best_fit_ns
 ```
 
 To understand the significance of this results, we would have to calculate the test statistic for a large number of background-only simulations. These could then be used to calculate a p-value. Given there is a strong point source in the simulation we used, we can expect the test stastic to be lower if we remove the source events. Let's try this:
@@ -195,7 +234,7 @@ likelihood._energy_likelihood.index_list
 
 ```python
 m = likelihood._minimize()
-m.migrad()
+print(m)
 ```
 
 ```python
@@ -207,6 +246,10 @@ _ = m.draw_profile("index", bound=(likelihood._energy_likelihood._min_index, lik
 ```
 
 As a final step we show the likelihood values across a 2d grid.
+
+```python
+print("hello")
+```
 
 ```python
 index = np.arange(1.7, 3.4, step=0.2)
@@ -226,6 +269,18 @@ pcol_ax = fig.colorbar(pcol)
 pcol_ax.set_label("negative loglike")
 ax.set_xlabel("index")
 ax.set_ylabel("ns")
+```
+
+```python
+irf.true_energy_bins
+```
+
+```python
+np.log10(aeff.true_energy_bins)
+```
+
+```python
+np.array(sorted(list(set(irf.true_energy_bins).union(np.log10(aeff.true_energy_bins)))))
 ```
 
 ```python

@@ -62,12 +62,11 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         self.true_energy_bins = np.array(sorted(list(set(true_bins_irf).union(self.true_bins_aeff))))
         self.true_bins_irf = true_bins_irf
         self.declination_bins_irf = irf.declination_bins
-        cos_z_bins = aeff.cos_zenith_bins
-        self.declination_bins_aeff = np.arcsin(-cos_z_bins)
+        self.cos_z_bins = aeff.cos_zenith_bins
+        self.declination_bins_aeff = np.arcsin(-self.cos_z_bins)
         self._min_index = min_index
         self._max_index = max_index
         self.values_per_dec = {}
-
 
 
     def __call__(self, ereco, index, dec):
@@ -76,7 +75,7 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         """
         log_ereco = np.log10(ereco)
         reco_ind = np.digitize(log_ereco, self.reco_bins) - 1
-        np.nonzero(log_ereco == self.reco_bins[-1])
+        #np.nonzero(log_ereco == self.reco_bins[-1])
         dec_ind = np.digitize(dec, self.declination_bins_aeff) - 1
         try:
             vals = self.values_per_dec[dec_ind]
@@ -103,14 +102,14 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         #init array for values
         values = np.zeros(self.reco_bins[:-1].size)
         aeff = self._aeff.detection_probability(
-            np.power(10, self.true_energy_bins[:-1]+0.01), -np.sin(dec), 1e9
+            np.power(10, self.true_energy_bins[:-1]), -np.sin(dec), 1e9
         )
         #print(aeff)
         
-        true_bins_ind = np.nonzero(self.true_energy_bins[:-1]+0.01 < self.true_bins_aeff.max())
+        true_bins_ind = np.nonzero(self.true_energy_bins[:-1] < self.true_bins_aeff.max())
         true_bins = self.true_energy_bins[true_bins_ind]
         aeff_ind_e = np.digitize(true_bins+0.01, self.true_bins_aeff) - 1
-        aeff_ind_d = np.digitize(-np.sin(dec), self.declination_bins_aeff) - 1
+        aeff_ind_d = np.digitize(-np.sin(dec), self.cos_z_bins) - 1
         aeff_alt = self._aeff.values[aeff_ind_e][aeff_ind_d]
         #print(aeff_alt)
         #loop over all reco energy bins
@@ -138,6 +137,7 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
             #aeff shape is energy x cos z
             #since we are normalising in the end, just use the data array
             #instead of detection_probability()
+            #doesnt seem to work properly, shifts llh to much lower energies
             
             for c, (etruel, etrueh) in enumerate(zip(
                 self.true_energy_bins[:-1], self.true_energy_bins[1:])
@@ -148,8 +148,12 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
                 #    c_true_irf -= 1
                 #elif etruel > 9.:
                 #    continue
-                if etrueh > 9.:
-                    break   
+                if etrueh > self.true_bins_irf.max():
+                    print("too high true energy")
+                    continue
+                if etruel < self.true_bins_irf.min():
+                    print("too low true energy")
+                    continue
                 #true_ind = np.digitize(etruel+0.01, self.true_energy_bins) - 1
                 pdf = self._irf.reco_energy[c_true_irf, irf_dec_ind]
                 cdf = (pdf.cdf(erecoh) - pdf.cdf(erecol))
@@ -165,7 +169,7 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
     @staticmethod
     def integrated_power_law(loge_high, loge_low, index):
         return 1. / (1 - index) * \
-            (np.power(10, -loge_high * (index - 1)) - np.power(10, -loge_low * (index - 1))) 
+            (np.power(10, -loge_high * (index - 1)) - np.power(10, -loge_low * (index - 1)))
 
 
     @staticmethod
