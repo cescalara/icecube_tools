@@ -17,7 +17,7 @@ from .source.flux_model import PowerLawFlux, BrokenPowerLawFlux
 from .neutrino_calculator import NeutrinoCalculator
 from .detector.angular_resolution import FixedAngularResolution, AngularResolution
 from .detector.r2021 import R2021IRF
-from .utils.data import Uptime
+from .utils.data import Uptime, data_directory
 
 """
 Module for running neutrino production 
@@ -31,7 +31,6 @@ logger.setLevel(logging.INFO)
 
 
 class Simulator:
-    #logger = logging.getLogger(__name__)
     def __init__(self, sources, detector):
         """
         Class for handling simple neutrino production
@@ -238,13 +237,13 @@ class Simulator:
         :param N: Set expected number of neutrinos manually.
         :param seed: Set random seed.
         """
-
+        """
         if show_progress:
             logger.setLevel(logging.INFO)
 
         else:
             logger.setLevel(logging.WARNING)
-
+        """
         np.random.seed(seed)
 
         self._get_expected_number()
@@ -625,6 +624,9 @@ class Braun2008Simulator:
             )
 
 class TimeDependentSimulator():
+    """
+    Simulator-class for simulations spanning multiple data taking periods.
+    """
 
     _available_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
 
@@ -637,10 +639,17 @@ class TimeDependentSimulator():
     # for each period
 
     def __init__(self, periods, sources, **kwargs):
+        """Instanciates multi-period simulator.
+        :param periods: Tuple of periods to be included in simulation.
+        :param sources: List of sources to be simulated.
+        :param kwargs: Dict with further settings.
+        """
+
         self.simulators = {}
         if not all(_ in self._available_periods for _ in periods):
             raise ValueError("Some periods not supported.")
 
+        #Get time dependent detector.
         time_dependent_detector = TimeDependentIceCube.from_periods(*periods)
         self.simulators = {
             p: Simulator(sources, sim) for p, sim in time_dependent_detector.yield_detectors()
@@ -650,14 +659,30 @@ class TimeDependentSimulator():
         if kwargs.get("time"):
             self.time = kwargs["time"]
         else:
-            logger.warning("Need to set simulation times")
+            logger.warning("Need to set simulation times, defaults to 1 year each.")
 
     def run(self, N: List=None, seed=1234, show_progress=False):
+        """
+        Runs simulation for each period.
+        :param N: List of Ns to be set as expected number of neutrinos in sample.
+        :param seed: Random seed.
+        :param show_progress: Bool, True if debugging information on simulation is to be shown.
+        Currently not implemented.
+        """
+
         for p, sim in self.simulators.items():
+            logger.info(f"Simulating period {p}.")
             sim.run(N=None, seed=1234, show_progress=False)
 
 
     def save(self, path, file_prefix):
+        """
+        Saves simulated data sets.
+        :param path: Path to directory in which files should be saved.
+        :param file_prefix: Actually suffix of filename, to be appended to all files.
+        :return: Dictionary of filenames.
+        """
+
         d = {}
         for p, sim in self.simulators.items():
             file_name = join(path, f"p_{p}_{file_prefix}.h5")
@@ -666,27 +691,34 @@ class TimeDependentSimulator():
         return d
 
 
-    def _get_expected_number(self):
+    def get_expected_number(self):
         #loop over all periods and call _get_expected_number() with properly chosen time
         # TODO add way of extracting these numbers
-        for sim in self.simulators.values():
-            sim._get_expected_number()
+        return {p: sim._get_expected_number() for p, sim in self.simulators.items()}
+        #for sim in self.simulators.values():
+        #    sim._get_expected_number()
 
-
+    """
     def _yield_time(self):
         for p, sim in self.simulators.items():
             yield sim.time
-
+    """
 
     @property
     def time(self):
-        return [sim.time for sim in self.simulators.values()]
+        """
+        Returns dictionary of simulator times.
+        :return: Dictionary of simulator times.
+        """
+
+        return {p: sim.time for p, sim in self.simulators.items()}
 
 
     @time.setter
     def time(self, times: Dict):
         """
-        :param times: Dict returned by Uptime.find_time_obs()
+        Sets simulator times.
+        :param times: Dict returned by Uptime.find_time_obs().
         """
         #TODO rewrite method
         for p, t in times.items():
