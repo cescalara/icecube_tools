@@ -375,7 +375,7 @@ class PointSourceLikelihood:
         Uses the iMiuint wrapper.
         """
 
-        init_index = 2.19  # self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2
+        init_index = self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2
         init_ns = self._ns_min + (self._ns_max - self._ns_min) / 2
 
         if self.which == 'spatial':
@@ -851,17 +851,9 @@ class TimeDependentPointSourceLikelihood:
         m = Minuit(func_to_minimize, *init, name=name)
         m.errordef = 0.5
         m.errors = errors
-        m.limits = limits
-        print(m.limits)
-        print(m.errors)
-        print(m.values)
-        """
-        if self.which == 'spatial':
-            m.fixed["index"] = True
-            m.values["index"] = 2.
-        """
-        
+        m.limits = limits        
         m.migrad()
+
         if self.which != 'spatial':
             if not m.fmin.is_valid or not m.fmin.has_covariance:
 
@@ -869,13 +861,14 @@ class TimeDependentPointSourceLikelihood:
                 m.fixed["index"] = True
                 m.migrad()
         else:
-            pass
-            #what else to do?
+            if not m.fmin.is_valid or not m.fmin.has_covariance:
+                logger.warning("Fit has not converged, proceed with caution.")
 
-        #self._best_fit_ns = m.values["ns"]
-        #self._best_fit_index = m.values["index"]
-        
         return m
+
+
+    def get_test_statistic(self):
+        raise NotImplementedError("Not yet implemented.")
 
 
 
