@@ -16,6 +16,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -45,6 +46,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="public_data_access.html">Data access</a></li>
 <li class="toctree-l1"><a class="reference internal" href="detector_model.html">Detector model interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="detector_model.html#Effective-area,-angular-resolution-and-energy-resolution-of-earlier-releases">Effective area, angular resolution and energy resolution of earlier releases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source_model.html">Source model interface</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Simulation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#Defining-a-source-and-detector-model">Defining a source and detector model</a></li>
@@ -52,7 +54,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#Set-up-and-run-simulation">Set up and run simulation</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="point_source_likelihood.html">Point source likelihood</a></li>
+<li class="toctree-l1"><a class="reference internal" href="point_source_likelihood.html#Time-dependent-point-source-likelihood">Time dependent point source likelihood</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/api.html#icecube-tools">icecube_tools</a></li>
 </ul>
@@ -395,13 +399,13 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define detector (see detector model notebook for more info)</span>
-<span class="n">aeff</span> <span class="o">=</span> <span class="n">EffectiveArea</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20210126&quot;</span><span class="p">)</span>
-<span class="n">irf</span> <span class="o">=</span> <span class="n">R2021IRF</span><span class="p">()</span>
+<span class="n">aeff</span> <span class="o">=</span> <span class="n">EffectiveArea</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20210126&quot;</span><span class="p">,</span> <span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
+<span class="n">irf</span> <span class="o">=</span> <span class="n">R2021IRF</span><span class="o">.</span><span class="n">from_period</span><span class="p">(</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
 <span class="c1"># IceCube expects an instance of EffectiveAerea, AngularResolution and</span>
-<span class="c1"># EnergyResolution.</span>
+<span class="c1"># EnergyResolution, optionally the period (here IC86_I)</span>
 <span class="c1"># R2021IRF inherits from AngularResolution and EnergyResolution</span>
 <span class="c1"># just to be able to be used as both</span>
-<span class="n">detector</span> <span class="o">=</span> <span class="n">IceCube</span><span class="p">(</span><span class="n">aeff</span><span class="p">,</span> <span class="n">irf</span><span class="p">,</span> <span class="n">irf</span><span class="p">)</span>
+<span class="n">detector</span> <span class="o">=</span> <span class="n">IceCube</span><span class="p">(</span><span class="n">aeff</span><span class="p">,</span> <span class="n">irf</span><span class="p">,</span> <span class="n">irf</span><span class="p">,</span> <span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -410,19 +414,19 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define simple sources (see source model notebook for more info)</span>
-<span class="n">diff_flux_norm</span> <span class="o">=</span> <span class="mf">1e-19</span>  <span class="c1"># Flux normalisation in units of GeV^-1 cm^-2 s^-1 sr^-1</span>
-<span class="n">point_flux_norm</span> <span class="o">=</span> <span class="mf">3e-19</span>  <span class="c1"># Flux normalisation in units of GeV^-1 cm^-2 s^-1</span>
+<span class="n">diff_flux_norm</span> <span class="o">=</span> <span class="mf">3e-21</span>  <span class="c1"># Flux normalisation in units of GeV^-1 cm^-2 s^-1 sr^-1</span>
+<span class="n">point_flux_norm</span> <span class="o">=</span> <span class="mf">5e-19</span>  <span class="c1"># Flux normalisation in units of GeV^-1 cm^-2 s^-1</span>
 <span class="n">norm_energy</span> <span class="o">=</span> <span class="mf">1e5</span>  <span class="c1"># Energy of normalisation in units of GeV</span>
 <span class="n">min_energy</span> <span class="o">=</span> <span class="mf">1e2</span>  <span class="c1"># GeV</span>
 <span class="n">max_energy</span> <span class="o">=</span> <span class="mf">1e8</span>  <span class="c1"># GeV</span>
 
-<span class="n">diff_power_law</span> <span class="o">=</span> <span class="n">PowerLawFlux</span><span class="p">(</span><span class="n">diff_flux_norm</span><span class="p">,</span> <span class="n">norm_energy</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="n">min_energy</span><span class="p">,</span> <span class="n">max_energy</span><span class="p">)</span>
+<span class="n">diff_power_law</span> <span class="o">=</span> <span class="n">PowerLawFlux</span><span class="p">(</span><span class="n">diff_flux_norm</span><span class="p">,</span> <span class="n">norm_energy</span><span class="p">,</span> <span class="mf">3.7</span><span class="p">,</span> <span class="n">min_energy</span><span class="p">,</span> <span class="n">max_energy</span><span class="p">)</span>
 <span class="n">diff_source</span> <span class="o">=</span> <span class="n">DiffuseSource</span><span class="p">(</span><span class="n">diff_power_law</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 
 <span class="n">point_power_law</span> <span class="o">=</span> <span class="n">PowerLawFlux</span><span class="p">(</span>
     <span class="n">point_flux_norm</span><span class="p">,</span> <span class="n">norm_energy</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="n">min_energy</span><span class="p">,</span> <span class="n">max_energy</span>
 <span class="p">)</span>
-<span class="n">point_source</span> <span class="o">=</span> <span class="n">PointSource</span><span class="p">(</span><span class="n">point_power_law</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">point_source</span> <span class="o">=</span> <span class="n">PointSource</span><span class="p">(</span><span class="n">point_power_law</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">30</span><span class="p">)))</span>
 <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">diff_source</span><span class="p">,</span> <span class="n">point_source</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -460,7 +464,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[203.69948567249227, 14.236383229755331]
+[185.18577999563084, 24.514085562926446]
 </pre></div></div>
 </div>
 <p>The calculator returns a list of expected neutrino event numbers, one for each source.</p>
@@ -472,7 +476,7 @@ div.rendered_html tbody tr:hover {
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">phi_solver</span> <span class="o">=</span> <span class="n">PhiSolver</span><span class="p">(</span>
     <span class="n">aeff</span><span class="p">,</span> <span class="n">norm_energy</span><span class="p">,</span> <span class="n">min_energy</span><span class="p">,</span> <span class="n">max_energy</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_cosz</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_cosz</span><span class="o">=</span><span class="mi">1</span>
 <span class="p">)</span>
-<span class="n">phi_norm</span> <span class="o">=</span> <span class="n">phi_solver</span><span class="p">(</span><span class="n">Nnu</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>  <span class="c1"># degrees  # spectral index</span>
+<span class="n">phi_norm</span> <span class="o">=</span> <span class="n">phi_solver</span><span class="p">(</span><span class="n">Nnu</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>  <span class="c1"># degrees  # spectral index</span>
 <span class="n">phi_norm</span>  <span class="c1"># GeV^-1 cm^-2 s^-1</span>
 </pre></div>
 </div>
@@ -483,7 +487,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-6.245448289268418e-19
+9.368172433902621e-19
 </pre></div></div>
 </div>
 </section>
@@ -493,11 +497,11 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.simulator</span> <span class="kn">import</span> <span class="n">Simulator</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.simulator</span> <span class="kn">import</span> <span class="n">Simulator</span><span class="p">,</span> <span class="n">TimeDependentSimulator</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
@@ -509,6 +513,22 @@ div.rendered_html tbody tr:hover {
 <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">show_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+INFO:icecube_tools.simulator:Instantiating simulation.
+INFO:icecube_tools.simulator:Random N.
+INFO:icecube_tools.simulator:Simulating source 0
+INFO:icecube_tools.simulator:Done sampling the spectrum
+INFO:icecube_tools.simulator:Sampling angular uncertainty for diffuse source
+INFO:icecube_tools.simulator:Simulating source 1
+INFO:icecube_tools.simulator:Done sampling the spectrum
+INFO:icecube_tools.simulator:Sampling angular uncertainty for point source
+INFO:icecube_tools.simulator:Creating array of simulation data
+</pre></div></div>
 </div>
 <p>This way, the simulator calculates the expected number of neutrinos from these sources given the observation period, effective area and relevant source properties. We note that we could also run a simulation for a fixed number of neutrinos if we want, simply by passing the optional argument <code class="docutils literal notranslate"><span class="pre">N</span></code> to <code class="docutils literal notranslate"><span class="pre">simulator.run()</span></code>.</p>
 <div class="nbinput nblast docutils container">
@@ -524,10 +544,10 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Save to file</span>
-<span class="n">simulator</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;data/sim_output.h5&quot;</span><span class="p">)</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;data/sim_output_86_II.h5&quot;</span><span class="p">)</span>
 
 <span class="c1"># Load</span>
-<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;data/sim_output.h5&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;data/sim_output_86_II.h5&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">true_energy</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;true_energy&quot;</span><span class="p">][()]</span>
     <span class="n">reco_energy</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;reco_energy&quot;</span><span class="p">][()]</span>
     <span class="n">ra</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;ra&quot;</span><span class="p">][()]</span>
@@ -539,6 +559,44 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">for i in [1.5, 2.0, 2.5, 3.0, 3.5, 3.7]:</span>
+<span class="sd">    norm_energy = 1e5 # Energy of normalisation in units of GeV</span>
+<span class="sd">    min_energy = 1e2 # GeV</span>
+<span class="sd">    max_energy = 1e8 # GeV</span>
+<span class="sd">    phi_solver = PhiSolver(aeff, norm_energy, min_energy, max_energy,</span>
+<span class="sd">                           time=1, min_cosz=-1, max_cosz=1)</span>
+<span class="sd">    phi_norm = phi_solver(Nnu=2000,</span>
+<span class="sd">                          dec=30, # degrees</span>
+<span class="sd">                          index=i) # spectral index</span>
+<span class="sd">    phi_norm # GeV^-1 cm^-2 s^-1</span>
+<span class="sd">    point_power_law = PowerLawFlux(phi_norm, norm_energy, i,</span>
+<span class="sd">                                   min_energy, max_energy)</span>
+<span class="sd">    point_source = PointSource(point_power_law, z=0., coord=(np.pi, np.deg2rad(30)))</span>
+<span class="sd">    sources = [point_source]</span>
+<span class="sd">    simulator = Simulator(sources, detector)</span>
+<span class="sd">    simulator.time = 1 # year</span>
+
+<span class="sd">    # Run simulation</span>
+<span class="sd">    simulator.run(show_progress=True, seed=42)</span>
+<span class="sd">    simulator.save(f&quot;data/sim_output_{i:.1f}.h5&quot;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;\nfor i in [1.5, 2.0, 2.5, 3.0, 3.5, 3.7]:\n    norm_energy = 1e5 # Energy of normalisation in units of GeV\n    min_energy = 1e2 # GeV\n    max_energy = 1e8 # GeV\n    phi_solver = PhiSolver(aeff, norm_energy, min_energy, max_energy, \n                           time=1, min_cosz=-1, max_cosz=1)\n    phi_norm = phi_solver(Nnu=2000, \n                          dec=30, # degrees\n                          index=i) # spectral index\n    phi_norm # GeV^-1 cm^-2 s^-1\n    point_power_law = PowerLawFlux(phi_norm, norm_energy, i, \n                                   min_energy, max_energy)\n    point_source = PointSource(point_power_law, z=0., coord=(np.pi, np.deg2rad(30)))\n    sources = [point_source]\n    simulator = Simulator(sources, detector)\n    simulator.time = 1 # year\n\n    # Run simulation\n    simulator.run(show_progress=True, seed=42)\n    simulator.save(f&#34;data/sim_output_{i:.1f}.h5&#34;)\n&#39;
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Plot energies</span>
@@ -554,23 +612,23 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7ff609a3ee20&gt;
+&lt;matplotlib.legend.Legend at 0x7fdc04e49be0&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_simulation_17_1.png" src="../_images/notebooks_simulation_17_1.png" />
+<img alt="../_images/notebooks_simulation_18_1.png" src="../_images/notebooks_simulation_18_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Plot directions</span>
@@ -602,8 +660,196 @@ div.rendered_html tbody tr:hover {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_simulation_18_0.png" src="../_images/notebooks_simulation_18_0.png" />
+<img alt="../_images/notebooks_simulation_19_0.png" src="../_images/notebooks_simulation_19_0.png" />
 </div>
+</div>
+</section>
+</section>
+<section id="Time-dependent-simulation">
+<h1>Time dependent simulation<a class="headerlink" href="#Time-dependent-simulation" title="Permalink to this heading"></a></h1>
+<p>We can simulate an observation campaign spanning multiple data periods of IceCube through a “meta class” <code class="docutils literal notranslate"><span class="pre">TimeDependentSimulator</span></code>:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span> <span class="o">=</span> <span class="n">TimeDependentSimulator</span><span class="p">([</span><span class="s2">&quot;IC86_I&quot;</span><span class="p">,</span> <span class="s2">&quot;IC86_II&quot;</span><span class="p">],</span> <span class="n">sources</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.9.13/x64/lib/python3.9/site-packages/icecube_tools/detector/r2021.py:48: RuntimeWarning: divide by zero encountered in log10
+  self.dataset[:, 6:-1] = np.log10(self.dataset[:, 6:-1])
+INFO:icecube_tools.simulator:Instantiating simulation.
+INFO:icecube_tools.simulator:Instantiating simulation.
+WARNING:icecube_tools.simulator:Need to set simulation times, defaults to 1 year each.
+</pre></div></div>
+</div>
+<p>We need to set simulation times for all periods. Since for past periods the simulation time shouldn’t be larger than the actual observation time (that is time span - down time of the detector) we need to take care, or rather, we let the class <code class="docutils literal notranslate"><span class="pre">Uptime</span></code> take care:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.utils.data</span> <span class="kn">import</span> <span class="n">Uptime</span>
+</pre></div>
+</div>
+</div>
+<p>It lets us calculate the actual observation time through, e.g. IC86_II, vs the time covered:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">uptime</span> <span class="o">=</span> <span class="n">Uptime</span><span class="p">()</span>
+<span class="n">uptime</span><span class="o">.</span><span class="n">time_obs</span><span class="p">(</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">),</span> <span class="n">uptime</span><span class="o">.</span><span class="n">time_span</span><span class="p">(</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(&lt;Quantity 0.90890393 yr&gt;, &lt;Quantity 1.01572353 yr&gt;)
+</pre></div></div>
+</div>
+<p>We can further define a start and end time of an observation and let it calculate the observation time in each period. Viable possible options are - start and end time in MJD - start time in MJD and duration in years - end time in MJD and duration in years</p>
+<p>If the start time is before the earliest period (IC_40), the start time will be set to the earliest possible date.</p>
+<p>If the end time is past the last period (IC86_II), then we get an according message and simulate into the future.</p>
+<p>We can of course bypass this time setting and operate directly on the instances of Simulator, for example if we’d want to build up large statistics for subsequent likelihood analysis.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">times</span> <span class="o">=</span> <span class="n">uptime</span><span class="o">.</span><span class="n">find_obs_time</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">55569</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">times</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+INFO:icecube_tools.utils.data:End time outside of provided data set, sending an owl to Professor Trelawney
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;IC86_I&#39;: 1.2241905309188956, &#39;IC86_II&#39;: 1.5222023283463137}
+</pre></div></div>
+</div>
+<p>The returned dictionary can be used to set the simulation times for an instance of <code class="docutils literal notranslate"><span class="pre">TimeDependentSimulator</span></code>:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span> <span class="o">=</span> <span class="n">TimeDependentSimulator</span><span class="p">([</span><span class="s2">&quot;IC86_I&quot;</span><span class="p">,</span> <span class="s2">&quot;IC86_II&quot;</span><span class="p">],</span> <span class="n">sources</span><span class="p">)</span>
+<span class="n">tsim</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">times</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.9.13/x64/lib/python3.9/site-packages/icecube_tools/detector/r2021.py:48: RuntimeWarning: divide by zero encountered in log10
+  self.dataset[:, 6:-1] = np.log10(self.dataset[:, 6:-1])
+INFO:icecube_tools.simulator:Instantiating simulation.
+INFO:icecube_tools.simulator:Instantiating simulation.
+WARNING:icecube_tools.simulator:Need to set simulation times, defaults to 1 year each.
+INFO:icecube_tools.simulator:Set simulation times
+</pre></div></div>
+</div>
+<p>The simulation is started by calling <code class="docutils literal notranslate"><span class="pre">run()</span></code>, results can be saved by <code class="docutils literal notranslate"><span class="pre">save(file_prefix)</span></code>, with the filename being <code class="docutils literal notranslate"><span class="pre">{file_prefix}_{p}.h5</span></code> with period <code class="docutils literal notranslate"><span class="pre">p</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="n">tsim</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;test_sim&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+INFO:icecube_tools.simulator:Simulating period IC86_I.
+INFO:icecube_tools.simulator:Random N.
+INFO:icecube_tools.simulator:Simulating source 0
+INFO:icecube_tools.simulator:Done sampling the spectrum
+INFO:icecube_tools.simulator:Sampling angular uncertainty for diffuse source
+INFO:icecube_tools.simulator:Simulating source 1
+INFO:icecube_tools.simulator:Done sampling the spectrum
+INFO:icecube_tools.simulator:Sampling angular uncertainty for point source
+INFO:icecube_tools.simulator:Creating array of simulation data
+INFO:icecube_tools.simulator:Simulating period IC86_II.
+INFO:icecube_tools.simulator:Random N.
+INFO:icecube_tools.simulator:Simulating source 0
+INFO:icecube_tools.simulator:Done sampling the spectrum
+INFO:icecube_tools.simulator:Sampling angular uncertainty for diffuse source
+INFO:icecube_tools.simulator:Simulating source 1
+INFO:icecube_tools.simulator:Done sampling the spectrum
+INFO:icecube_tools.simulator:Sampling angular uncertainty for point source
+INFO:icecube_tools.simulator:Creating array of simulation data
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;IC86_I&#39;: &#39;data/p_IC86_I_test_sim.h5&#39;,
+ &#39;IC86_II&#39;: &#39;data/p_IC86_II_test_sim.h5&#39;}
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">for i in [1.5, 2.0, 2.5, 3.0, 3.5, 3.7]:</span>
+<span class="sd">    norm_energy = 1e5 # Energy of normalisation in units of GeV</span>
+<span class="sd">    min_energy = 1e2 # GeV</span>
+<span class="sd">    max_energy = 1e8 # GeV</span>
+<span class="sd">    phi_solver = PhiSolver(aeff, norm_energy, min_energy, max_energy,</span>
+<span class="sd">                           time=1, min_cosz=-1, max_cosz=1)</span>
+<span class="sd">    phi_norm = phi_solver(Nnu=2000,</span>
+<span class="sd">                          dec=30, # degrees</span>
+<span class="sd">                          index=i) # spectral index</span>
+<span class="sd">    phi_norm # GeV^-1 cm^-2 s^-1</span>
+<span class="sd">    point_power_law = PowerLawFlux(phi_norm, norm_energy, i,</span>
+<span class="sd">                                   min_energy, max_energy)</span>
+<span class="sd">    point_source = PointSource(point_power_law, z=0., coord=(np.pi, np.deg2rad(30)))</span>
+<span class="sd">    sources = [point_source]</span>
+<span class="sd">    tsim = TimeDependentSimulator([&quot;IC86_I&quot;, &quot;IC86_II&quot;], sources)</span>
+<span class="sd">    for sim in tsim.simulators.values():</span>
+<span class="sd">        sim.time = 1</span>
+<span class="sd">    tsim.run()</span>
+<span class="sd">    tsim.save(f&quot;index_{i}&quot;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;\nfor i in [1.5, 2.0, 2.5, 3.0, 3.5, 3.7]:\n    norm_energy = 1e5 # Energy of normalisation in units of GeV\n    min_energy = 1e2 # GeV\n    max_energy = 1e8 # GeV\n    phi_solver = PhiSolver(aeff, norm_energy, min_energy, max_energy, \n                           time=1, min_cosz=-1, max_cosz=1)\n    phi_norm = phi_solver(Nnu=2000, \n                          dec=30, # degrees\n                          index=i) # spectral index\n    phi_norm # GeV^-1 cm^-2 s^-1\n    point_power_law = PowerLawFlux(phi_norm, norm_energy, i, \n                                   min_energy, max_energy)\n    point_source = PointSource(point_power_law, z=0., coord=(np.pi, np.deg2rad(30)))\n    sources = [point_source]\n    tsim = TimeDependentSimulator([&#34;IC86_I&#34;, &#34;IC86_II&#34;], sources)\n    for sim in tsim.simulators.values():\n        sim.time = 1\n    tsim.run()\n    tsim.save(f&#34;index_{i}&#34;)\n&#39;
+</pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
@@ -613,7 +859,6 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
-</section>
 </section>
 
 

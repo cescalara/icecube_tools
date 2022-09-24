@@ -16,6 +16,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -43,9 +44,12 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/public_data_access.html">Data access</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/detector_model.html">Detector model interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/detector_model.html#Effective-area,-angular-resolution-and-energy-resolution-of-earlier-releases">Effective area, angular resolution and energy resolution of earlier releases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/source_model.html">Source model interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html">Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html">Point source likelihood</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html#Time-dependent-point-source-likelihood">Time dependent point source likelihood</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html#icecube-tools">icecube_tools</a></li>
 </ul>
@@ -105,12 +109,20 @@
 <span id="icecube-tools-detector-r2021-module"></span><h1>icecube_tools.detector.r2021 module<a class="headerlink" href="#module-icecube_tools.detector.r2021" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="icecube_tools.detector.r2021.R2021IRF">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.detector.r2021.</span></span><span class="sig-name descname"><span class="pre">R2021IRF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fetch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.r2021.R2021IRF" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.detector.r2021.</span></span><span class="sig-name descname"><span class="pre">R2021IRF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.r2021.R2021IRF" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="icecube_tools.detector.energy_resolution.html#icecube_tools.detector.energy_resolution.EnergyResolution" title="icecube_tools.detector.energy_resolution.EnergyResolution"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnergyResolution</span></code></a>, <a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.AngularResolution" title="icecube_tools.detector.angular_resolution.AngularResolution"><code class="xref py py-class docutils literal notranslate"><span class="pre">AngularResolution</span></code></a></p>
 <p>Special class to handle smearing effects given in the 2021 data release:
 1) Misreconstruction of energy
 2) kinematic angle, what the readme calls “PSF”
 3) misreconstruction of tracks, what the readme calls “AngErr”</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.detector.r2021.R2021IRF.from_period">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_period</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">period</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.r2021.R2021IRF.from_period" title="Permalink to this definition"></a></dt>
+<dd><p>Reads in IRFs of data set.
+For consistency and reducing the error-prone…iness, kinematic angles (“PSF”) and angular errors are converted to log(degrees).
+:param fetch: True if data should be downloaded</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="icecube_tools.detector.r2021.R2021IRF.get_angle">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vec1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vec2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.r2021.R2021IRF.get_angle" title="Permalink to this definition"></a></dt>
@@ -118,14 +130,6 @@
 :param vec1: First vector
 :param vec2: Second vector
 :return: Angle between vectors in degrees</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="icecube_tools.detector.r2021.R2021IRF.read">
-<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fetch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.r2021.R2021IRF.read" title="Permalink to this definition"></a></dt>
-<dd><p>Reads in IRFs of data set.
-For consistency and reducing the error-prone…iness, kinematic angles (“PSF”) and angular errors are converted to log(degrees).
-:param fetch: True if data should be downloaded</p>
 </dd></dl>
 
 <dl class="py method">

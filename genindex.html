@@ -15,6 +15,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="#" />
@@ -40,9 +41,12 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/public_data_access.html">Data access</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/detector_model.html">Detector model interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/detector_model.html#Effective-area,-angular-resolution-and-energy-resolution-of-earlier-releases">Effective area, angular resolution and energy resolution of earlier releases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/source_model.html">Source model interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/simulation.html">Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/simulation.html#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/point_source_likelihood.html">Point source likelihood</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/point_source_likelihood.html#Time-dependent-point-source-likelihood">Time dependent point source likelihood</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/api.html#icecube-tools">icecube_tools</a></li>
 </ul>
@@ -93,6 +97,7 @@
  | <a href="#U"><strong>U</strong></a>
  | <a href="#V"><strong>V</strong></a>
  | <a href="#X"><strong>X</strong></a>
+ | <a href="#Y"><strong>Y</strong></a>
  | <a href="#Z"><strong>Z</strong></a>
  
 </div>
@@ -101,11 +106,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/icecube_tools.utils.data.html#icecube_tools.utils.data.ddict.add">add() (icecube_tools.utils.data.ddict method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/icecube_tools.detector.detector.html#icecube_tools.detector.detector.Detector.angular_resolution">angular_resolution (icecube_tools.detector.detector.Detector property)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.AngularResolution">AngularResolution (class in icecube_tools.detector.angular_resolution)</a>
+</li>
+      <li><a href="api/icecube_tools.detector.detector.html#icecube_tools.detector.detector.TimeDependentDetector.available_periods">available_periods (icecube_tools.detector.detector.TimeDependentDetector property)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -149,6 +156,8 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/icecube_tools.utils.data.html#icecube_tools.utils.data.Uptime.data">data (icecube_tools.utils.data.Uptime attribute)</a>
+</li>
       <li><a href="api/icecube_tools.utils.data.html#icecube_tools.utils.data.ddict">ddict (class in icecube_tools.utils.data)</a>
 </li>
       <li><a href="api/icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.EffectiveArea.detection_probability">detection_probability() (icecube_tools.detector.effective_area.EffectiveArea method)</a>
@@ -158,6 +167,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/icecube_tools.simulator.html#icecube_tools.simulator.Simulator.detector">detector (icecube_tools.simulator.Simulator property)</a>
+</li>
+      <li><a href="api/icecube_tools.detector.detector.html#icecube_tools.detector.detector.TimeDependentDetector.detectors">detectors (icecube_tools.detector.detector.TimeDependentDetector property)</a>
 </li>
       <li><a href="api/icecube_tools.cosmology.html#icecube_tools.cosmology.differential_comoving_volume">differential_comoving_volume() (in module icecube_tools.cosmology)</a>
 </li>
@@ -209,12 +220,14 @@
 </li>
       <li><a href="api/icecube_tools.utils.data.html#icecube_tools.utils.data.find_folders">find_folders() (in module icecube_tools.utils.data)</a>
 </li>
+      <li><a href="api/icecube_tools.utils.data.html#icecube_tools.utils.data.Uptime.find_obs_time">find_obs_time() (icecube_tools.utils.data.Uptime method)</a>
+</li>
       <li><a href="api/icecube_tools.detection_probability.html#icecube_tools.detection_probability.fit_func">fit_func() (in module icecube_tools.detection_probability)</a>
+</li>
+      <li><a href="api/icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.FixedAngularResolution">FixedAngularResolution (class in icecube_tools.detector.angular_resolution)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.FixedAngularResolution">FixedAngularResolution (class in icecube_tools.detector.angular_resolution)</a>
-</li>
       <li><a href="api/icecube_tools.source.source_model.html#icecube_tools.source.source_model.Source.flux_model">flux_model (icecube_tools.source.source_model.Source property)</a>
 </li>
       <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.FluxModel">FluxModel (class in icecube_tools.source.flux_model)</a>
@@ -227,6 +240,10 @@
         <li><a href="api/icecube_tools.detector.energy_resolution.html#icecube_tools.detector.energy_resolution.EnergyResolution.from_dataset">(icecube_tools.detector.energy_resolution.EnergyResolution class method)</a>
 </li>
       </ul></li>
+      <li><a href="api/icecube_tools.detector.r2021.html#icecube_tools.detector.r2021.R2021IRF.from_period">from_period() (icecube_tools.detector.r2021.R2021IRF class method)</a>
+</li>
+      <li><a href="api/icecube_tools.detector.detector.html#icecube_tools.detector.detector.TimeDependentIceCube.from_periods">from_periods() (icecube_tools.detector.detector.TimeDependentIceCube class method)</a>
+</li>
       <li><a href="api/icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.FromPlotAngResReader">FromPlotAngResReader (class in icecube_tools.detector.angular_resolution)</a>
 </li>
   </ul></td>
@@ -242,6 +259,8 @@
       <li><a href="api/icecube_tools.detection_probability.html#icecube_tools.detection_probability.get_detection_probability">get_detection_probability() (in module icecube_tools.detection_probability)</a>
 </li>
       <li><a href="api/icecube_tools.detection_probability.html#icecube_tools.detection_probability.get_detection_probability_Braun2008">get_detection_probability_Braun2008() (in module icecube_tools.detection_probability)</a>
+</li>
+      <li><a href="api/icecube_tools.simulator.html#icecube_tools.simulator.TimeDependentSimulator.get_expected_number">get_expected_number() (icecube_tools.simulator.TimeDependentSimulator method)</a>
 </li>
       <li><a href="api/icecube_tools.utils.vMF.html#icecube_tools.utils.vMF.get_kappa">get_kappa() (in module icecube_tools.utils.vMF)</a>
 </li>
@@ -269,6 +288,8 @@
         <li><a href="api/icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.PointSourceLikelihood.get_test_statistic">(icecube_tools.point_source_likelihood.point_source_likelihood.PointSourceLikelihood method)</a>
 </li>
         <li><a href="api/icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.SpatialOnlyPointSourceLikelihood.get_test_statistic">(icecube_tools.point_source_likelihood.point_source_likelihood.SpatialOnlyPointSourceLikelihood method)</a>
+</li>
+        <li><a href="api/icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood.get_test_statistic">(icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood method)</a>
 </li>
       </ul></li>
       <li><a href="api/icecube_tools.utils.vMF.html#icecube_tools.utils.vMF.get_theta_p">get_theta_p() (in module icecube_tools.utils.vMF)</a>
@@ -580,12 +601,20 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/icecube_tools.source.power_law.html#icecube_tools.source.power_law.BoundedPowerLaw.pdf">pdf() (icecube_tools.source.power_law.BoundedPowerLaw method)</a>
 </li>
-      <li><a href="api/icecube_tools.cosmology.html#icecube_tools.cosmology.phi">phi() (in module icecube_tools.cosmology)</a>
+      <li><a href="api/icecube_tools.detector.detector.html#icecube_tools.detector.detector.Detector.period">period (icecube_tools.detector.detector.Detector property)</a>
 </li>
-      <li><a href="api/icecube_tools.neutrino_calculator.html#icecube_tools.neutrino_calculator.PhiSolver">PhiSolver (class in icecube_tools.neutrino_calculator)</a>
+      <li><a href="api/icecube_tools.detector.detector.html#icecube_tools.detector.detector.TimeDependentDetector.periods">periods (icecube_tools.detector.detector.TimeDependentDetector property)</a>
+
+      <ul>
+        <li><a href="api/icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood.periods">(icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/icecube_tools.cosmology.html#icecube_tools.cosmology.phi">phi() (in module icecube_tools.cosmology)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/icecube_tools.neutrino_calculator.html#icecube_tools.neutrino_calculator.PhiSolver">PhiSolver (class in icecube_tools.neutrino_calculator)</a>
+</li>
       <li><a href="api/icecube_tools.source.source_model.html#icecube_tools.source.source_model.PointSource">PointSource (class in icecube_tools.source.source_model)</a>
 </li>
       <li><a href="api/icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.PointSourceLikelihood">PointSourceLikelihood (class in icecube_tools.point_source_likelihood.point_source_likelihood)</a>
@@ -635,8 +664,6 @@
 </li>
         <li><a href="api/icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.R2021AeffReader.read">(icecube_tools.detector.effective_area.R2021AeffReader method)</a>
 </li>
-        <li><a href="api/icecube_tools.detector.r2021.html#icecube_tools.detector.r2021.R2021IRF.read">(icecube_tools.detector.r2021.R2021IRF method)</a>
-</li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -668,6 +695,8 @@
 
       <ul>
         <li><a href="api/icecube_tools.simulator.html#icecube_tools.simulator.Simulator.run">(icecube_tools.simulator.Simulator method)</a>
+</li>
+        <li><a href="api/icecube_tools.simulator.html#icecube_tools.simulator.TimeDependentSimulator.run">(icecube_tools.simulator.TimeDependentSimulator method)</a>
 </li>
       </ul></li>
       <li><a href="api/icecube_tools.simulator.html#icecube_tools.simulator.Simulator.run_energy">run_energy() (icecube_tools.simulator.Simulator method)</a>
@@ -707,19 +736,23 @@
       <ul>
         <li><a href="api/icecube_tools.simulator.html#icecube_tools.simulator.Simulator.save">(icecube_tools.simulator.Simulator method)</a>
 </li>
+        <li><a href="api/icecube_tools.simulator.html#icecube_tools.simulator.TimeDependentSimulator.save">(icecube_tools.simulator.TimeDependentSimulator method)</a>
+</li>
       </ul></li>
       <li><a href="api/icecube_tools.detector.reco_energy_sampler.html#icecube_tools.detector.reco_energy_sampler.RecoEnergySampler.set_index">set_index() (icecube_tools.detector.reco_energy_sampler.RecoEnergySampler method)</a>
 </li>
       <li><a href="api/icecube_tools.point_source_likelihood.energy_likelihood.html#icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedEnergyLikelihoodFromSim.set_src_dec">set_src_dec() (icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedEnergyLikelihoodFromSim method)</a>
 </li>
+      <li><a href="api/icecube_tools.utils.data.html#icecube_tools.utils.data.SimEvents">SimEvents (class in icecube_tools.utils.data)</a>
+</li>
       <li><a href="api/icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.SimplePointSourceLikelihood">SimplePointSourceLikelihood (class in icecube_tools.point_source_likelihood.point_source_likelihood)</a>
 </li>
       <li><a href="api/icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.SimpleWithEnergyPointSourceLikelihood">SimpleWithEnergyPointSourceLikelihood (class in icecube_tools.point_source_likelihood.point_source_likelihood)</a>
 </li>
-      <li><a href="api/icecube_tools.simulator.html#icecube_tools.simulator.Simulator">Simulator (class in icecube_tools.simulator)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/icecube_tools.simulator.html#icecube_tools.simulator.Simulator">Simulator (class in icecube_tools.simulator)</a>
+</li>
       <li><a href="api/icecube_tools.detection_probability.html#icecube_tools.detection_probability.solve_func">solve_func() (in module icecube_tools.detection_probability)</a>
 </li>
       <li><a href="api/icecube_tools.source.source_model.html#icecube_tools.source.source_model.Source">Source (class in icecube_tools.source.source_model)</a>
@@ -729,7 +762,11 @@
       <li><a href="api/icecube_tools.source.source_model.html#icecube_tools.source.source_model.Source.source_type">source_type (icecube_tools.source.source_model.Source property)</a>
 </li>
       <li><a href="api/icecube_tools.simulator.html#icecube_tools.simulator.Simulator.sources">sources (icecube_tools.simulator.Simulator property)</a>
+
+      <ul>
+        <li><a href="api/icecube_tools.simulator.html#icecube_tools.simulator.TimeDependentSimulator.sources">(icecube_tools.simulator.TimeDependentSimulator property)</a>
 </li>
+      </ul></li>
       <li><a href="api/icecube_tools.point_source_likelihood.spatial_likelihood.html#icecube_tools.point_source_likelihood.spatial_likelihood.SpatialGaussianLikelihood">SpatialGaussianLikelihood (class in icecube_tools.point_source_likelihood.spatial_likelihood)</a>
 </li>
       <li><a href="api/icecube_tools.point_source_likelihood.spatial_likelihood.html#icecube_tools.point_source_likelihood.spatial_likelihood.SpatialLikelihood">SpatialLikelihood (class in icecube_tools.point_source_likelihood.spatial_likelihood)</a>
@@ -764,10 +801,24 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.PowerLawFlux.total_flux_density">total_flux_density() (icecube_tools.source.flux_model.PowerLawFlux method)</a>
+      <li><a href="api/icecube_tools.simulator.html#icecube_tools.simulator.TimeDependentSimulator.time">time (icecube_tools.simulator.TimeDependentSimulator property)</a>
+</li>
+      <li><a href="api/icecube_tools.utils.data.html#icecube_tools.utils.data.Uptime.time_obs">time_obs() (icecube_tools.utils.data.Uptime method)</a>
+</li>
+      <li><a href="api/icecube_tools.utils.data.html#icecube_tools.utils.data.Uptime.time_span">time_span() (icecube_tools.utils.data.Uptime method)</a>
+</li>
+      <li><a href="api/icecube_tools.detector.detector.html#icecube_tools.detector.detector.TimeDependentDetector">TimeDependentDetector (class in icecube_tools.detector.detector)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/icecube_tools.detector.detector.html#icecube_tools.detector.detector.TimeDependentIceCube">TimeDependentIceCube (class in icecube_tools.detector.detector)</a>
+</li>
+      <li><a href="api/icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood">TimeDependentPointSourceLikelihood (class in icecube_tools.point_source_likelihood.point_source_likelihood)</a>
+</li>
+      <li><a href="api/icecube_tools.simulator.html#icecube_tools.simulator.TimeDependentSimulator">TimeDependentSimulator (class in icecube_tools.simulator)</a>
+</li>
+      <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.PowerLawFlux.total_flux_density">total_flux_density() (icecube_tools.source.flux_model.PowerLawFlux method)</a>
+</li>
       <li><a href="api/icecube_tools.detector.energy_resolution.html#icecube_tools.detector.energy_resolution.EnergyResolutionBase.true_energy_bins">true_energy_bins (icecube_tools.detector.energy_resolution.EnergyResolutionBase property)</a>
 </li>
   </ul></td>
@@ -777,6 +828,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.unit_vector_to_icrs">unit_vector_to_icrs() (in module icecube_tools.detector.angular_resolution)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/icecube_tools.utils.data.html#icecube_tools.utils.data.Uptime">Uptime (class in icecube_tools.utils.data)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -793,6 +848,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/icecube_tools.cosmology.html#icecube_tools.cosmology.xx">xx() (in module icecube_tools.cosmology)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Y">Y</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/icecube_tools.detector.detector.html#icecube_tools.detector.detector.TimeDependentIceCube.yield_detectors">yield_detectors() (icecube_tools.detector.detector.TimeDependentIceCube method)</a>
 </li>
   </ul></td>
 </tr></table>

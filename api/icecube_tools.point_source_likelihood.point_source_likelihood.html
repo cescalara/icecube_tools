@@ -16,6 +16,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -43,9 +44,12 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/public_data_access.html">Data access</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/detector_model.html">Detector model interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/detector_model.html#Effective-area,-angular-resolution-and-energy-resolution-of-earlier-releases">Effective area, angular resolution and energy resolution of earlier releases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/source_model.html">Source model interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html">Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html">Point source likelihood</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html#Time-dependent-point-source-likelihood">Time dependent point source likelihood</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html#icecube-tools">icecube_tools</a></li>
 </ul>
@@ -122,7 +126,7 @@ but without the energy depedence.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="icecube_tools.point_source_likelihood.point_source_likelihood.PointSourceLikelihood">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.point_source_likelihood.point_source_likelihood.</span></span><span class="sig-name descname"><span class="pre">PointSourceLikelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction_likelihood</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_likelihood</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ras</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_coord</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ang_errs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bg_energy_likelihood</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_prior</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_width_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_likelihood.point_source_likelihood.PointSourceLikelihood" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.point_source_likelihood.point_source_likelihood.</span></span><span class="sig-name descname"><span class="pre">PointSourceLikelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction_likelihood</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_likelihood</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ras</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_coord</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ang_errs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bg_energy_likelihood</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_prior</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_width_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_likelihood.point_source_likelihood.PointSourceLikelihood" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Calculate the point source likelihood for a given
 neutrino dataset - in terms of reconstructed
@@ -165,6 +169,27 @@ defaulting to “both”.</p>
 <dt class="sig sig-object py" id="icecube_tools.point_source_likelihood.point_source_likelihood.SpatialOnlyPointSourceLikelihood.get_test_statistic">
 <span class="sig-name descname"><span class="pre">get_test_statistic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_likelihood.point_source_likelihood.SpatialOnlyPointSourceLikelihood.get_test_statistic" title="Permalink to this definition"></a></dt>
 <dd><p>Calculate the test statistic for the best fit ns</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.point_source_likelihood.point_source_likelihood.</span></span><span class="sig-name descname"><span class="pre">TimeDependentPointSourceLikelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">which</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood.get_test_statistic">
+<span class="sig-name descname"><span class="pre">get_test_statistic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood.get_test_statistic" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood.periods">
+<span class="sig-name descname"><span class="pre">periods</span></span><a class="headerlink" href="#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood.periods" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>self.period_dict = {str(p):</dt><dd><p>{str(index): path to data file for index in index_list} for p in periods</p>
+</dd>
+</dl>
+<p>}</p>
 </dd></dl>
 
 </dd></dl>

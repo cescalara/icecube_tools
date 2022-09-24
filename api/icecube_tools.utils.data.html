@@ -16,6 +16,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -43,9 +44,12 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/public_data_access.html">Data access</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/detector_model.html">Detector model interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/detector_model.html#Effective-area,-angular-resolution-and-energy-resolution-of-earlier-releases">Effective area, angular resolution and energy resolution of earlier releases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/source_model.html">Source model interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html">Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html">Point source likelihood</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html#Time-dependent-point-source-likelihood">Time dependent point source likelihood</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html#icecube-tools">icecube_tools</a></li>
 </ul>
@@ -152,6 +156,79 @@ releases hosted on their website.</p>
 <li><p><strong>verbose</strong> – Print the datasets if true</p></li>
 <li><p><strong>update</strong> – Refresh the cache if true</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.SimEvents">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.utils.data.</span></span><span class="sig-name descname"><span class="pre">SimEvents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.SimEvents" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.utils.data.</span></span><span class="sig-name descname"><span class="pre">Uptime</span></span><a class="headerlink" href="#icecube_tools.utils.data.Uptime" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class to handle calculations of detector live time.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime.data">
+<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.data" title="Permalink to this definition"></a></dt>
+<dd><p>self.times = ddict()
+for c, p in enumerate(available_periods):</p>
+<blockquote>
+<div><dl class="simple">
+<dt>self.data[p] = np.loadtxt(os.path.join(</dt><dd><p>data_directory,
+“20210126_PS-IC40-IC86_VII”, 
+“icecube_10year_ps”,
+“uptime”,
+f”{p}_exp.csv”)</p>
+</dd>
+</dl>
+<p>)
+self.times.add(self.data[p][0, 0], p, “start”)
+self.times.add(self.data[p][-1, -1], p, “end”)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime.find_obs_time">
+<span class="sig-name descname"><span class="pre">find_obs_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.find_obs_time" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Calculate the amounts of time in each period covered for either:</dt><dd><ul class="simple">
+<li><p>given start and end time (should be MJD)</p></li>
+<li><p>duration and end date</p></li>
+<li><p>duration and start date</p></li>
+</ul>
+</dd>
+</dl>
+<p>Duration should be in float in years.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime.time_obs">
+<span class="sig-name descname"><span class="pre">time_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">period</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.time_obs" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>period</strong> – String of data period.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Return total observation time of data period.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime.time_span">
+<span class="sig-name descname"><span class="pre">time_span</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">period</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.time_span" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>period</strong> – String of data period.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>total time between start and end of data period.</p>
 </dd>
 </dl>
 </dd></dl>

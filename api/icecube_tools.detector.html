@@ -16,6 +16,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -43,9 +44,12 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/public_data_access.html">Data access</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/detector_model.html">Detector model interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/detector_model.html#Effective-area,-angular-resolution-and-energy-resolution-of-earlier-releases">Effective area, angular resolution and energy resolution of earlier releases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/source_model.html">Source model interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html">Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html">Point source likelihood</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html#Time-dependent-point-source-likelihood">Time dependent point source likelihood</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html#icecube-tools">icecube_tools</a></li>
 </ul>
@@ -106,12 +110,131 @@
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html">icecube_tools.detector.angular_resolution module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="icecube_tools.detector.detector.html">icecube_tools.detector.detector module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="icecube_tools.detector.effective_area.html">icecube_tools.detector.effective_area module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="icecube_tools.detector.energy_resolution.html">icecube_tools.detector.energy_resolution module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="icecube_tools.detector.r2021.html">icecube_tools.detector.r2021 module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="icecube_tools.detector.reco_energy_sampler.html">icecube_tools.detector.reco_energy_sampler module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html">icecube_tools.detector.angular_resolution module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.AngularResolution"><code class="docutils literal notranslate"><span class="pre">AngularResolution</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.AngularResolution.from_dataset"><code class="docutils literal notranslate"><span class="pre">AngularResolution.from_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.AngularResolution.get_reader"><code class="docutils literal notranslate"><span class="pre">AngularResolution.get_reader()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.AngularResolution.get_ret_ang_err"><code class="docutils literal notranslate"><span class="pre">AngularResolution.get_ret_ang_err()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.AngularResolution.ret_ang_err"><code class="docutils literal notranslate"><span class="pre">AngularResolution.ret_ang_err</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.AngularResolution.sample"><code class="docutils literal notranslate"><span class="pre">AngularResolution.sample()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.AngularResolution.supported_datasets"><code class="docutils literal notranslate"><span class="pre">AngularResolution.supported_datasets</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.FixedAngularResolution"><code class="docutils literal notranslate"><span class="pre">FixedAngularResolution</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.FixedAngularResolution.kappa"><code class="docutils literal notranslate"><span class="pre">FixedAngularResolution.kappa</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.FixedAngularResolution.ret_ang_err"><code class="docutils literal notranslate"><span class="pre">FixedAngularResolution.ret_ang_err</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.FixedAngularResolution.sample"><code class="docutils literal notranslate"><span class="pre">FixedAngularResolution.sample()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.FromPlotAngResReader"><code class="docutils literal notranslate"><span class="pre">FromPlotAngResReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.FromPlotAngResReader.read"><code class="docutils literal notranslate"><span class="pre">FromPlotAngResReader.read()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.IceCubeAngResReader"><code class="docutils literal notranslate"><span class="pre">IceCubeAngResReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.IceCubeAngResReader.read"><code class="docutils literal notranslate"><span class="pre">IceCubeAngResReader.read()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.R2015AngResReader"><code class="docutils literal notranslate"><span class="pre">R2015AngResReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.R2015AngResReader.read"><code class="docutils literal notranslate"><span class="pre">R2015AngResReader.read()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.R2018AngResReader"><code class="docutils literal notranslate"><span class="pre">R2018AngResReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.R2018AngResReader.read"><code class="docutils literal notranslate"><span class="pre">R2018AngResReader.read()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.icrs_to_unit_vector"><code class="docutils literal notranslate"><span class="pre">icrs_to_unit_vector()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.unit_vector_to_icrs"><code class="docutils literal notranslate"><span class="pre">unit_vector_to_icrs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="icecube_tools.detector.detector.html">icecube_tools.detector.detector module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.detector.html#icecube_tools.detector.detector.Detector"><code class="docutils literal notranslate"><span class="pre">Detector</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.detector.html#icecube_tools.detector.detector.Detector.angular_resolution"><code class="docutils literal notranslate"><span class="pre">Detector.angular_resolution</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.detector.html#icecube_tools.detector.detector.Detector.effective_area"><code class="docutils literal notranslate"><span class="pre">Detector.effective_area</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.detector.html#icecube_tools.detector.detector.Detector.energy_resolution"><code class="docutils literal notranslate"><span class="pre">Detector.energy_resolution</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.detector.html#icecube_tools.detector.detector.Detector.period"><code class="docutils literal notranslate"><span class="pre">Detector.period</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.detector.html#icecube_tools.detector.detector.IceCube"><code class="docutils literal notranslate"><span class="pre">IceCube</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.detector.html#icecube_tools.detector.detector.TimeDependentDetector"><code class="docutils literal notranslate"><span class="pre">TimeDependentDetector</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.detector.html#icecube_tools.detector.detector.TimeDependentDetector.available_periods"><code class="docutils literal notranslate"><span class="pre">TimeDependentDetector.available_periods</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.detector.html#icecube_tools.detector.detector.TimeDependentDetector.detectors"><code class="docutils literal notranslate"><span class="pre">TimeDependentDetector.detectors</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.detector.html#icecube_tools.detector.detector.TimeDependentDetector.periods"><code class="docutils literal notranslate"><span class="pre">TimeDependentDetector.periods</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.detector.html#icecube_tools.detector.detector.TimeDependentIceCube"><code class="docutils literal notranslate"><span class="pre">TimeDependentIceCube</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.detector.html#icecube_tools.detector.detector.TimeDependentIceCube.from_periods"><code class="docutils literal notranslate"><span class="pre">TimeDependentIceCube.from_periods()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.detector.html#icecube_tools.detector.detector.TimeDependentIceCube.yield_detectors"><code class="docutils literal notranslate"><span class="pre">TimeDependentIceCube.yield_detectors()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="icecube_tools.detector.effective_area.html">icecube_tools.detector.effective_area module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.Braun2008AeffReader"><code class="docutils literal notranslate"><span class="pre">Braun2008AeffReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.Braun2008AeffReader.read"><code class="docutils literal notranslate"><span class="pre">Braun2008AeffReader.read()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.EffectiveArea"><code class="docutils literal notranslate"><span class="pre">EffectiveArea</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.EffectiveArea.detection_probability"><code class="docutils literal notranslate"><span class="pre">EffectiveArea.detection_probability()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.EffectiveArea.from_dataset"><code class="docutils literal notranslate"><span class="pre">EffectiveArea.from_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.EffectiveArea.get_reader"><code class="docutils literal notranslate"><span class="pre">EffectiveArea.get_reader()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.EffectiveArea.supported_datasets"><code class="docutils literal notranslate"><span class="pre">EffectiveArea.supported_datasets</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.IceCubeAeffReader"><code class="docutils literal notranslate"><span class="pre">IceCubeAeffReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.IceCubeAeffReader.read"><code class="docutils literal notranslate"><span class="pre">IceCubeAeffReader.read()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.R2013AeffReader"><code class="docutils literal notranslate"><span class="pre">R2013AeffReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.R2013AeffReader.read"><code class="docutils literal notranslate"><span class="pre">R2013AeffReader.read()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.R2015AeffReader"><code class="docutils literal notranslate"><span class="pre">R2015AeffReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.R2015AeffReader.read"><code class="docutils literal notranslate"><span class="pre">R2015AeffReader.read()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.R2018AeffReader"><code class="docutils literal notranslate"><span class="pre">R2018AeffReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.R2018AeffReader.read"><code class="docutils literal notranslate"><span class="pre">R2018AeffReader.read()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.R2021AeffReader"><code class="docutils literal notranslate"><span class="pre">R2021AeffReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.effective_area.html#icecube_tools.detector.effective_area.R2021AeffReader.read"><code class="docutils literal notranslate"><span class="pre">R2021AeffReader.read()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="icecube_tools.detector.energy_resolution.html">icecube_tools.detector.energy_resolution module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.energy_resolution.html#icecube_tools.detector.energy_resolution.EnergyResolution"><code class="docutils literal notranslate"><span class="pre">EnergyResolution</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.energy_resolution.html#icecube_tools.detector.energy_resolution.EnergyResolution.from_dataset"><code class="docutils literal notranslate"><span class="pre">EnergyResolution.from_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.energy_resolution.html#icecube_tools.detector.energy_resolution.EnergyResolution.sample"><code class="docutils literal notranslate"><span class="pre">EnergyResolution.sample()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.energy_resolution.html#icecube_tools.detector.energy_resolution.EnergyResolution.supported_datasets"><code class="docutils literal notranslate"><span class="pre">EnergyResolution.supported_datasets</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.energy_resolution.html#icecube_tools.detector.energy_resolution.EnergyResolutionBase"><code class="docutils literal notranslate"><span class="pre">EnergyResolutionBase</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.energy_resolution.html#icecube_tools.detector.energy_resolution.EnergyResolutionBase.reco_energy_bins"><code class="docutils literal notranslate"><span class="pre">EnergyResolutionBase.reco_energy_bins</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.energy_resolution.html#icecube_tools.detector.energy_resolution.EnergyResolutionBase.sample"><code class="docutils literal notranslate"><span class="pre">EnergyResolutionBase.sample()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.energy_resolution.html#icecube_tools.detector.energy_resolution.EnergyResolutionBase.true_energy_bins"><code class="docutils literal notranslate"><span class="pre">EnergyResolutionBase.true_energy_bins</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.energy_resolution.html#icecube_tools.detector.energy_resolution.EnergyResolutionBase.values"><code class="docutils literal notranslate"><span class="pre">EnergyResolutionBase.values</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="icecube_tools.detector.r2021.html">icecube_tools.detector.r2021 module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.r2021.html#icecube_tools.detector.r2021.R2021IRF"><code class="docutils literal notranslate"><span class="pre">R2021IRF</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.r2021.html#icecube_tools.detector.r2021.R2021IRF.from_period"><code class="docutils literal notranslate"><span class="pre">R2021IRF.from_period()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.r2021.html#icecube_tools.detector.r2021.R2021IRF.get_angle"><code class="docutils literal notranslate"><span class="pre">R2021IRF.get_angle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.r2021.html#icecube_tools.detector.r2021.R2021IRF.sample"><code class="docutils literal notranslate"><span class="pre">R2021IRF.sample()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.r2021.html#icecube_tools.detector.r2021.R2021IRF.sample_energy"><code class="docutils literal notranslate"><span class="pre">R2021IRF.sample_energy()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="icecube_tools.detector.reco_energy_sampler.html">icecube_tools.detector.reco_energy_sampler module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.detector.reco_energy_sampler.html#icecube_tools.detector.reco_energy_sampler.RecoEnergySampler"><code class="docutils literal notranslate"><span class="pre">RecoEnergySampler</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.detector.reco_energy_sampler.html#icecube_tools.detector.reco_energy_sampler.RecoEnergySampler.set_index"><code class="docutils literal notranslate"><span class="pre">RecoEnergySampler.set_index()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </div>
 </section>

@@ -16,6 +16,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -43,9 +44,12 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/public_data_access.html">Data access</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/detector_model.html">Detector model interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/detector_model.html#Effective-area,-angular-resolution-and-energy-resolution-of-earlier-releases">Effective area, angular resolution and energy resolution of earlier releases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/source_model.html">Source model interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html">Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html">Point source likelihood</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html#Time-dependent-point-source-likelihood">Time dependent point source likelihood</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html#icecube-tools">icecube_tools</a></li>
 </ul>
@@ -123,13 +127,60 @@
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">energy_resolution</span></span><a class="headerlink" href="#icecube_tools.detector.detector.Detector.energy_resolution" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.detector.detector.Detector.period">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">period</span></span><a class="headerlink" href="#icecube_tools.detector.detector.Detector.period" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="icecube_tools.detector.detector.IceCube">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.detector.detector.</span></span><span class="sig-name descname"><span class="pre">IceCube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">effective_area</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angular_resolution</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.detector.IceCube" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.detector.detector.</span></span><span class="sig-name descname"><span class="pre">IceCube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">effective_area</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angular_resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.detector.IceCube" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#icecube_tools.detector.detector.Detector" title="icecube_tools.detector.detector.Detector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Detector</span></code></a></p>
 <p>IceCube detector.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="icecube_tools.detector.detector.TimeDependentDetector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.detector.detector.</span></span><span class="sig-name descname"><span class="pre">TimeDependentDetector</span></span><a class="headerlink" href="#icecube_tools.detector.detector.TimeDependentDetector" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.detector.detector.TimeDependentDetector.available_periods">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">available_periods</span></span><a class="headerlink" href="#icecube_tools.detector.detector.TimeDependentDetector.available_periods" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.detector.detector.TimeDependentDetector.detectors">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">detectors</span></span><a class="headerlink" href="#icecube_tools.detector.detector.TimeDependentDetector.detectors" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.detector.detector.TimeDependentDetector.periods">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">periods</span></span><a class="headerlink" href="#icecube_tools.detector.detector.TimeDependentDetector.periods" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="icecube_tools.detector.detector.TimeDependentIceCube">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.detector.detector.</span></span><span class="sig-name descname"><span class="pre">TimeDependentIceCube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">detectors</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.detector.TimeDependentIceCube" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#icecube_tools.detector.detector.TimeDependentDetector" title="icecube_tools.detector.detector.TimeDependentDetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimeDependentDetector</span></code></a></p>
+<p>Class to organise a time-dependent detector.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.detector.detector.TimeDependentIceCube.from_periods">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_periods</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">periods</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.detector.TimeDependentIceCube.from_periods" title="Permalink to this definition"></a></dt>
+<dd><p>Creates class instance with a detector model for each given
+data taking period.
+:param periods: Tuple of strings, available ones listed above.
+:return:  <cite>TimeDependentIceCube</cite> instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.detector.detector.TimeDependentIceCube.yield_detectors">
+<span class="sig-name descname"><span class="pre">yield_detectors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.detector.TimeDependentIceCube.yield_detectors" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </section>

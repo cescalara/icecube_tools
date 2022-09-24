@@ -16,6 +16,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -45,9 +46,12 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Data access</a></li>
 <li class="toctree-l1"><a class="reference internal" href="detector_model.html">Detector model interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="detector_model.html#Effective-area,-angular-resolution-and-energy-resolution-of-earlier-releases">Effective area, angular resolution and energy resolution of earlier releases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source_model.html">Source model interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="simulation.html">Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="point_source_likelihood.html">Point source likelihood</a></li>
+<li class="toctree-l1"><a class="reference internal" href="point_source_likelihood.html#Time-dependent-point-source-likelihood">Time dependent point source likelihood</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/api.html#icecube-tools">icecube_tools</a></li>
 </ul>
@@ -411,6 +415,7 @@ div.rendered_html tbody tr:hover {
  &#39;20211217_HESE-7-5-year-data.zip&#39;,
  &#39;20220201_Density_of_GeV_muons_in_air_showers_measured_with_IceTop.zip&#39;,
  &#39;20220902_Evidence_for_neutrino_emission_from_the_nearby_active_galaxy_NGC_1068_data.zip&#39;,
+ &#39;20220913_Evidence_for_neutrino_emission_from_the_nearby_active_galaxy_NGC_1068_data.zip&#39;,
  &#39;ic22-solar-wimp-histograms.zip&#39;]
 </pre></div></div>
 </div>
@@ -465,7 +470,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [01:03&lt;00:00, 185394.14it/s]
+20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:02&lt;00:00, 4626017.59it/s]
 </pre></div></div>
 </div>
 <p>You may not want to use <code class="docutils literal notranslate"><span class="pre">icecube_tools</span></code> for other stuff, so you can also fetch to a specificed location with the keyword <code class="docutils literal notranslate"><span class="pre">write_to</span></code>.</p>
@@ -482,7 +487,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [01:01&lt;00:00, 192156.40it/s]
+20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:10&lt;00:00, 1080808.61it/s]
 </pre></div></div>
 </div>
 <p>For convenience, there is also the <code class="docutils literal notranslate"><span class="pre">fetch_all_to</span></code> method to download all the available data to a specified location. We comment this here as it can take a while to execute.</p>
