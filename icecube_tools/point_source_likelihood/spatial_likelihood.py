@@ -86,11 +86,11 @@ class EventDependentSpatialGaussianLikelihood(SpatialLikelihood):
 '''
 
 class EventDependentSpatialGaussianLikelihood(SpatialLikelihood):
-    def __init__(self, sigma):
+    def __init__(self, sigma=5.):
         """
         :param sigma: Upper limit of angular distance to considered events
         """
-
+        #TODO actually implement this somehow
         #convert p to sigma if necessary...
         #omit for now
         self._sigma = sigma

@@ -4,21 +4,31 @@ from astropy import units as u
 import h5py
 from scipy.stats import uniform
 import logging
+import sys
+from os.path import join
+from typing import List, Dict
 
 # from memory_profiler import profile
 from tqdm import tqdm as progress_bar
 
-from .detector.detector import Detector
+from .detector.detector import Detector, TimeDependentIceCube
 from .source.source_model import Source, DIFFUSE, POINT
 from .source.flux_model import PowerLawFlux, BrokenPowerLawFlux
 from .neutrino_calculator import NeutrinoCalculator
 from .detector.angular_resolution import FixedAngularResolution, AngularResolution
 from .detector.r2021 import R2021IRF
+from .utils.data import Uptime, data_directory
 
 """
 Module for running neutrino production 
 and detection simulations.
 """
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# logger.addHandler(sys.stdout)
+
 
 class Simulator:
     def __init__(self, sources, detector):
@@ -28,7 +38,7 @@ class Simulator:
 
         :param sources: List of/single Source object.
         """
-
+        logger.info("Instantiating simulation.")
         if not isinstance(sources, list):
             sources = [sources]
 
@@ -145,13 +155,13 @@ class Simulator:
 
             max_energy[i] = self.sources[i].flux_model._upper_energy
 
-            logging.info(f"source: {i}")
+            logger.info(f"source: {i}")
 
             while True:
                 #check if data is needed, else break loop
                 where_zero = np.argwhere(Etrue_d[i] == 0.)
                 if where_zero.size == 0:
-                    logging.debug("no more empty slots, done")
+                    logger.debug("no more empty slots, done")
                     break
 
                 Etrue_ = self.sources[i].flux_model.sample(num)
@@ -185,9 +195,9 @@ class Simulator:
                         Earr_d[i][start:end] = Earr_[idx]
                         ra_d[i][start:end] = ra_[idx]
                         dec_d[i][start:end] = dec_[idx]
-                        logging.debug("All data placed.")
+                        logger.debug("All data placed.")
                     except (IndexError, ValueError):
-                        logging.debug("Not enough slots, cutting short.")
+                        logger.debug("Not enough slots, cutting short.")
                         remaining = np.argwhere(Etrue_d[i] == 0.).size
                         Etrue_d[i][start:] = Etrue_[idx][0:remaining]
                         Earr_d[i][start:] = Earr_[idx][0:remaining]
@@ -216,7 +226,7 @@ class Simulator:
         return self.arrival_energy, self.reco_energy
 
     # @profile
-    def run(self, N=None, seed=1234, show_progress=False):
+    def run(self, N=None, seed=1234, show_progress=True):
         """
         Run a simulation for the given set of sources
         and detector configuration.
@@ -227,13 +237,13 @@ class Simulator:
         :param N: Set expected number of neutrinos manually.
         :param seed: Set random seed.
         """
-
+        """
         if show_progress:
-            logging.basicConfig(level=logging.INFO)
+            logger.setLevel(logging.INFO)
 
         else:
-            logging.basicConfig(level=logging.CRITICAL)
-
+            logger.setLevel(logging.WARNING)
+        """
         np.random.seed(seed)
 
         self._get_expected_number()
@@ -241,10 +251,12 @@ class Simulator:
         if not N:
 
             self.N = np.random.poisson(sum(self._Nex))
+            logger.info("Random N.")
 
         else:
 
             self.N = int(N)
+            logger.info("N provided.")
 
         v_lim = (np.cos(np.pi - np.arccos(self.max_cosz)) + 1) / 2
 
@@ -281,12 +293,12 @@ class Simulator:
             
             max_energy[i] = self.sources[i].flux_model._upper_energy
             
-            logging.info(f"source: {i}")
+            logger.info(f"Simulating source {i}")
             while True:
                 #check if data is needed, else break loop
                 where_zero = np.argwhere(Etrue_d[i] == 0.)
                 if where_zero.size == 0:
-                    logging.debug("no more empty slots, done")
+                    logger.debug("no more empty slots, done")
                     break
                 
                 Etrue_ = self.sources[i].flux_model.sample(num)
@@ -319,9 +331,9 @@ class Simulator:
                         Earr_d[i][start:end] = Earr_[idx]
                         ra_d[i][start:end] = ra_[idx]
                         dec_d[i][start:end] = dec_[idx]
-                        logging.debug("All data placed.")
+                        logger.debug("All data placed.")
                     except (IndexError, ValueError):
-                        logging.debug("Not enough slots, cutting short.")
+                        logger.debug("Not enough slots, cutting short.")
                         remaining = np.argwhere(Etrue_d[i] == 0.).size
                         Etrue_d[i][start:] = Etrue_[idx][0:remaining]
                         Earr_d[i][start:] = Earr_[idx][0:remaining]
@@ -329,9 +341,9 @@ class Simulator:
                         dec_d[i][start:] = dec_[idx][0:remaining]
                         break
             # print("Sampling spectrum is done")
-            logging.info("Done sampling the spectrum") 
+            logger.info("Done sampling the spectrum") 
             if not isinstance(self.detector.energy_resolution, R2021IRF):
-                logging.info("Sampled reco energy")
+                logger.info("Sampling reco energy")
                 Ereco = self.detector.energy_resolution.sample(Earr_d[i])
                 #this and all following try-except TypeError blocks
                 #are needed if only a single event is sampled
@@ -344,7 +356,7 @@ class Simulator:
             #do source type specific things here
             if self.sources[i].source_type == DIFFUSE:
 
-
+                logger.info("Sampling angular uncertainty for diffuse source")
                 if isinstance(self.detector.angular_resolution, R2021IRF):
                     _, _, reco_ang_err, Ereco = self.detector.angular_resolution.sample(
                         (ra_d[i], dec_d[i]), np.log10(Earr_d[i]), seed=seed
@@ -377,10 +389,10 @@ class Simulator:
                 except TypeError:
                     self.dec += [dec_d[i]]
                     self.ra += [ra_d[i]]
-                logging.info("Sampled angular uncertainty for diffuse source")
+
             else:
 
-
+                logger.info("Sampling angular uncertainty for point source")
                 if isinstance(self.detector.angular_resolution, R2021IRF):
                     #loop over events handled inside R2021IRF
                     reco_ra, reco_dec, reco_ang_err, Ereco  = self.detector.angular_resolution.sample(
@@ -409,12 +421,14 @@ class Simulator:
                     self.ang_err += [reco_ang_err]
                     self.dec += [reco_dec]
                     self.ra += [reco_ra]
-                logging.info("Sampled angular uncertainty for point source")
+                
 
+        logger.info("Creating array of simulation data")  
         self.true_energy = np.concatenate(tuple(Etrue_d[k] for k in Earr_d.keys()))
         self.arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
         self.source_label = np.concatenate(tuple(np.full(l_num[l], l, dtype=int) for l in Earr_d.keys()))
-        logging.info("Created array of simulation data")       
+        logger.setLevel(logging.INFO)
+             
 
 
  
@@ -609,7 +623,122 @@ class Braun2008Simulator:
                 data=self.source.flux_model._normalisation_energy,
             )
 
+class TimeDependentSimulator():
+    """
+    Simulator-class for simulations spanning multiple data taking periods.
+    """
 
+    _available_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
+
+    _time_limits = {}
+
+    # need to find time limits of data taking periods
+    # s.t. starting point (in years, days, whatever)
+    # can be defined, endpoint as well
+    # class instance then calculates the according times
+    # for each period
+
+    def __init__(self, periods, sources, **kwargs):
+        """Instanciates multi-period simulator.
+        :param periods: Tuple of periods to be included in simulation.
+        :param sources: List of sources to be simulated.
+        :param kwargs: Dict with further settings.
+        """
+
+        self.simulators = {}
+        if not all(_ in self._available_periods for _ in periods):
+            raise ValueError("Some periods not supported.")
+
+        #Get time dependent detector.
+        time_dependent_detector = TimeDependentIceCube.from_periods(*periods)
+        self.simulators = {
+            p: Simulator(sources, sim) for p, sim in time_dependent_detector.yield_detectors()
+        }
+        self.sources = sources
+
+        if kwargs.get("time"):
+            self.time = kwargs["time"]
+        else:
+            logger.warning("Need to set simulation times, defaults to 1 year each.")
+
+    def run(self, N: List=None, seed=1234, show_progress=False):
+        """
+        Runs simulation for each period.
+        :param N: List of Ns to be set as expected number of neutrinos in sample.
+        :param seed: Random seed.
+        :param show_progress: Bool, True if debugging information on simulation is to be shown.
+        Currently not implemented.
+        """
+
+        for p, sim in self.simulators.items():
+            logger.info(f"Simulating period {p}.")
+            sim.run(N=None, seed=1234, show_progress=False)
+
+
+    def save(self, path, file_prefix):
+        """
+        Saves simulated data sets.
+        :param path: Path to directory in which files should be saved.
+        :param file_prefix: Actually suffix of filename, to be appended to all files.
+        :return: Dictionary of filenames.
+        """
+
+        d = {}
+        for p, sim in self.simulators.items():
+            file_name = join(path, f"p_{p}_{file_prefix}.h5")
+            d[p] = file_name
+            sim.save(file_name)
+        return d
+
+
+    def get_expected_number(self):
+        #loop over all periods and call _get_expected_number() with properly chosen time
+        # TODO add way of extracting these numbers
+        return {p: sim._get_expected_number() for p, sim in self.simulators.items()}
+        #for sim in self.simulators.values():
+        #    sim._get_expected_number()
+
+    """
+    def _yield_time(self):
+        for p, sim in self.simulators.items():
+            yield sim.time
+    """
+
+    @property
+    def time(self):
+        """
+        Returns dictionary of simulator times.
+        :return: Dictionary of simulator times.
+        """
+
+        return {p: sim.time for p, sim in self.simulators.items()}
+
+
+    @time.setter
+    def time(self, times: Dict):
+        """
+        Sets simulator times.
+        :param times: Dict returned by Uptime.find_time_obs().
+        """
+        #TODO rewrite method
+        for p, t in times.items():
+            self.simulators[p].time = t
+        logger.info("Set simulation times")
+            
+
+    @property
+    def sources(self):
+        return self._sources
+    
+
+    @sources.setter
+    def sources(self, source_list):
+        self._sources = source_list
+        for sim in self.simulators.values():
+            sim._sources = source_list
+
+
+    
 def sphere_sample(radius=1, v_lim=0, N=1):
     """
     Sample points uniformly on a sphere.

@@ -27,6 +27,7 @@ from matplotlib import pyplot as plt
 from matplotlib.colors import LogNorm
 
 from icecube_tools.utils.data import IceCubeData
+from icecube_tools.detector.detector import IceCube, TimeDependentIceCube
 ```
 
 The `IceCubeData` class can be used for a quick check of the available datasets on the IceCube website. 
@@ -36,6 +37,7 @@ my_data = IceCubeData()
 my_data.datasets
 ```
 
+<!-- #region -->
 ## Effective area, angular resolution and energy resolution of 10 year data
 
 We can now use the date string to identify certain datasets. Let's say we want to use the effective area and angular resolution from the `20210126` dataset. If you don't already have the dataset downloaded, `icecube_tools` will do this for you automatically. This 10 year data release provides more detailed IRF data.
@@ -46,13 +48,17 @@ The simpler, earlier versions are explained afterwards.
 
 The format of the effective area has not changed, though.
 
+
+For this latest data set, we have different detector configurations available, as they changed through time (the detector was expanded). We can invoke a chosen configuration throught the second argument in `EffectiveArea.from_dataset()` for this particular data set only.
+<!-- #endregion -->
+
 ```python
 from icecube_tools.detector.r2021 import R2021IRF
 from icecube_tools.detector.effective_area import EffectiveArea
 ```
 
 ```python
-my_aeff = EffectiveArea.from_dataset("20210126")
+my_aeff = EffectiveArea.from_dataset("20210126", "IC86_II")
 ```
 
 ```python
@@ -76,7 +82,7 @@ We find the energy resolution, i.e. $p(E_\mathrm{reco} \vert E_\mathrm{true}, \d
 The `R2021IRF()`class is able to do so:
 
 ```python
-irf = R2021IRF()
+irf = R2021IRF.from_period("IC86_II")
 ```
 
 ```python
@@ -103,9 +109,9 @@ ereco = np.linspace(1, 8, num=100)
 ```
 
 ```python
-vals = np.zeros((etrue.size, ereco.size))
+vals = np.zeros((etrue.size-1, ereco.size-1))
 for c, et in enumerate(etrue[:-1]):
-    vals[c, :-1] = irf.reco_energy[c, 2].pdf(ereco[:-1])
+    vals[c, :] = irf.reco_energy[c, 2].pdf(ereco[:-1])
 ```
 
 ```python
@@ -125,7 +131,7 @@ cbar.set_label("P(Ereco|Etrue)")
 
 Now that we have the reconstructed energy for an event with some $E_\mathrm{true}, \delta$, we can proceed in finding the angular resolution.
 
-First, from the given "history" of the event, we sample the matching distribution/histogram of $\mathrm{PSF}$, again my marginalising over the uninteresting quantities, in this case only $\mathrm{ang\_err}$. We thus sample a value of $\mathrm{PSF}$, to whom a distribution of $\mathrm{ang\_err}$ belongs, which we subsequently sample. This is now to be understood as a cone of a given angular radius, within which the true arrival direction lies with a probability of 50%.
+First, from the given "history" of the event, we sample the matching distribution/histogram of $\mathrm{PSF}$, again by marginalising over the uninteresting quantities, in this case only $\mathrm{ang\_err}$. We thus sample a value of $\mathrm{PSF}$, to whom a distribution of $\mathrm{ang\_err}$ belongs, which we subsequently sample. This is now to be understood as a cone of a given angular radius, within which the true arrival direction lies with a probability of 50%.
 
 For both steps, the histograms are created by `R2021IRF()` when instructed to do so: we pass a tuple of vectors (ra, dec) in radians and a vector of $\log_{10}(E_\mathrm{true})$ to the method `sample()`. Returned are sampled ra, dec (both in radians), angular error (68%, in degrees) and reconstructed energy in GeV.
 
@@ -159,9 +165,37 @@ for c, e in enumerate(loge[:-1]):
     mean_uncertainty[c] = np.power(10,np.average(np.log10(samples)))
 mean_uncertainty[-1] = mean_uncertainty[-2]
 plt.step(loge, mean_uncertainty, where='post')
+plt.xlabel("$\log E_\mathrm{true} / \mathrm{GeV}$")
+plt.ylabel("mean angular uncertainty [degrees]")
 ```
 
-## Effective area, angular resolution and energy resolution of earlier releases
+## Constructing a detector
+
+A detector used for e.g. simulations can be constructed from angular/energy uncertainties and an effective area:
+
+```python
+detector = IceCube(my_aeff, irf, irf, "IC86_II")
+```
+
+`irf = R2021IRF()` is used both as spatial and energy resolution, because it encompasses both types of information and inherits from both classes. 
+
+
+## Time dependent detector
+
+We can construct a "meta-detector" spanning multiple data periods through the class `TimeDependentIceCube` from strings defining the data periods. Alternatively, a 
+
+```python
+tic = TimeDependentIceCube.from_periods("IC86_I", "IC86_II")
+tic.detectors
+```
+
+Available periods are
+
+```python
+TimeDependentIceCube._available_periods
+```
+
+# Effective area, angular resolution and energy resolution of earlier releases
 
 Repeating the prodecure for the `20181018` dataset.
 
