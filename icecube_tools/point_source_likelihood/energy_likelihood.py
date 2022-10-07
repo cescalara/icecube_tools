@@ -96,15 +96,13 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         irf_dec_ind = np.digitize(dec, self.declination_bins_irf) - 1
         aeff_dec_ind = np.digitize(dec, self.declination_bins_aeff) - 1
 
-        #print(dec_ind)
         # TODO implement boundaries of array
 
         #init array for values
-        values = np.zeros(self.reco_bins[:-1].size)
+        values = np.zeros(self.reco_bins[:-1].size)    # one less value than number of bins
         aeff = self._aeff.detection_probability(
-            np.power(10, self.true_energy_bins[:-1]), -np.sin(dec), 1e9
+            np.power(10, self.true_energy_bins[:-1]), -np.sin(dec), 1e8
         )
-        #print(aeff)
         
         true_bins_ind = np.nonzero(self.true_energy_bins[:-1] < self.true_bins_aeff.max())
         true_bins = self.true_energy_bins[true_bins_ind]
@@ -117,15 +115,15 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
             zip(self.reco_bins[:-1], self.reco_bins[1:])
         ):
 
-            """ 
+            """
             def integrate_this(loge):
                 # defines integrand, to be integrated over true energy
                 # pdf(log Ereco|log Etrue) * pdf(log Etrue|gamma) * detector acceptance(log Etrue, dec)
                 # find index of true energy value of loge
-                true_ind = np.digitize(loge, self.true_energy_bins) - 1
+                true_ind = np.digitize(loge, self.true_bins_irf) - 1
                 #TODO implement boundaries of array
 
-                pdf = self._irf.reco_energy[true_ind, dec_ind]
+                pdf = self._irf.reco_energy[true_ind, irf_dec_ind]
                 #integrate over each bin of reco energy bc histogram and not continuous distribution
                 cdf = (pdf.cdf(erecoh) - pdf.cdf(erecol))
                 return self.power_law_loge(loge, index) * cdf * \
@@ -140,28 +138,29 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
             #doesnt seem to work properly, shifts llh to much lower energies
             
             for c, (etruel, etrueh) in enumerate(zip(
-                self.true_energy_bins[:-1], self.true_energy_bins[1:])
+                true_bins[:-1], true_bins[1:])
             ):
 
-                c_true_irf = np.digitize(etruel, self.true_bins_irf) - 1
+                c_true_irf = np.digitize(etruel+0.01, self.true_bins_irf) - 1
                 #if etruel == 9.:
                 #    c_true_irf -= 1
                 #elif etruel > 9.:
                 #    continue
                 if etrueh > self.true_bins_irf.max():
-                    print("too high true energy")
+                    #print("too high true energy")
                     continue
                 if etruel < self.true_bins_irf.min():
-                    print("too low true energy")
+                    #print("too low true energy")
                     continue
                 #true_ind = np.digitize(etruel+0.01, self.true_energy_bins) - 1
                 pdf = self._irf.reco_energy[c_true_irf, irf_dec_ind]
-                cdf = (pdf.cdf(erecoh) - pdf.cdf(erecol))
+                cdf = (pdf.cdf(erecoh) - pdf.cdf(erecol))    # integrate over ereco bin width
                 pl = self.integrated_power_law(etrueh, etruel, index)
                 sum_this[c] = cdf * pl
+            aeff = np.ones(sum_this.shape)
             values[c_reco] = np.dot(sum_this, aeff)
-
-        values = values / np.sum(values)
+            
+        values = values / np.sum(values * np.diff(self.reco_bins))
         self.values_per_dec[aeff_dec_ind] = values
         #return values
 
