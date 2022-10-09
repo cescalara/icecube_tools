@@ -1,7 +1,4 @@
-from re import T
-from typing_extensions import Self
 import numpy as np
-from scipy import integrate
 from abc import ABC, abstractmethod
 import h5py
 from os.path import join
@@ -88,6 +85,8 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
     def __call__(self, ereco, index, dec):
         """
         Wrapper on _calc_likelihood to retrieve only the likelihood for a specific Ereco value.
+        Saves time by storing data and checking if data of the same index is requested
+        over and over again, as is done in point_source_likelihood.py for each event.
         :param ereco: Reconstructed energy in GeV, float or np.ndarray
         :param index: Spectral index > 0
         :param dec: Declination, rad
@@ -120,17 +119,14 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
             self._values[dec_ind] = self._calc_likelihood(index, dec)
         return self._values[dec_ind][reco_ind]
 
+
     #@profile
     def _calc_likelihood(self, index, dec):
         """
         Calculates likelihood for new reco energy binning for given index at given declination.
         """
 
-        #Get index of declination for appropriate IRF
-        #print(dec)
-        irf_dec_ind = np.digitize(dec, self.declination_bins_irf) - 1
-        aeff_dec_ind = np.digitize(dec, self.declination_bins_aeff) - 1
-        
+        irf_dec_ind = np.digitize(dec, self.declination_bins_irf) - 1        
 
         #pre-calculate power law and aeff part, is not dependent on reco energy
         pl = np.zeros(self.true_energy_bins.size - 1)
@@ -145,28 +141,16 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         )
         
         values = np.zeros(self.reco_bins.size - 1)
-        pdf = np.zeros(self.reco_bins.size - 1)
         for c_reco, (erecol, erecoh) in enumerate(
             zip(self.reco_bins[:-1], self.reco_bins[1:])
         ):
 
-            #sum_this = np.zeros(self.true_bins_c.size)
-            """
-            for c, (etruel, etrueh) in enumerate(zip(
-                self.true_energy_bins[:-1], self.true_energy_bins[1:])
-            ):
-                
-                c_true_irf = np.digitize(etruel+0.01, self.true_bins_irf) - 1
-                pdf = self._irf.reco_energy[c_true_irf, irf_dec_ind]
-                cdf = pdf.cdf(erecoh) - pdf.cdf(erecol)
-                sum_this[c] = cdf * pl[c]
-            """
+            # Can this be done in without the loop?
             sum_this = pl * self._cdf[:, irf_dec_ind, c_reco]
             values[c_reco] = np.dot(sum_this, aeff)
             
         values = values / np.sum(values * np.diff(self.reco_bins))
         return values
-        #self.values_per_dec[aeff_dec_ind] = values
 
 
     @staticmethod

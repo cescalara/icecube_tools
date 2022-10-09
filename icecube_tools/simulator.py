@@ -7,6 +7,10 @@ import logging
 
 # from memory_profiler import profile
 from tqdm import tqdm as progress_bar
+#maybe add from tqdm.contrib.logging import logging_redirect_tqdm
+#to re-route logging to tqdm for nicer printing
+
+
 
 from .detector.detector import Detector
 from .source.source_model import Source, DIFFUSE, POINT
@@ -22,7 +26,7 @@ and detection simulations.
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
 class Simulator:
     def __init__(self, sources, detector):
@@ -336,9 +340,12 @@ class Simulator:
                         Earr_d[i][start:] = Earr_[idx][0:remaining]
                         ra_d[i][start:] = ra_[idx][0:remaining]
                         dec_d[i][start:] = dec_[idx][0:remaining]
-                        progress.update(remaining)
+                        if show_progress:
+                            progress.update(remaining)
                         break
             # print("Sampling spectrum is done")
+            if show_progress:
+                progress.close()
             logger.info("Done sampling the spectrum") 
             if not isinstance(self.detector.energy_resolution, R2021IRF):
                 logger.info("Sampled reco energy")
