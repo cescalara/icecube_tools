@@ -1,4 +1,5 @@
 from re import T
+from typing_extensions import Self
 import numpy as np
 from scipy import integrate
 from abc import ABC, abstractmethod
@@ -70,8 +71,18 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         self.declination_bins_aeff = np.arcsin(-self.cos_z_bins)
         self._min_index = min_index
         self._max_index = max_index
-        self.values_per_dec = {}
-        self.true_bins_c = self.true_energy_bins[:-1] + 0.5 * np.diff(self.true_energy_bins)       
+        self.true_bins_c = self.true_energy_bins[:-1] + 0.5 * np.diff(self.true_energy_bins)
+        self._previous_index = None
+        self._values = {} 
+
+        #pre-calculate cdf values
+        self._cdf = np.zeros((self.true_energy_bins.size - 1, 3, self.reco_bins.size - 1))
+        for c_true, e_true  in enumerate(self.true_energy_bins[:-1]):
+            c_irf_true = np.digitize(e_true, self.true_bins_irf) - 1
+            for c_dec, _ in enumerate(self.declination_bins_irf[:-1]):
+                for c, (erecol, erecoh) in enumerate(zip(self.reco_bins[:-1], self.reco_bins[1:])):
+                    pdf = self._irf.reco_energy[c_irf_true, c_dec]
+                    self._cdf[c_true, c_dec, c] = pdf.cdf(erecoh) - pdf.cdf(erecol)
 
 
     def __call__(self, ereco, index, dec):
@@ -92,15 +103,24 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         reco_ind = np.digitize(log_ereco, self.reco_bins) - 1
         dec_ind = np.digitize(dec, self.declination_bins_aeff) - 1
         
-        try:
-            vals = self.values_per_dec[dec_ind]
-        except KeyError:
-            self._calc_likelihood(index, dec)
-            vals = self.values_per_dec[dec_ind]
-        
-        return vals[reco_ind]
+        #if there was a previous index, look it up
+        if self._previous_index is not None:
+            #if asked for index is close to previous, look up declination
+            if np.isclose(self._previous_index, index):
+                try:
+                    return self._values[dec_ind][reco_ind]
+                except KeyError:
+                    self._values[dec_ind] = self._calculate_values(index, dec)
+            #else calculate from scratch and overwrite all previous values
+            else:
+                self._previous_index = index
+                self._values = {}
+                self._values[dec_ind] = self._calc_likelihood(index, dec)
+        else:
+            self._values[dec_ind] = self._calc_likelihood(index, dec)
+        return self._values[dec_ind][reco_ind]
 
-
+    #@profile
     def _calc_likelihood(self, index, dec):
         """
         Calculates likelihood for new reco energy binning for given index at given declination.
@@ -130,8 +150,8 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
             zip(self.reco_bins[:-1], self.reco_bins[1:])
         ):
 
-            sum_this = np.zeros(self.true_bins_c.size)
-            
+            #sum_this = np.zeros(self.true_bins_c.size)
+            """
             for c, (etruel, etrueh) in enumerate(zip(
                 self.true_energy_bins[:-1], self.true_energy_bins[1:])
             ):
@@ -140,10 +160,13 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
                 pdf = self._irf.reco_energy[c_true_irf, irf_dec_ind]
                 cdf = pdf.cdf(erecoh) - pdf.cdf(erecol)
                 sum_this[c] = cdf * pl[c]
+            """
+            sum_this = pl * self._cdf[:, irf_dec_ind, c_reco]
             values[c_reco] = np.dot(sum_this, aeff)
             
         values = values / np.sum(values * np.diff(self.reco_bins))
-        self.values_per_dec[aeff_dec_ind] = values
+        return values
+        #self.values_per_dec[aeff_dec_ind] = values
 
 
     @staticmethod
@@ -240,11 +263,12 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
         self._Ebins = Ebins
        
 
-    def __call__(self, E, index):
+    def __call__(self, E, index, dec=0):
         """
         Returns likelihood of reconstructed energy for specified spectral index.
         :param E: Reconstructed energy in GeV, may be float or np.ndarray
         :param index: spectral index
+        :param dec: dummy argument
         :return: Likelihood
         :raise ValueError: if the requested index is out of range.
         :raise ValueError: if any other interpolation than `log` or `lin` is requested. 
@@ -473,7 +497,7 @@ class MarginalisedEnergyLikelihoodFromSim(MarginalisedEnergyLikelihood):
 
             self._likelihood[i] = hist
 
-    def __call__(self, E, new_index):
+    def __call__(self, E, new_index, dec):
         """
         P(Ereco | index) = \int dEtrue P(Ereco | Etrue) P(Etrue | index)
         """

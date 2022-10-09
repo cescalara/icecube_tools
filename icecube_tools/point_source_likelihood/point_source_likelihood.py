@@ -225,55 +225,64 @@ class PointSourceLikelihood:
 
         one_plus_alpha = 1e-10
         alpha = one_plus_alpha - 1
-        """
-        idx = np.digitize(index, self._energy_likelihood.index_list)
-        llhs = np.zeros(2)
-        for c, indx in enumerate(self._energy_likelihood.index_list[idx-1:idx+1]):
-        """
-        log_likelihood_ratio = 0.0
-        for i in range(self.Nprime):
-            signal = self._signal_likelihood(
-                self._selected_ras[i],
-                self._selected_decs[i],
-                self._source_coord,
-                self._selected_energies[i],
-                index,
-                ang_err=self._selected_ang_errs[i]
-            )
+        if isinstance(self._energy_likelihood, MarginalisedIntegratedEnergyLikelihood):
+            index_list = [index]
+        else:
+            idx = np.digitize(index, self._energy_likelihood.index_list)
+            llhs = np.zeros(2)
+            index_list = self._energy_likelihood.index_list[idx-1:idx+1]
 
-            bg = self._background_likelihood(
-                self._selected_energies[i],
-                self._selected_decs[i]
-            )
-
-            chi = (1 / self.N) * (signal / bg - 1)
-
-            alpha_i = ns * chi
-
-            if (1 + alpha_i) < one_plus_alpha:
-
-                alpha_tilde = (alpha_i - alpha) / one_plus_alpha
-                log_likelihood_ratio += (
-                    np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde ** 2)
+        for c, indx in enumerate(index_list):
+            log_likelihood_ratio = 0.0
+            for i in range(self.Nprime):
+                signal = self._signal_likelihood(
+                    self._selected_ras[i],
+                    self._selected_decs[i],
+                    self._source_coord,
+                    self._selected_energies[i],
+                    indx,
+                    ang_err=self._selected_ang_errs[i]
                 )
 
+                bg = self._background_likelihood(
+                    self._selected_energies[i],
+                    self._selected_decs[i]
+                )
+
+                chi = (1 / self.N) * (signal / bg - 1)
+
+                alpha_i = ns * chi
+
+                if (1 + alpha_i) < one_plus_alpha:
+
+                    alpha_tilde = (alpha_i - alpha) / one_plus_alpha
+                    log_likelihood_ratio += (
+                        np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde ** 2)
+                    )
+
+                else:
+
+                    log_likelihood_ratio += np.log1p(alpha_i)
+
+            log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
+
+
+
+            if isinstance(self._energy_likelihood, MarginalisedIntegratedEnergyLikelihood):
+                #exit for integrated likelihood after one iteration, since that's all that's needed
+                if self._index_prior:
+                    log_likelihood_ratio += np.log(self._index_prior(indx))
+                return -log_likelihood_ratio
             else:
+                #continue through loop, pick value in the middle at the end
+                llhs[c] = log_likelihood_ratio
 
-                log_likelihood_ratio += np.log1p(alpha_i)
-
-        log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
-
-
-
-        #    llhs[c] = log_likelihood_ratio
-
-        #log_likelihood_ratio = np.interp(index, self._energy_likelihood.index_list[idx-1:idx+1], llhs)
-
+        log_likelihood_ratio = np.interp(indx, self._energy_likelihood.index_list[idx-1:idx+1], llhs)
         if self._index_prior:
-
-            log_likelihood_ratio += np.log(self._index_prior(index))
+            log_likelihood_ratio += np.log(self._index_prior(indx))
         
         return -log_likelihood_ratio
+
 
 
     def __call__(self, ns, index):
