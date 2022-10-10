@@ -42,7 +42,6 @@ class R2021IRF(EnergyResolution, AngularResolution):
 
         self.uniform = uniform(0, 2*np.pi)
 
-
         self.output = np.loadtxt(self._filename, comments="#")
         self.dataset = self.output
         true_energy_lower = np.array(list(set(self.output[:, 0])))
@@ -65,6 +64,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         self.true_energy_values = (
             self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins) / 2
         )
+        #self.ereco_pdf_max = 0.
 
         logger.debug('Creating Ereco distributions')
         #Reco energy is handled without ddict() because it's not that much calculation
@@ -74,6 +74,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
         for c_e, e in enumerate(self.true_energy_bins[:-1]):
             for c_d, d in enumerate(self.declination_bins[:-1]):
                 n, bins = self._marginalisation(c_e, c_d)
+                #if n.max() > self.ereco_pdf_max:
+                #    self.ereco_pdf_max = n.max()
                 self.reco_energy[c_e, c_d] = rv_histogram((n, bins))
                 self.reco_energy_bins[c_e, c_d] = bins
         self._values = []
@@ -168,10 +170,10 @@ class R2021IRF(EnergyResolution, AngularResolution):
                  reconstructed energy in GeV
         """
 
-        if show_progress:
-            logger.basicConfig(level=logging.INFO)
-        else:
-            logger.basicConfig(level=logging.CRITICAL)
+        #if show_progress:
+        #    logger.basicConfig(level=logging.INFO)
+        #else:
+        #    logger.basicConfig(level=logging.CRITICAL)
 
         ra, dec = coord
         if not isinstance(ra, np.ndarray):
