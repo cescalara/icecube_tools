@@ -84,23 +84,21 @@ irf = R2021IRF(fetch=False)
 new_reco_bins = irf.reco_energy_bins[12, 2]
 energy_likelihood = MarginalisedIntegratedEnergyLikelihood(irf, aeff, new_reco_bins)
 #energy_likelihood = MarginalisedEnergyLikelihood2021([1.5, 2.0, 2.5, 3.0, 3.5, 3.7, 4.0], 'data', 'sim_output', np.pi/4,)
+# the likelihood class is backwardscompatible with the "older" simulation-based energy likelihood
 ```
 
 ```python
-irf.true_energy_bins
+new_reco_bins
 ```
 
 ```python
 #test_energies = np.geomspace(10, 1e7) # GeV
 test_indices = [2.0, 2.5, 3, 3.5]
-
+energy = np.logspace(2, 7.66, num=1000, endpoint=False)
 fig, ax = plt.subplots()
 for index in test_indices:
-    energy_likelihood._calc_likelihood(index, np.deg2rad(30))
-    dec_ind = np.digitize(np.deg2rad(30), energy_likelihood.declination_bins_aeff) - 1
-    ax.step(new_reco_bins[:-1], energy_likelihood.values_per_dec[dec_ind], 
-            label=f"index {index:.1f}", where='post')
-#ax.set_xscale("log")
+    ax.plot(energy, energy_likelihood(energy, index, np.deg2rad(45)), label=f"{index:.1f}")
+ax.set_xscale("log")
 ax.set_yscale("log")
 ax.set_xlabel("E_reco [GeV]")
 ax.set_ylabel("Energy likelihood")
@@ -132,14 +130,6 @@ likelihood._bg_index = 3.7
 The likelihood will automatically select a declination band around the proposed source location. Because of the Gaussian spatial likelihood, neutrinos far from the source will have negligible contribution. We can control the width of this band with the optional argument `band_width_factor`. Let's see how many events ended up in the band, compared to the total number:
 
 ```python
-data["dec"].max()
-```
-
-```python
-max(np.digitize(data["dec"], energy_likelihood.declination_bins_aeff)-1)
-```
-
-```python
 likelihood.Nprime
 ```
 
@@ -157,11 +147,10 @@ We also note that the background likelihood is implemented automatically, for mo
 
 ```python
 fig, ax = plt.subplots()
-energy_likelihood._calc_likelihood(3.7, np.deg2rad(30))
-dec_ind = np.digitize(np.deg2rad(30), energy_likelihood.declination_bins_aeff) - 1
-ax.step(new_reco_bins[:-1], energy_likelihood.values_per_dec[dec_ind], 
-        label=f"index {index:.1f}", where='post')
-#ax.set_xscale("log")
+energy = np.logspace(new_reco_bins[0], new_reco_bins[-1], num=1000, endpoint=False)
+ax.step(energy, energy_likelihood(energy, 3.7, np.deg2rad(30)), 
+        label=f"index {index:.1f}")
+ax.set_xscale("log")
 ax.set_yscale("log")
 ax.set_xlabel("$log_{10}(E_\mathrm{reco} / \mathrm{GeV})}$")
 ax.set_ylabel("Background likelihood")
@@ -207,6 +196,7 @@ for n_rm in range(ntot_ps_events):
                                        new_data["ra"], new_data["dec"], 
                                        new_data["reco_energy"],
                                        source_coord)
+    new_likelihood._bg_energy_likelihood = None
     test_statistics.append(new_likelihood.get_test_statistic())
 ```
 
@@ -223,15 +213,6 @@ ax.set_ylabel("Test statistic value")
 
 So the more neutrinos are seen from a source, the easier that source is to detect.
 
-
-We can further inspect the likelihood profiles by using the Minuit object returned by `likelihood._minimize()`. The one for the index has sharp changes. This is due to the interpolation done by the energy likelihood. We fed it simulation for discreet values of `index`. We cannot sensibly interpolate the likelihood of a given energy to any index, this leads to Heaviside-like discontinuities in the global (spatial + energy) likelihood. Instead, `PointSourceLikelihood` calculates the likelihood for the next simulated values of `index`, e.g. asking for an index 2.3 would lead to 2.0 and 2.5, and interpolate linearly between the resulting likelihoods. The precision of this method can be improved by providing simulations on a denser grid of spectral indices.
-
-The error provided by `migrad()` is unreasonably small.
-
-```python
-likelihood._energy_likelihood.index_list
-```
-
 ```python
 m = likelihood._minimize()
 print(m)
@@ -243,12 +224,6 @@ _ = m.draw_profile("ns")
 
 ```python
 _ = m.draw_profile("index", bound=(likelihood._energy_likelihood._min_index, likelihood._energy_likelihood._max_index))
-```
-
-As a final step we show the likelihood values across a 2d grid.
-
-```python
-print("hello")
 ```
 
 ```python
@@ -271,18 +246,46 @@ ax.set_xlabel("index")
 ax.set_ylabel("ns")
 ```
 
+We can further inspect the likelihood profiles by using the Minuit object returned by `likelihood._minimize()`, as can be seen above.
+
+For the simulation-based energy likelihood used in the following, the profile o `index` has some edges. This is due to the interpolation done by the energy likelihood. We fed it simulation for discreet values of `index`. We cannot sensibly interpolate the likelihood of a given energy to any index, this leads to Heaviside-like discontinuities in the global (spatial + energy) likelihood. Instead, `PointSourceLikelihood` calculates the likelihood for the next simulated values of `index`, e.g. asking for an index 2.3 would lead to 2.0 and 2.5, and interpolate linearly between the resulting likelihoods. The precision of this method can be improved by providing simulations on a denser grid of spectral indices.
+
+The error provided by `migrad()` is unreasonably small.
+
 ```python
-irf.true_energy_bins
+energy_likelihood = MarginalisedEnergyLikelihood2021([1.5, 2.0, 2.5, 3.0, 3.5, 3.7, 4.0], 'data', 'sim_output', np.pi/4,)
+energy_likelihood._min_index = 1.55
+energy_likelihood._max_index = 3.95
+likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood, 
+                                  data["ra"], data["dec"], data["reco_energy"],
+                                  source_coord)
+likelihood._bg_index = 3.7
+likelihood._bg_energy_likelihood = None
+
+
 ```
 
 ```python
-np.log10(aeff.true_energy_bins)
+likelihood._energy_likelihood.index_list
 ```
 
 ```python
-np.array(sorted(list(set(irf.true_energy_bins).union(np.log10(aeff.true_energy_bins)))))
+likelihood.get_test_statistic()
 ```
 
 ```python
+m = likelihood._minimize()
+```
 
+```python
+_ = m.draw_profile("ns")
+```
+
+```python
+_ = m.draw_profile("index")
+plt.savefig("index.png")
+```
+
+```python
+np.rad2deg(data["dec"][-1])
 ```
