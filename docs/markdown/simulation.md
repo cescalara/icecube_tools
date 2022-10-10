@@ -162,7 +162,7 @@ ax.hist(reco_energy, bins=bins, alpha=0.7, label="E_reco")
 ax.set_xscale("log")
 ax.set_yscale("log")
 ax.set_xlabel("E [GeV]")
-ax.legend();
+ax.legend()
 ```
 
 ```python
@@ -242,7 +242,7 @@ tsim.save("data", "test_sim")
 ```
 
 ```python
-
+"""
 for i in [3.9]:
     norm_energy = 1e5 # Energy of normalisation in units of GeV
     min_energy = 1e2 # GeV
@@ -262,13 +262,5 @@ for i in [3.9]:
         sim.time = 1
     tsim.run(show_progress=True)
     tsim.save(f"index_{i}")
-
-```
-
-```python
-tsim.save("data", f"index_3.9")
-```
-
-```python
-
+"""
 ```

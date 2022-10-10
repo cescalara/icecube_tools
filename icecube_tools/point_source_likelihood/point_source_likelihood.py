@@ -736,18 +736,21 @@ class TimeDependentPointSourceLikelihood:
     def __init__(
         self,
         source_coords,
-        periods, event_files,
+        periods,
+        event_files,
         energy_likelihood: MarginalisedEnergyLikelihood,
-        index_list=None,
         path=None,
+        index_list=None,
         which="both"):
         """
         Create likelihood covering multiple data taking periods.
         :param source_coords: Tuple of ra, dec.
         :param periods: List of str of period names, eg. `IC40`
         :param event_files: List of event files corresponding the the above periods.
+        :energy_likelihood: Class inheriting from MarginalisedEnergyLikelihood.
         :param index_list: List of indices covered by the events used to build the energy likelihood.
         :param path: Path to directory where the simulated events (see above) are located.
+        :param which: String, `both`, `spatial`, `energy` indicating which likelihoods are to be used.
         """
 
         self.which = which

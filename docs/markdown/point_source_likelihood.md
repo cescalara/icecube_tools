@@ -38,7 +38,7 @@ from icecube_tools.point_source_likelihood.energy_likelihood import (
     MarginalisedIntegratedEnergyLikelihood
 )
 from icecube_tools.point_source_likelihood.point_source_likelihood import (
-    PointSourceLikelihood
+    PointSourceLikelihood, TimeDependentPointSourceLikelihood
 )
 
 from icecube_tools.detector.effective_area import EffectiveArea
@@ -112,7 +112,7 @@ Now we can bring together the spatial and energy terms to build a full `PointSou
 
 ```python
 data = {}
-with h5py.File("data/test_sim_IC86_I.h5", "r") as f:
+with h5py.File("data/p_IC86_I_test_sim.h5", "r") as f:
     for key in f:
         if "source_0" not in key and "source_1" not in key:
             data[key] = f[key][()]
@@ -239,8 +239,8 @@ And finally have a look at the 2d likelihood profile.
 ```python
 index = np.arange(1.7, 3.4, step=0.2)
 index_pl = np.arange(1.6, 3.5, step=0.2)
-ns_pl = np.arange(14.5, 30.5, step=1.)
-ns = np.arange(15, 30, step=1.)
+ns_pl = np.arange(24., 46, step=2.)
+ns = np.arange(25, 45, step=2.)
 ii, nn = np.meshgrid(index, ns, indexing='ij')
 ll = np.zeros(ii.flatten().shape)
 
@@ -295,5 +295,26 @@ lims = plt.ylim()
 plt.fill_betweenx([lims[0]-1, lims[1]+1], lower_lim, upper_lim, alpha=0.4, color='grey')
 plt.ylim(lims)
 plt.title(f"index = {m.values['index']:.1f} - {m.values['index']-lower_lim:.1f} + {abs(m.values['index']-upper_lim):.1f}")
-plt.savefig("index.png", dpi=150)
+```
+
+# Time dependent point source analysis
+
+```python
+source_coords = (np.pi, np.deg2rad(30))
+#index_list = list(np.arange(1.5, 4.25, 0.25))
+event_files = ["data/p_IC86_I_test_sim.h5", "data/p_IC86_II_test_sim.h5"]
+tllh = TimeDependentPointSourceLikelihood(
+    source_coords, ["IC86_I", "IC86_II"], event_files, MarginalisedIntegratedEnergyLikelihood, path="data")
+
+m = tllh._minimize()
+
+m
+```
+
+```python
+_ = m.draw_profile("index")
+```
+
+```python
+
 ```
