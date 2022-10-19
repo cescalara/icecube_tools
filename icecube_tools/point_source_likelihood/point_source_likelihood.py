@@ -387,7 +387,6 @@ class PointSourceLikelihood:
         """
 
         init_index = self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2
-        init_index = 2.19
         init_ns = self._ns_min + (self._ns_max - self._ns_min) / 2
 
         if self.which == 'spatial':
@@ -848,7 +847,7 @@ class TimeDependentPointSourceLikelihood:
         Uses the iMinuint wrapper.
         """
 
-        init_index = 2.19  # self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2
+        init_index = self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2
         error_index = 0.1
         some_llh = self.likelihoods[list(self.likelihoods.keys())[0]]
         limit_index = (some_llh._energy_likelihood._min_index,
