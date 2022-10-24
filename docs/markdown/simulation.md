@@ -162,7 +162,7 @@ ax.hist(reco_energy, bins=bins, alpha=0.7, label="E_reco")
 ax.set_xscale("log")
 ax.set_yscale("log")
 ax.set_xlabel("E [GeV]")
-ax.legend();
+ax.legend()
 ```
 
 ```python
@@ -237,13 +237,13 @@ tsim.time = times
 The simulation is started by calling `run()`, results can be saved by `save(file_prefix)`, with the filename being `{file_prefix}_{p}.h5` with period `p`.
 
 ```python
-tsim.run()
+tsim.run(show_progress=True)
 tsim.save("data", "test_sim")
 ```
 
 ```python
 """
-for i in [1.5, 2.0, 2.5, 3.0, 3.5, 3.7]:
+for i in [3.9]:
     norm_energy = 1e5 # Energy of normalisation in units of GeV
     min_energy = 1e2 # GeV
     max_energy = 1e8 # GeV
@@ -260,11 +260,7 @@ for i in [1.5, 2.0, 2.5, 3.0, 3.5, 3.7]:
     tsim = TimeDependentSimulator(["IC86_I", "IC86_II"], sources)
     for sim in tsim.simulators.values():
         sim.time = 1
-    tsim.run()
+    tsim.run(show_progress=True)
     tsim.save(f"index_{i}")
 """
-```
-
-```python
-
 ```

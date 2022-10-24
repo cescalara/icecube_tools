@@ -1,3 +1,4 @@
+from asyncio.log import logger
 import numpy as np
 from scipy.stats import rv_histogram, uniform, norm
 from scipy.spatial.transform import Rotation as R
@@ -14,6 +15,9 @@ from icecube_tools.utils.vMF import get_kappa, get_theta_p
 
 R2021_IRF_FILENAME = "smearing.csv"
 _supported_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class R2021IRF(EnergyResolution, AngularResolution):
@@ -38,7 +42,6 @@ class R2021IRF(EnergyResolution, AngularResolution):
 
         self.uniform = uniform(0, 2*np.pi)
 
-
         self.output = np.loadtxt(self._filename, comments="#")
         self.dataset = self.output
         true_energy_lower = np.array(list(set(self.output[:, 0])))
@@ -61,8 +64,9 @@ class R2021IRF(EnergyResolution, AngularResolution):
         self.true_energy_values = (
             self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins) / 2
         )
+        #self.ereco_pdf_max = 0.
 
-        logging.debug('Creating Ereco distributions')
+        logger.debug('Creating Ereco distributions')
         #Reco energy is handled without ddict() because it's not that much calculation
         #and has no parts with zero-entries
         self.reco_energy = np.empty((self.true_energy_bins.size-1, self.declination_bins.size-1), dtype=rv_histogram)
@@ -70,10 +74,12 @@ class R2021IRF(EnergyResolution, AngularResolution):
         for c_e, e in enumerate(self.true_energy_bins[:-1]):
             for c_d, d in enumerate(self.declination_bins[:-1]):
                 n, bins = self._marginalisation(c_e, c_d)
+                #if n.max() > self.ereco_pdf_max:
+                #    self.ereco_pdf_max = n.max()
                 self.reco_energy[c_e, c_d] = rv_histogram((n, bins))
                 self.reco_energy_bins[c_e, c_d] = bins
         self._values = []
-        logging.debug('Creating empty dicts for kinematic angle dists and angerr dists')
+        logger.debug('Creating empty dicts for kinematic angle dists and angerr dists')
 
         self.marginal_pdf_psf = ddict()
         self.marginal_pdf_angerr = ddict()
@@ -109,9 +115,9 @@ class R2021IRF(EnergyResolution, AngularResolution):
         #if only reconstructed energy is supposed to be sampled
 
         if show_progress:
-            logging.basicConfig(level=logging.INFO)
+            logger.basicConfig(level=logging.INFO)
         else:
-            logging.basicConfig(level=logging.CRITICAL)
+            logger.basicConfig(level=logging.CRITICAL)
 
         ra, dec = coord
         if not isinstance(ra, np.ndarray):
@@ -132,8 +138,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
         c_e, _, c_d, _ = self._return_etrue_bins(Etrue, dec)
         Ereco = np.zeros(size)
 
-        logging.debug(f'Energy and declination bins: {c_e}, {c_d}')
-        logging.debug('Sampling Ereco')
+        logger.debug(f'Energy and declination bins: {c_e}, {c_d}')
+        logger.debug('Sampling Ereco')
 
         #Idea behind this loop structure:
         #Group data by the bin indices
@@ -164,10 +170,10 @@ class R2021IRF(EnergyResolution, AngularResolution):
                  reconstructed energy in GeV
         """
 
-        if show_progress:
-            logging.basicConfig(level=logging.INFO)
-        else:
-            logging.basicConfig(level=logging.CRITICAL)
+        #if show_progress:
+        #    logger.basicConfig(level=logging.INFO)
+        #else:
+        #    logger.basicConfig(level=logging.CRITICAL)
 
         ra, dec = coord
         if not isinstance(ra, np.ndarray):
@@ -197,8 +203,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
         new_ras = np.zeros(size)
         new_decs = np.zeros(size)
 
-        logging.debug(f'Energy and declination bins: {c_e}, {c_d}')
-        logging.debug('Sampling Ereco')
+        logger.debug(f'Energy and declination bins: {c_e}, {c_d}')
+        logger.debug('Sampling Ereco')
 
 
         #Idea behind this loop structure:
@@ -219,7 +225,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
                 current_c_e_r = self._return_reco_energy_bins(idx_e, idx_d, Ereco[_index_f])
                 c_e_r[_index_f] = current_c_e_r
 
-                logging.debug(f'Ereco: {Ereco[_index_f]}, bins: {current_c_e_r}')
+                logger.debug(f'Ereco: {Ereco[_index_f]}, bins: {current_c_e_r}')
 
                 set_e_r = set(current_c_e_r)
 
@@ -231,7 +237,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
                         kinematic_angle[_index_r] = self.marginal_pdf_psf(idx_e, idx_d, idx_e_r, 'pdf').rvs(size=_index_r[0].size, random_state=seed)
 
                     except KeyError:
-                        logging.debug(f'Creating kinematic angle dist for {idx_e}, {idx_d}, {idx_e_r}')
+                        logger.debug(f'Creating kinematic angle dist for {idx_e}, {idx_d}, {idx_e_r}')
                         n, bins = self._marginalize_over_angerr(idx_e, idx_d, idx_e_r)
                         self.marginal_pdf_psf.add(bins, idx_e, idx_d, idx_e_r, 'bins')
                         self.marginal_pdf_psf.add(rv_histogram((n, bins)), idx_e, idx_d, idx_e_r, 'pdf')
@@ -248,7 +254,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
                         try:
                             ang_err[_index_k] = self.marginal_pdf_angerr(idx_e, idx_d, idx_e_r, idx_k, 'pdf').rvs(size=_index_k[0].size, random_state=seed)
                         except KeyError as KE:
-                            logging.debug(f'Creating AngErr dist for {idx_e}, {idx_d}, {idx_e_r}, {idx_k}')
+                            logger.debug(f'Creating AngErr dist for {idx_e}, {idx_d}, {idx_e_r}, {idx_k}')
                             n, bins = self._get_angerr_dist(idx_e, idx_d, idx_e_r, idx_k)
                             self.marginal_pdf_angerr.add(rv_histogram((n, bins)), idx_e, idx_d, idx_e_r, idx_k, 'pdf') 
                             self.marginal_pdf_angerr.add(bins, idx_e, idx_d, idx_e_r, idx_k, 'bins')
@@ -258,8 +264,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
         ang_err = np.power(10, ang_err)
         kappa = get_kappa(ang_err, 0.5)
         reco_ang_err = get_theta_p(kappa, self.ret_ang_err_p)
-        logging.info(kappa.shape)
-        logging.info(unit_vector.shape)
+        logger.info(kappa.shape)
+        logger.info(unit_vector.shape)
         new_unit_vector = sample_vMF(unit_vector, kappa)
         if new_unit_vector.shape != (3, Etrue.size):
             new_unit_vector = new_unit_vector.T
@@ -274,7 +280,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         new_sky_coord.representation_type = "unitspherical"
         new_ras = new_sky_coord.ra.rad
         new_decs = new_sky_coord.dec.rad
-        logging.info(f"reco_ang_error shape: {reco_ang_err.shape}")
+        logger.info(f"reco_ang_error shape: {reco_ang_err.shape}")
         return new_ras, new_decs, reco_ang_err, np.power(10, Ereco)
 
     @classmethod
@@ -484,7 +490,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         #sample kinematic angle from distribution
         azimuth = self.uniform.rvs(size=1, random_state=seed)[0]
         deflection = np.deg2rad(np.power(10, deflection))
-        logging.debug(f'azimuth: {azimuth}\ndeflection: {deflection}')
+        logger.debug(f'azimuth: {azimuth}\ndeflection: {deflection}')
         rot_vec_1 = make_perp(vec)
         rot_vec_1 *= deflection 
         #create rotation object from vector

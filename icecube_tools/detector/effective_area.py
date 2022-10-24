@@ -439,13 +439,14 @@ class EffectiveArea(object):
         a given true energy and arrival direction.
         """
 
+        #make copy of data array
         scaled_values = self.values.copy()
-
+        #get lower edges of each bin, set prob to zero for all bins above inputted max energy
         lower_bin_edges = self.true_energy_bins[:-1]
         scaled_values[lower_bin_edges > max_energy] = 0
-
+        #scale to max value: Aeff -> relative detection prob
         scaled_values = scaled_values / np.max(scaled_values)
-
+        #find appropriate bin of inputted energies
         energy_index = np.digitize(true_energy, self.true_energy_bins) - 1
 
         # Guard against overflow

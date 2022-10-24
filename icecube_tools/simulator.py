@@ -10,6 +10,10 @@ from typing import List, Dict
 
 # from memory_profiler import profile
 from tqdm import tqdm as progress_bar
+#maybe add from tqdm.contrib.logging import logging_redirect_tqdm
+#to re-route logging to tqdm for nicer printing
+
+
 
 from .detector.detector import Detector, TimeDependentIceCube
 from .source.source_model import Source, DIFFUSE, POINT
@@ -25,9 +29,7 @@ and detection simulations.
 """
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-# logger.addHandler(sys.stdout)
+logger.setLevel(logging.WARNING)
 
 
 class Simulator:
@@ -237,13 +239,13 @@ class Simulator:
         :param N: Set expected number of neutrinos manually.
         :param seed: Set random seed.
         """
-        """
-        if show_progress:
-            logger.setLevel(logging.INFO)
 
-        else:
-            logger.setLevel(logging.WARNING)
-        """
+        #if show_progress:
+        #    logger.basicConfig(level=logging.INFO)
+        #
+        #else:
+        #    logger.basicConfig(level=logging.CRITICAL)
+
         np.random.seed(seed)
 
         self._get_expected_number()
@@ -274,7 +276,7 @@ class Simulator:
         #the accepted ones.
 
         #TODO maybe change the factor to something spectral index dependent
-        num = self.N * 2000
+        num = self.N * 5000
         label = np.random.choice(range(len(self.sources)), self.N, p=self._source_weights)
         l_set = set(label)
         l_num = {i: np.argwhere(i == label).shape[0] for i in l_set}
@@ -286,7 +288,8 @@ class Simulator:
         Earr_d = {i: np.zeros(l_num[i]) for i in l_set}
         
         accepted = np.zeros(self.N, dtype=bool)
-        
+        if show_progress:
+            progress = progress_bar(range(self.N), desc="Sampling", position=0, leave=True)
         #go over each source
         for i in l_set:
             #simulate until appropriate number of events is accepted
@@ -317,10 +320,12 @@ class Simulator:
                 detection_prob = self.detector.effective_area.detection_probability(
                         Earr_, cosz, max_energy[i]
                 ).astype(float)
+                #detection_prob = 1.0
 
                 samples = uniform.rvs(size=num, random_state=seed)
                 accepted_ = samples <= detection_prob
                 idx = np.nonzero(accepted_)
+                
                 if idx[0].size == 0:
                     continue
                 else:
@@ -332,6 +337,8 @@ class Simulator:
                         ra_d[i][start:end] = ra_[idx]
                         dec_d[i][start:end] = dec_[idx]
                         logger.debug("All data placed.")
+                        if show_progress:
+                            progress.update(idx[0].size)
                     except (IndexError, ValueError):
                         logger.debug("Not enough slots, cutting short.")
                         remaining = np.argwhere(Etrue_d[i] == 0.).size
@@ -339,11 +346,13 @@ class Simulator:
                         Earr_d[i][start:] = Earr_[idx][0:remaining]
                         ra_d[i][start:] = ra_[idx][0:remaining]
                         dec_d[i][start:] = dec_[idx][0:remaining]
+                        if show_progress:
+                            progress.update(remaining)
                         break
             # print("Sampling spectrum is done")
             logger.info("Done sampling the spectrum") 
             if not isinstance(self.detector.energy_resolution, R2021IRF):
-                logger.info("Sampling reco energy")
+                logger.info("Sampled reco energy")
                 Ereco = self.detector.energy_resolution.sample(Earr_d[i])
                 #this and all following try-except TypeError blocks
                 #are needed if only a single event is sampled
@@ -381,6 +390,7 @@ class Simulator:
                     self.detector.angular_resolution, FixedAngularResolution
                 ):
                     reco_ang_err = self.detector.angular_resolution.ret_ang_err
+                    #TODO fix
                     temp = [reco_ang_err] * l_num[i]
 
                 try:
@@ -389,6 +399,7 @@ class Simulator:
                 except TypeError:
                     self.dec += [dec_d[i]]
                     self.ra += [ra_d[i]]
+                logger.info("Sampled angular uncertainty for diffuse source")
 
             else:
 
@@ -421,14 +432,16 @@ class Simulator:
                     self.ang_err += [reco_ang_err]
                     self.dec += [reco_dec]
                     self.ra += [reco_ra]
-                
+                logger.info("Sampled angular uncertainty for point source")
 
         logger.info("Creating array of simulation data")  
         self.true_energy = np.concatenate(tuple(Etrue_d[k] for k in Earr_d.keys()))
         self.arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
         self.source_label = np.concatenate(tuple(np.full(l_num[l], l, dtype=int) for l in Earr_d.keys()))
-        logger.setLevel(logging.INFO)
-             
+        if show_progress:
+            progress.close()
+        logger.info("Created array of simulation data")
+        
 
 
  
@@ -623,7 +636,7 @@ class Braun2008Simulator:
                 data=self.source.flux_model._normalisation_energy,
             )
 
-class TimeDependentSimulator():
+class TimeDependentSimulator:
     """
     Simulator-class for simulations spanning multiple data taking periods.
     """
@@ -672,7 +685,7 @@ class TimeDependentSimulator():
 
         for p, sim in self.simulators.items():
             logger.info(f"Simulating period {p}.")
-            sim.run(N=None, seed=1234, show_progress=False)
+            sim.run(N=None, seed=1234, show_progress=show_progress)
 
 
     def save(self, path, file_prefix):

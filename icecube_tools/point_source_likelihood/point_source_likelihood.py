@@ -68,15 +68,16 @@ class PointSourceLikelihood:
 
         self._energy_likelihood = energy_likelihood
 
-        if bg_energy_likelihood is not None:
-            self._bg_energy_likelihood = bg_energy_likelihood
-            logger.info("Background likelihood provided.")
-        elif 3.7 in energy_likelihood.index_list:
-            self._bg_energy_likelihood = energy_likelihood.likelihood['3.7']
-            logger.info("No background likelihood provided, using index=3.7.")
-        
-        
+        self._bg_energy_likelihood = bg_energy_likelihood
 
+        """
+        try:
+            if 3.7 in energy_likelihood.index_list:
+                self._bg_energy_likelihood = energy_likelihood.likelihood['3.7']
+        except AttributeError:
+            pass
+        """
+        
         if isinstance(
             self._direction_likelihood, EnergyDependentSpatialGaussianLikelihood
         ):
@@ -192,7 +193,7 @@ class PointSourceLikelihood:
             ll_sp = self._direction_likelihood(
                 (ra, dec), source_coord, energy, index
             ) 
-            ll_en = self._energy_likelihood(energy, index)
+            ll_en = self._energy_likelihood(energy, index, dec)
 
         elif isinstance(
             self._direction_likelihood, EventDependentSpatialGaussianLikelihood
@@ -200,7 +201,7 @@ class PointSourceLikelihood:
             ll_sp = self._direction_likelihood(
                  ang_err, (ra, dec), source_coord
             )
-            ll_en = self._energy_likelihood(energy, index)
+            ll_en = self._energy_likelihood(energy, index, dec)
 
         else:
 
@@ -219,17 +220,17 @@ class PointSourceLikelihood:
         return output
 
 
-    def _background_likelihood(self, energy):
+    def _background_likelihood(self, energy, dec):
         """
         Calculate the background likelihood for an event of given energy.
         :param energy: Energy of event in GeV
         """
 
-        if self._bg_energy_likelihood:
+        if self._bg_energy_likelihood is not None:
             ll_en = self._bg_energy_likelihood(energy) 
             ll_sp = 1. / self._band_solid_angle
         else:
-            ll_en = self._energy_likelihood(energy, self._bg_index) 
+            ll_en = self._energy_likelihood(energy, self._bg_index, dec)
             ll_sp = 1. / self._band_solid_angle
 
         #Check which part is used for likelihood calculation
@@ -262,10 +263,14 @@ class PointSourceLikelihood:
 
         one_plus_alpha = 1e-10
         alpha = one_plus_alpha - 1
+        if isinstance(self._energy_likelihood, MarginalisedIntegratedEnergyLikelihood):
+            index_list = [index]
+        else:
+            idx = np.digitize(index, self._energy_likelihood.index_list)
+            llhs = np.zeros(2)
+            index_list = self._energy_likelihood.index_list[idx-1:idx+1]
 
-        idx = np.digitize(index, self._energy_likelihood.index_list)
-        llhs = np.zeros(2)
-        for c, indx in enumerate(self._energy_likelihood.index_list[idx-1:idx+1]):
+        for c, indx in enumerate(index_list):
             log_likelihood_ratio = 0.0
             for i in range(self.Nprime):
                 signal = self._signal_likelihood(
@@ -277,7 +282,10 @@ class PointSourceLikelihood:
                     ang_err=self._selected_ang_errs[i]
                 )
 
-                bg = self._background_likelihood(self._selected_energies[i])
+                bg = self._background_likelihood(
+                    self._selected_energies[i],
+                    self._selected_decs[i]
+                )
 
                 chi = (1 / self.N) * (signal / bg - 1)
 
@@ -296,15 +304,18 @@ class PointSourceLikelihood:
 
             log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
 
+            if isinstance(self._energy_likelihood, MarginalisedIntegratedEnergyLikelihood):
+                #exit for integrated likelihood after one iteration, since that's all that's needed
+                if self._index_prior:
+                    log_likelihood_ratio += np.log(self._index_prior(indx))
+                return -log_likelihood_ratio
+            else:
+                #continue through loop, pick value in the middle at the end
+                llhs[c] = log_likelihood_ratio
 
-
-            llhs[c] = log_likelihood_ratio
-
-        log_likelihood_ratio = np.interp(index, self._energy_likelihood.index_list[idx-1:idx+1], llhs)
-
+        log_likelihood_ratio = np.interp(index, index_list, llhs)
         if self._index_prior:
-
-            log_likelihood_ratio += np.log(self._index_prior(index))
+            log_likelihood_ratio += np.log(self._index_prior(indx))
         
         return -log_likelihood_ratio
 
@@ -393,7 +404,7 @@ class PointSourceLikelihood:
         )
         # m.fixed["index"] = True
         m.limits["ns"] = (self._ns_min, self._ns_max)
-        m.errors["index"] = 0.1
+        m.errors["index"] = 0.1242
         m.errors["ns"] = 1
         m.limits["index"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
         if self.which == 'spatial':
@@ -721,14 +732,24 @@ class SpatialOnlyPointSourceLikelihood:
 
 
 class TimeDependentPointSourceLikelihood:
-    def __init__(self, source_coords, periods, event_files, index_list, path, which="both"):
+    def __init__(
+        self,
+        source_coords,
+        periods,
+        event_files,
+        energy_likelihood: MarginalisedEnergyLikelihood,
+        path=None,
+        index_list=None,
+        which="both"):
         """
         Create likelihood covering multiple data taking periods.
         :param source_coords: Tuple of ra, dec.
         :param periods: List of str of period names, eg. `IC40`
         :param event_files: List of event files corresponding the the above periods.
+        :energy_likelihood: Class inheriting from MarginalisedEnergyLikelihood.
         :param index_list: List of indices covered by the events used to build the energy likelihood.
         :param path: Path to directory where the simulated events (see above) are located.
+        :param which: String, `both`, `spatial`, `energy` indicating which likelihoods are to be used.
         """
 
         self.which = which
@@ -761,10 +782,16 @@ class TimeDependentPointSourceLikelihood:
                 ra = f["ra"][()]
                 dec = f["dec"][()]
                 ang_err = f["ang_err"][()]
-            
-            energy_llh = MarginalisedEnergyLikelihood2021(
-                index_list, path, f"p_{p}", self.source_coords[1]
-            )
+            if energy_likelihood == MarginalisedEnergyLikelihood2021:
+                energy_llh = MarginalisedEnergyLikelihood2021(
+                    index_list, path, f"p_{p}", self.source_coords[1]
+                )
+            elif energy_likelihood == MarginalisedIntegratedEnergyLikelihood:
+                energy_llh = MarginalisedIntegratedEnergyLikelihood(
+                    R2021IRF.from_period(p),
+                    EffectiveArea.from_dataset("20210126", p),
+                    np.linspace(2, 8, num=15)
+                )
 
             #create likelihood objects
             self.likelihoods[p] = PointSourceLikelihood(
@@ -820,7 +847,7 @@ class TimeDependentPointSourceLikelihood:
         Uses the iMinuint wrapper.
         """
 
-        init_index = 2.19  # self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2
+        init_index = self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2
         error_index = 0.1
         some_llh = self.likelihoods[list(self.likelihoods.keys())[0]]
         limit_index = (some_llh._energy_likelihood._min_index,
