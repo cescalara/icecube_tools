@@ -79,8 +79,8 @@ Now let's think about the energy-dependent term. The way this is handled is to m
 Doing this properly requires a knowledge of the relationship between the true and reconstructed energies as well as the details of the power law model. The most straightforward way to implement this is to simulate the a large number of events using the `Simulator` and build a likelihood using the output of this simulation and `MarginalisedEnergyLikelihoodFromSim`. We do exactly this with pre-computed lists of events, to be found in the data subdirectory: `sim_output_{index}.h5`. These were simulated using point sources with spectral index `index` at 45 degrees declination. The likelihood is restricted to a small band of declination around the assumed source. Using the same declination for our test source, this is fine. For different source declinations further simulations would be needed to account for the declination dependence of the detector acceptance.
 
 ```python
-aeff = EffectiveArea.from_dataset("20210126", period="IC86_I")
-irf = R2021IRF.from_period("IC86_I")
+aeff = EffectiveArea.from_dataset("20210126", period="IC86_II")
+irf = R2021IRF.from_period("IC86_II")
 new_reco_bins = irf.reco_energy_bins[12, 2]
 energy_likelihood = MarginalisedIntegratedEnergyLikelihood(irf, aeff, new_reco_bins)
 #energy_likelihood = MarginalisedEnergyLikelihood2021([1.5, 2.0, 2.5, 3.0, 3.5, 3.7, 4.0], 'data', 'sim_output', np.pi/4,)
@@ -112,7 +112,7 @@ Now we can bring together the spatial and energy terms to build a full `PointSou
 
 ```python
 data = {}
-with h5py.File("data/p_IC86_I_test_sim.h5", "r") as f:
+with h5py.File("data/p_IC86_II_test_sim.h5", "r") as f:
     for key in f:
         if "source_0" not in key and "source_1" not in key:
             data[key] = f[key][()]
@@ -211,6 +211,10 @@ ax.set_xlabel("Number of point source events in dataset")
 ax.set_ylabel("Test statistic value")
 ```
 
+```python
+test_statistics
+```
+
 So the more neutrinos are seen from a source, the easier that source is to detect.
 
 Let's have a look at the minuit object returned by `_minimize()`. In case something is off with the fit, we can use it as a starting point for debugging.
@@ -261,7 +265,7 @@ For the simulation-based energy likelihood used in the following, the profile o 
 The error provided by `migrad()` is unreasonably small.
 
 ```python
-energy_likelihood = MarginalisedEnergyLikelihood2021(np.round(np.arange(1.5, 4.1, 0.2), decimals=1), 'data', 'p_IC86_I', np.deg2rad(30))
+energy_likelihood = MarginalisedEnergyLikelihood2021(np.round(np.arange(1.5, 4.1, 0.2), decimals=1), 'data', 'p_IC86_II', np.deg2rad(30))
 energy_likelihood._min_index = 1.55
 energy_likelihood._max_index = 3.85
 likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood, 
@@ -302,9 +306,9 @@ plt.title(f"index = {m.values['index']:.1f} - {m.values['index']-lower_lim:.1f} 
 ```python
 source_coords = (np.pi, np.deg2rad(30))
 #index_list = list(np.arange(1.5, 4.25, 0.25))
-event_files = ["data/p_IC86_I_test_sim.h5", "data/p_IC86_II_test_sim.h5"]
+event_files = ["data/p_IC86_II_test_sim.h5"]
 tllh = TimeDependentPointSourceLikelihood(
-    source_coords, ["IC86_I", "IC86_II"], event_files, MarginalisedIntegratedEnergyLikelihood, path="data")
+    source_coords, ["IC86_II"], event_files, MarginalisedIntegratedEnergyLikelihood, path="data")
 
 m = tllh._minimize()
 

@@ -187,35 +187,45 @@ class PointSourceLikelihood:
         :param ang_err: Angular error on the event, defaults to 1 degree.
         """
 
+        
+
         if isinstance(
             self._direction_likelihood, EnergyDependentSpatialGaussianLikelihood
         ):
-            ll_sp = self._direction_likelihood(
-                (ra, dec), source_coord, energy, index
-            ) 
-            ll_en = self._energy_likelihood(energy, index, dec)
+            def spatial():
+                return self._direction_likelihood(
+                    (ra, dec), source_coord, energy, index
+                )
+
+            def en():
+                return self._energy_likelihood(energy, index, dec)
+
 
         elif isinstance(
             self._direction_likelihood, EventDependentSpatialGaussianLikelihood
         ):
-            ll_sp = self._direction_likelihood(
-                 ang_err, (ra, dec), source_coord
-            )
-            ll_en = self._energy_likelihood(energy, index, dec)
+            def spatial():
+                return self._direction_likelihood(
+                    ang_err, (ra, dec), source_coord
+                )
+            
+            def en():
+                return self._energy_likelihood(energy, index, dec)
 
         else:
-
-            ll_sp = self._direction_likelihood(
-                (ra, dec), source_coord
-            )
-            ll_en = self._energy_likelihood(energy, index)
+            def spatial():
+                return self._direction_likelihood(
+                    (ra, dec), source_coord
+                )
+            def en():
+                return self._energy_likelihood(energy, index, dec)
         
         if self.which == 'spatial':
-            output = ll_sp
+            output = spatial()
         elif self.which == 'energy':
-            output = ll_en
+            output = en()
         else:
-            output = ll_en * ll_sp
+            output = en() * spatial()
 
         return output
 
@@ -227,19 +237,23 @@ class PointSourceLikelihood:
         """
 
         if self._bg_energy_likelihood is not None:
-            ll_en = self._bg_energy_likelihood(energy) 
-            ll_sp = 1. / self._band_solid_angle
+            def en():
+                return self._bg_energy_likelihood(energy) 
+            
         else:
-            ll_en = self._energy_likelihood(energy, self._bg_index, dec)
-            ll_sp = 1. / self._band_solid_angle
+            def en():
+                return self._energy_likelihood(energy, self._bg_index, dec)
+        
+        def spatial():
+            return 1. / self._band_solid_angle
 
         #Check which part is used for likelihood calculation
         if self.which == 'spatial':
-            output = ll_sp
+            output = spatial()
         elif self.which == 'energy':
-            output = ll_en
+            output = en()
         else:
-            output = ll_en * ll_sp
+            output = en() * spatial()
 
         if output == 0.0:
             output = 1e-10
@@ -348,7 +362,7 @@ class PointSourceLikelihood:
                 ang_err=self._selected_ang_errs[i]
             )
 
-            bg = self._background_likelihood(self._selected_energies[i])
+            bg = self._background_likelihood(self._selected_energies[i], self._selected_decs[i])
 
             chi = (1 / self.N) * (signal / bg - 1)
 
@@ -847,9 +861,9 @@ class TimeDependentPointSourceLikelihood:
         Uses the iMinuint wrapper.
         """
 
-        init_index = self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2
         error_index = 0.1
         some_llh = self.likelihoods[list(self.likelihoods.keys())[0]]
+        init_index = some_llh._min_index + (some_llh._max_index - some_llh._min_index) / 2
         limit_index = (some_llh._energy_likelihood._min_index,
             some_llh._energy_likelihood._max_index)
         # Get init_ns and limit_ns for each period
