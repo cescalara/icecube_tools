@@ -9,7 +9,7 @@ period = "IC86_II"
 
 def test_time_dependent_icecube():
 
-    tic = TimeDependentIceCube.from_periods("IC86_I", "IC40")
+    tic = TimeDependentIceCube.from_periods("IC86_II")
     
     with raises(ValueError):
         tic = TimeDependentIceCube.from_periods("this_is_not_a_period")

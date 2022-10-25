@@ -76,7 +76,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
                 n, bins = self._marginalisation(c_e, c_d)
                 #if n.max() > self.ereco_pdf_max:
                 #    self.ereco_pdf_max = n.max()
-                self.reco_energy[c_e, c_d] = rv_histogram((n, bins))
+                self.reco_energy[c_e, c_d] = rv_histogram((n, bins), density=False)
                 self.reco_energy_bins[c_e, c_d] = bins
         self._values = []
         logger.debug('Creating empty dicts for kinematic angle dists and angerr dists')
@@ -240,7 +240,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
                         logger.debug(f'Creating kinematic angle dist for {idx_e}, {idx_d}, {idx_e_r}')
                         n, bins = self._marginalize_over_angerr(idx_e, idx_d, idx_e_r)
                         self.marginal_pdf_psf.add(bins, idx_e, idx_d, idx_e_r, 'bins')
-                        self.marginal_pdf_psf.add(rv_histogram((n, bins)), idx_e, idx_d, idx_e_r, 'pdf')
+                        self.marginal_pdf_psf.add(rv_histogram((n, bins), density=False), idx_e, idx_d, idx_e_r, 'pdf')
                         kinematic_angle[_index_r] = self.marginal_pdf_psf(idx_e, idx_d, idx_e_r, 'pdf').rvs(size=_index_r[0].size, random_state=seed)
 
                     current_c_k = self._return_kinematic_bins(idx_e, idx_d, idx_e_r, kinematic_angle[_index_r])
@@ -256,7 +256,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
                         except KeyError as KE:
                             logger.debug(f'Creating AngErr dist for {idx_e}, {idx_d}, {idx_e_r}, {idx_k}')
                             n, bins = self._get_angerr_dist(idx_e, idx_d, idx_e_r, idx_k)
-                            self.marginal_pdf_angerr.add(rv_histogram((n, bins)), idx_e, idx_d, idx_e_r, idx_k, 'pdf') 
+                            self.marginal_pdf_angerr.add(rv_histogram((n, bins), density=False), idx_e, idx_d, idx_e_r, idx_k, 'pdf') 
                             self.marginal_pdf_angerr.add(bins, idx_e, idx_d, idx_e_r, idx_k, 'bins')
                             ang_err[_index_k] = self.marginal_pdf_angerr(idx_e, idx_d, idx_e_r, idx_k, 'pdf').rvs(size=_index_k[0].size, random_state=seed)
 

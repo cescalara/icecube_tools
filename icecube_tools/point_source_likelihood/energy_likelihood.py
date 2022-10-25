@@ -596,7 +596,7 @@ class MarginalisedEnergyLikelihoodBraun2008(MarginalisedEnergyLikelihood):
 
         self._max_index = max(index_list)
 
-    def __call__(self, energy, index):
+    def __call__(self, energy, index, dec=0):
         """
         Return P(Ereco | index)
         """
