@@ -19,6 +19,24 @@ _supported_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+class DummyPDF():
+    def __init__(self):
+        pass
+
+
+    def pdf(self, x):
+        if isinstance(x, np.ndarray):
+            return np.zeros_like(x)
+        else:
+            return 0.
+
+    
+    def cdf(self, x):
+        if isinstance(x, np.ndarray):
+            return np.zeros_like(x)
+        else:
+            return 0.
+
 
 class R2021IRF(EnergyResolution, AngularResolution):
     """
@@ -44,11 +62,12 @@ class R2021IRF(EnergyResolution, AngularResolution):
 
         self.output = np.loadtxt(self._filename, comments="#")
         self.dataset = self.output
-        true_energy_lower = np.array(list(set(self.output[:, 0])))
-        true_energy_upper = np.array(list(set(self.output[:, 1])))
 
         #convert PSF and AngErr values to log(angle/degree)
         self.dataset[:, 6:-1] = np.log10(self.dataset[:, 6:-1])
+
+        true_energy_lower = np.array(list(set(self.output[:, 0])))
+        true_energy_upper = np.array(list(set(self.output[:, 1])))
 
         self.true_energy_bins = np.union1d(true_energy_lower, true_energy_upper)
         self.true_energy_bins.sort()
@@ -59,25 +78,61 @@ class R2021IRF(EnergyResolution, AngularResolution):
         self.declination_bins = np.radians(np.union1d(dec_lower, dec_higher))
         self.declination_bins.sort()
 
+        self.faulty = []
+
+        for c_d, (d_l, d_h) in enumerate(zip(self.declination_bins[:-1], self.declination_bins[1:])):
+            for c, tE in enumerate(self.true_energy_bins[:-1]):
+                reduced = self.dataset[np.nonzero((np.isclose(self.dataset[:, 0], tE)) & 
+                    np.isclose(self.dataset[:, 2], np.rad2deg(d_l)))
+                ]
+                if np.all(np.isclose(reduced[:, -1], np.zeros_like(reduced[:, -1]))):
+                    self.faulty.append((c, c_d))
+
+        """
+            #find all entries for a given dec bin
+            reduced = self.data[np.nonzero(np.isclose(self.data[:, 2], np.rad2deg(d_l)))]
+            #find all true energy bins for dec bin
+            pre_bins = np.union1d(reduced[:, 0], reduced[:, 1])
+        """
+
+
+        
         self.ang_res_values = 1    # placeholder, isn't used anyway
 
         self.true_energy_values = (
             self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins) / 2
         )
-        #self.ereco_pdf_max = 0.
 
         logger.debug('Creating Ereco distributions')
         #Reco energy is handled without ddict() because it's not that much calculation
         #and has no parts with zero-entries
+        # ^ this aged like milk
         self.reco_energy = np.empty((self.true_energy_bins.size-1, self.declination_bins.size-1), dtype=rv_histogram)
         self.reco_energy_bins = np.empty((self.true_energy_bins.size-1, self.declination_bins.size-1), dtype=np.ndarray)
         for c_e, e in enumerate(self.true_energy_bins[:-1]):
             for c_d, d in enumerate(self.declination_bins[:-1]):
-                n, bins = self._marginalisation(c_e, c_d)
-                #if n.max() > self.ereco_pdf_max:
-                #    self.ereco_pdf_max = n.max()
-                self.reco_energy[c_e, c_d] = rv_histogram((n, bins), density=False)
-                self.reco_energy_bins[c_e, c_d] = bins
+                if not (c_e, c_d) in self.faulty:
+                    n, bins = self._marginalisation(c_e, c_d)
+                    self.reco_energy[c_e, c_d] = rv_histogram((n, bins), density=False)
+                    self.reco_energy_bins[c_e, c_d] = bins
+                    
+                else:
+                    # workaround for true energy bins completely empty
+                    idx = c_e-1
+                    while True:
+                        try:
+                            _, bins = self._marginalisation(idx, c_d)
+                            n = np.zeros(bins.size - 1)
+                            self.reco_energy[c_e, c_d] = DummyPDF()
+                            self.reco_energy_bins[c_e, c_d] = bins
+                            break
+                        except:
+                            # this is really sloppy, sorry
+                            idx += 1
+                            
+                        
+                
+
         self._values = []
         logger.debug('Creating empty dicts for kinematic angle dists and angerr dists')
 
@@ -114,10 +169,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         #TODO merge this with R2021IRF().sample() and maybe add a keyword
         #if only reconstructed energy is supposed to be sampled
 
-        if show_progress:
-            logger.basicConfig(level=logging.INFO)
-        else:
-            logger.basicConfig(level=logging.CRITICAL)
+       
 
         ra, dec = coord
         if not isinstance(ra, np.ndarray):
@@ -195,7 +247,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         c_e, _, c_d, _ = self._return_etrue_bins(Etrue, dec)
         c_e_r = np.zeros(size)
         c_k = np.zeros(size)
-        c_ang_err = np.zeros(size)
+        # c_ang_err = np.zeros(size)
         Ereco = np.zeros(size)
         kinematic_angle = np.zeros(size)
         ang_err = np.zeros(size)
@@ -205,7 +257,6 @@ class R2021IRF(EnergyResolution, AngularResolution):
 
         logger.debug(f'Energy and declination bins: {c_e}, {c_d}')
         logger.debug('Sampling Ereco')
-
 
         #Idea behind this loop structure:
         #Group data by the bin indices
@@ -264,8 +315,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
         ang_err = np.power(10, ang_err)
         kappa = get_kappa(ang_err, 0.5)
         reco_ang_err = get_theta_p(kappa, self.ret_ang_err_p)
-        logger.info(kappa.shape)
-        logger.info(unit_vector.shape)
+        logger.debug(kappa.shape)
+        logger.debug(unit_vector.shape)
         new_unit_vector = sample_vMF(unit_vector, kappa)
         if new_unit_vector.shape != (3, Etrue.size):
             new_unit_vector = new_unit_vector.T
@@ -280,7 +331,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         new_sky_coord.representation_type = "unitspherical"
         new_ras = new_sky_coord.ra.rad
         new_decs = new_sky_coord.dec.rad
-        logger.info(f"reco_ang_error shape: {reco_ang_err.shape}")
+        logger.debug(f"reco_ang_error shape: {reco_ang_err.shape}")
         return new_ras, new_decs, reco_ang_err, np.power(10, Ereco)
 
     @classmethod
