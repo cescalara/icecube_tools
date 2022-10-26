@@ -82,6 +82,7 @@ Doing this properly requires a knowledge of the relationship between the true an
 aeff = EffectiveArea.from_dataset("20210126", period="IC86_II")
 irf = R2021IRF.from_period("IC86_II")
 new_reco_bins = irf.reco_energy_bins[12, 2]
+new_reco_bins = np.linspace(2, 8, num=15)
 energy_likelihood = MarginalisedIntegratedEnergyLikelihood(irf, aeff, new_reco_bins)
 #energy_likelihood = MarginalisedEnergyLikelihood2021([1.5, 2.0, 2.5, 3.0, 3.5, 3.7, 4.0], 'data', 'sim_output', np.pi/4,)
 # the likelihood class is backwardscompatible with the "older" simulation-based energy likelihood
@@ -112,7 +113,7 @@ Now we can bring together the spatial and energy terms to build a full `PointSou
 
 ```python
 data = {}
-with h5py.File("data/p_IC86_II_test_sim.h5", "r") as f:
+with h5py.File("data/sim_output_86_II.h5", "r") as f:
     for key in f:
         if "source_0" not in key and "source_1" not in key:
             data[key] = f[key][()]
@@ -212,7 +213,7 @@ ax.set_ylabel("Test statistic value")
 ```
 
 ```python
-test_statistics
+np.diff(test_statistics)
 ```
 
 So the more neutrinos are seen from a source, the easier that source is to detect.

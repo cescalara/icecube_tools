@@ -804,7 +804,7 @@ class TimeDependentPointSourceLikelihood:
                 energy_llh = MarginalisedIntegratedEnergyLikelihood(
                     R2021IRF.from_period(p),
                     EffectiveArea.from_dataset("20210126", p),
-                    np.linspace(2, 8, num=15)
+                    np.linspace(2, 9, num=20)
                 )
 
             #create likelihood objects
