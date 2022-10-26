@@ -87,6 +87,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
                 ]
                 if np.all(np.isclose(reduced[:, -1], np.zeros_like(reduced[:, -1]))):
                     self.faulty.append((c, c_d))
+        if self.faulty:
+            logger.warning(f"Empty true energy bins at: {self.faulty}")
 
         """
             #find all entries for a given dec bin
@@ -136,8 +138,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
         self._values = []
         logger.debug('Creating empty dicts for kinematic angle dists and angerr dists')
 
-        self.marginal_pdf_psf = ddict()
-        self.marginal_pdf_angerr = ddict()
+        self._marginal_pdf_psf = ddict()
+        self._marginal_pdf_angerr = ddict()
 
         self.kinematic_angle_bin_list = []
         self.etrue_bin_list = []
@@ -284,6 +286,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
                     _index_help = np.argwhere(c_e_r == idx_e_r).squeeze()
                     _index_r = (np.intersect1d(_index_f[0], _index_help),)
 
+                    kinematic_angle[_index_r] = self.marginal_pdf_psf(idx_e, idx_d, idx_e_r, 'pdf').rvs(size=_index_r[0].size, random_state=seed)
+                    """
                     try:
                         kinematic_angle[_index_r] = self.marginal_pdf_psf(idx_e, idx_d, idx_e_r, 'pdf').rvs(size=_index_r[0].size, random_state=seed)
 
@@ -293,7 +297,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
                         self.marginal_pdf_psf.add(bins, idx_e, idx_d, idx_e_r, 'bins')
                         self.marginal_pdf_psf.add(rv_histogram((n, bins), density=False), idx_e, idx_d, idx_e_r, 'pdf')
                         kinematic_angle[_index_r] = self.marginal_pdf_psf(idx_e, idx_d, idx_e_r, 'pdf').rvs(size=_index_r[0].size, random_state=seed)
-
+                    """
                     current_c_k = self._return_kinematic_bins(idx_e, idx_d, idx_e_r, kinematic_angle[_index_r])
                     c_k[_index_r] = current_c_k
                     set_k = set(current_c_k)
@@ -301,7 +305,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
                     for idx_k in set_k:
                         _index_help = np.argwhere(c_k == idx_k).squeeze()
                         _index_k = (np.intersect1d(_index_r[0], _index_help),)
-
+                        ang_err[_index_k] = self.marginal_pdf_angerr(idx_e, idx_d, idx_e_r, idx_k, 'pdf').rvs(size=_index_k[0].size, random_state=seed)
+                        """
                         try:
                             ang_err[_index_k] = self.marginal_pdf_angerr(idx_e, idx_d, idx_e_r, idx_k, 'pdf').rvs(size=_index_k[0].size, random_state=seed)
                         except KeyError as KE:
@@ -310,7 +315,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
                             self.marginal_pdf_angerr.add(rv_histogram((n, bins), density=False), idx_e, idx_d, idx_e_r, idx_k, 'pdf') 
                             self.marginal_pdf_angerr.add(bins, idx_e, idx_d, idx_e_r, idx_k, 'bins')
                             ang_err[_index_k] = self.marginal_pdf_angerr(idx_e, idx_d, idx_e_r, idx_k, 'pdf').rvs(size=_index_k[0].size, random_state=seed)
-
+                        """
         #kappa needs an angle in degrees, prob of containment, here 0.5 as stated in the paper
         ang_err = np.power(10, ang_err)
         kappa = get_kappa(ang_err, 0.5)
@@ -333,6 +338,34 @@ class R2021IRF(EnergyResolution, AngularResolution):
         new_decs = new_sky_coord.dec.rad
         logger.debug(f"reco_ang_error shape: {reco_ang_err.shape}")
         return new_ras, new_decs, reco_ang_err, np.power(10, Ereco)
+
+
+    def marginal_pdf_psf(self, idx_e, idx_d, idx_e_r, hist_type, c_psf=None):
+        try:
+            self._marginal_pdf_psf(idx_e, idx_d, idx_e_r, hist_type)
+        except KeyError:
+            logger.debug(f'Creating kinematic angle dist for {idx_e}, {idx_d}, {idx_e_r}')
+            n, bins = self._marginalize_over_angerr(idx_e, idx_d, idx_e_r)
+            self._marginal_pdf_psf.add(bins, idx_e, idx_d, idx_e_r, 'bins')
+            self._marginal_pdf_psf.add(rv_histogram((n, bins), density=False), idx_e, idx_d, idx_e_r, 'pdf')
+        finally:
+            if c_psf is None:
+                return self._marginal_pdf_psf(idx_e, idx_d, idx_e_r, hist_type)
+            else:
+                return self._marginal_pdf_psf(idx_e, idx_d, idx_e_r, hist_type, c_psf)
+
+    
+    def marginal_pdf_angerr(self, idx_e, idx_d, idx_e_r, idx_k, hist_type):
+        try:
+            return self._marginal_pdf_angerr(idx_e, idx_d, idx_e_r, idx_k, hist_type)
+        except KeyError as KE:
+            logger.debug(f'Creating AngErr dist for {idx_e}, {idx_d}, {idx_e_r}, {idx_k}')
+            n, bins = self._get_angerr_dist(idx_e, idx_d, idx_e_r, idx_k)
+            self._marginal_pdf_angerr.add(rv_histogram((n, bins), density=False), idx_e, idx_d, idx_e_r, idx_k, 'pdf') 
+            self._marginal_pdf_angerr.add(bins, idx_e, idx_d, idx_e_r, idx_k, 'bins')
+            return self._marginal_pdf_angerr(idx_e, idx_d, idx_e_r, idx_k, hist_type)
+
+    
 
     @classmethod
     def from_period(cls, period, **kwargs):
