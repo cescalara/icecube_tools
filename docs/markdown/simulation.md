@@ -5,7 +5,7 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.13.8
+      jupytext_version: 1.14.1
   kernelspec:
     display_name: Python 3 (ipykernel)
     language: python
@@ -88,7 +88,7 @@ We may also want to do the inverse, and find the `PointSource` flux normalisatio
 phi_solver = PhiSolver(aeff, norm_energy, min_energy, max_energy, 
                        time=1, min_cosz=-1, max_cosz=1)
 phi_norm = phi_solver(Nnu=15, 
-                      dec=30, # degrees
+                      dec=-30, # degrees
                       index=2.0) # spectral index
 phi_norm # GeV^-1 cm^-2 s^-1
 ```
@@ -126,6 +126,10 @@ with h5py.File("data/sim_output_86_II.h5", "r") as f:
     dec = f["dec"][()]
     ang_err = f["ang_err"][()]
     source_label = f["source_label"][()]
+```
+
+```python
+np.log10(true_energy.min())
 ```
 
 ```python

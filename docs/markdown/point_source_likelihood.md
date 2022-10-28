@@ -5,7 +5,7 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.13.8
+      jupytext_version: 1.14.1
   kernelspec:
     display_name: Python 3 (ipykernel)
     language: python
@@ -82,6 +82,7 @@ Doing this properly requires a knowledge of the relationship between the true an
 aeff = EffectiveArea.from_dataset("20210126", period="IC86_II")
 irf = R2021IRF.from_period("IC86_II")
 new_reco_bins = irf.reco_energy_bins[12, 2]
+new_reco_bins = np.linspace(2, 8, num=15)
 energy_likelihood = MarginalisedIntegratedEnergyLikelihood(irf, aeff, new_reco_bins)
 #energy_likelihood = MarginalisedEnergyLikelihood2021([1.5, 2.0, 2.5, 3.0, 3.5, 3.7, 4.0], 'data', 'sim_output', np.pi/4,)
 # the likelihood class is backwardscompatible with the "older" simulation-based energy likelihood
@@ -112,7 +113,7 @@ Now we can bring together the spatial and energy terms to build a full `PointSou
 
 ```python
 data = {}
-with h5py.File("data/p_IC86_II_test_sim.h5", "r") as f:
+with h5py.File("data/sim_output_86_II.h5", "r") as f:
     for key in f:
         if "source_0" not in key and "source_1" not in key:
             data[key] = f[key][()]
@@ -122,9 +123,8 @@ Now lets put our likelihood structure and data in together, along with a propose
 
 ```python
 likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood, 
-                                  data["ra"], data["dec"], data["reco_energy"],
+                                  data["ra"], data["dec"], data["reco_energy"], data["ang_err"],
                                   source_coord)
-likelihood._bg_index = 3.7
 ```
 
 The likelihood will automatically select a declination band around the proposed source location. Because of the Gaussian spatial likelihood, neutrinos far from the source will have negligible contribution. We can control the width of this band with the optional argument `band_width_factor`. Let's see how many events ended up in the band, compared to the total number:
@@ -194,14 +194,10 @@ for n_rm in range(ntot_ps_events):
         
     new_likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood,
                                        new_data["ra"], new_data["dec"], 
-                                       new_data["reco_energy"],
+                                       new_data["reco_energy"], new_data["ang_err"],
                                        source_coord)
     new_likelihood._bg_energy_likelihood = None
     test_statistics.append(new_likelihood.get_test_statistic())
-```
-
-```python
-likelihood._energy_likelihood._min_index
 ```
 
 ```python
@@ -212,7 +208,7 @@ ax.set_ylabel("Test statistic value")
 ```
 
 ```python
-test_statistics
+np.all(np.diff(test_statistics) > 0)
 ```
 
 So the more neutrinos are seen from a source, the easier that source is to detect.
@@ -269,7 +265,7 @@ energy_likelihood = MarginalisedEnergyLikelihood2021(np.round(np.arange(1.5, 4.1
 energy_likelihood._min_index = 1.55
 energy_likelihood._max_index = 3.85
 likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood, 
-                                  data["ra"], data["dec"], data["reco_energy"],
+                                  data["ra"], data["dec"], data["reco_energy"], data["ang_err"],
                                   source_coord)
 likelihood._bg_index = 3.7
 likelihood._bg_energy_likelihood = None
@@ -306,9 +302,9 @@ plt.title(f"index = {m.values['index']:.1f} - {m.values['index']-lower_lim:.1f} 
 ```python
 source_coords = (np.pi, np.deg2rad(30))
 #index_list = list(np.arange(1.5, 4.25, 0.25))
-event_files = ["data/p_IC86_II_test_sim.h5"]
+event_files = ["data/sim_output_86_II.h5"]
 tllh = TimeDependentPointSourceLikelihood(
-    source_coords, ["IC86_II"], event_files, MarginalisedIntegratedEnergyLikelihood, path="data")
+    source_coords, ["IC86_II"], event_files, MarginalisedIntegratedEnergyLikelihood)
 
 m = tllh._minimize()
 
@@ -318,6 +314,8 @@ m
 ```python
 _ = m.draw_profile("index")
 ```
+
+Looks slightly similar, uses a different internal reco energy binning!
 
 ```python
 

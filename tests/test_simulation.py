@@ -60,5 +60,5 @@ def test_simulation():
 
 
 def test_new_simulation():
-    tsim = TimeDependentSimulator(["IC86_II"], sources)
+    tsim = TimeDependentSimulator(["IC86_I", "IC86_II"], sources)
     tsim.run(seed=42)
