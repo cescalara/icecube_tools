@@ -49,7 +49,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html">Simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html">Point source likelihood</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html#Time-dependent-point-source-likelihood">Time dependent point source likelihood</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html#Time-dependent-point-source-analysis">Time dependent point source analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html#icecube-tools">icecube_tools</a></li>
 </ul>
@@ -108,6 +108,22 @@
 <section id="module-icecube_tools.detector.r2021">
 <span id="icecube-tools-detector-r2021-module"></span><h1>icecube_tools.detector.r2021 module<a class="headerlink" href="#module-icecube_tools.detector.r2021" title="Permalink to this heading"></a></h1>
 <dl class="py class">
+<dt class="sig sig-object py" id="icecube_tools.detector.r2021.DummyPDF">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.detector.r2021.</span></span><span class="sig-name descname"><span class="pre">DummyPDF</span></span><a class="headerlink" href="#icecube_tools.detector.r2021.DummyPDF" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.detector.r2021.DummyPDF.cdf">
+<span class="sig-name descname"><span class="pre">cdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.r2021.DummyPDF.cdf" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.detector.r2021.DummyPDF.pdf">
+<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.r2021.DummyPDF.pdf" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="icecube_tools.detector.r2021.R2021IRF">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.detector.r2021.</span></span><span class="sig-name descname"><span class="pre">R2021IRF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.r2021.R2021IRF" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="icecube_tools.detector.energy_resolution.html#icecube_tools.detector.energy_resolution.EnergyResolution" title="icecube_tools.detector.energy_resolution.EnergyResolution"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnergyResolution</span></code></a>, <a class="reference internal" href="icecube_tools.detector.angular_resolution.html#icecube_tools.detector.angular_resolution.AngularResolution" title="icecube_tools.detector.angular_resolution.AngularResolution"><code class="xref py py-class docutils literal notranslate"><span class="pre">AngularResolution</span></code></a></p>
@@ -131,6 +147,16 @@ For consistency and reducing the error-prone…iness, kinematic angles (“PSF�
 :param vec2: Second vector
 :return: Angle between vectors in degrees</p>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.detector.r2021.R2021IRF.marginal_pdf_angerr">
+<span class="sig-name descname"><span class="pre">marginal_pdf_angerr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_e_r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hist_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.r2021.R2021IRF.marginal_pdf_angerr" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.detector.r2021.R2021IRF.marginal_pdf_psf">
+<span class="sig-name descname"><span class="pre">marginal_pdf_psf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_e_r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hist_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_psf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.detector.r2021.R2021IRF.marginal_pdf_psf" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="icecube_tools.detector.r2021.R2021IRF.sample">
