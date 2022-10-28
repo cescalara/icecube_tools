@@ -38,8 +38,8 @@ class PointSourceLikelihood:
         ras,
         decs,
         energies,
-        source_coord,
         ang_errs=[],
+        source_coord=(),
         which='both',
         bg_energy_likelihood=None,
         index_prior=None,
@@ -336,7 +336,7 @@ class PointSourceLikelihood:
 
     def _func_to_minimize_sp(self, ns, index=2.0):
         """
-        Calculate the -log(likelihood_ratio) for minimization using energy only.
+        Calculate the -log(likelihood_ratio) for minimization using spatial information only.
 
         Uses calculation described in:
         https://github.com/IceCubeOpenSource/SkyLLH/blob/master/doc/user_manual.pdf
@@ -400,7 +400,7 @@ class PointSourceLikelihood:
         Uses the iMiuint wrapper.
         """
 
-        init_index = self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index)/2
+        init_index = self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index) / 2
         init_ns = self._ns_min + (self._ns_max - self._ns_min) / 2
 
         if self.which == 'spatial':
@@ -418,7 +418,7 @@ class PointSourceLikelihood:
         )
         # m.fixed["index"] = True
         m.limits["ns"] = (self._ns_min, self._ns_max)
-        m.errors["index"] = 0.1242
+        m.errors["index"] = 0.1
         m.errors["ns"] = 1
         m.limits["index"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
         if self.which == 'spatial':
@@ -788,14 +788,14 @@ class TimeDependentPointSourceLikelihood:
         # Can use one spatial llh for all periods, 'tis but a Gaussian
         spatial_llh = EventDependentSpatialGaussianLikelihood()
 
-        for p, data in zip(self.periods, self.event_files):
+        for p, file in zip(self.periods, self.event_files):
             print(p)
+            data = {}
             # Open event files
-            with h5py.File(data, "r") as f:
-                reco_energy = f["reco_energy"][()]
-                ra = f["ra"][()]
-                dec = f["dec"][()]
-                ang_err = f["ang_err"][()]
+            with h5py.File(file, "r") as f:
+                for key in f:
+                    if "source_0" not in key and "source_1" not in key:
+                        data[key] = f[key][()]
             if energy_likelihood == MarginalisedEnergyLikelihood2021:
                 energy_llh = MarginalisedEnergyLikelihood2021(
                     index_list, path, f"p_{p}", self.source_coords[1]
@@ -809,8 +809,14 @@ class TimeDependentPointSourceLikelihood:
 
             #create likelihood objects
             self.likelihoods[p] = PointSourceLikelihood(
-                spatial_llh, energy_llh, ra, dec, reco_energy,
-                self.source_coords, ang_err, which=self.which
+                spatial_llh,
+                energy_llh,
+                data["ra"],
+                data["dec"],
+                data["reco_energy"],
+                data["ang_err"],
+                self.source_coords,
+                which=self.which
             )
 
 
