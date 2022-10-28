@@ -38,6 +38,7 @@ jobs:
         path: docs/api
         
   build:
+    if: github.repository_owner == 'cescalara'
     name: Build docs
     runs-on: ubuntu-latest
     needs: setup
