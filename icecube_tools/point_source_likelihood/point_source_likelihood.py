@@ -771,24 +771,15 @@ class TimeDependentPointSourceLikelihood:
         #files should be dict of files, with period string as the key
         self.events = events
         self.periods = periods
-        #self.period_dict = period_dict
-        """
-        self.period_dict = {str(p):
-            {str(index): path to data file for index in index_list} for p in periods
-        }
-
-        """
-        #self.periods = list(period_dict.keys())
-        #self.index_list = 
         self.index_list = index_list
         assert len(events) == len(periods)
 
-        #TODO change this to named tuples?
         self.likelihoods = {}
         # Can use one spatial llh for all periods, 'tis but a Gaussian
         spatial_llh = EventDependentSpatialGaussianLikelihood()
 
-        for p, file in zip(self.periods, self.event_files):
+
+        for p, file in zip(self.periods, self.events):
             print(p)
             data = {}
             # Open event files

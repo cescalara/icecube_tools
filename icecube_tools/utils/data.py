@@ -1,6 +1,7 @@
 from re import A
 import numpy as np
 import os
+from os.path import join
 import requests
 import requests_cache
 import time
@@ -420,6 +421,119 @@ class SimEvents():
             self.ang_err = f["ang_err"][()]
             self.source_label = f["source_label"][()]
 
+        
+class RealEvents():
+    """
+    Class to handle reading event files
+    """
+
+    time_ = 0
+    energy_ = 1
+    ang_err_ = 2
+    ra_ = 3
+    dec_ = 4
+
+    def __init__(self, *periods):
+        """
+        Load events from file and sort them
+        """
+        self.load_events(*periods)
+        self.sort()
+
+
+    def period(self, p):
+        """
+        Returns dictionary of events belonging to a specified data season
+        """
+
+        out = {}
+        out["energy"] = self._energy[p]
+        out["ang_err"] = self._ang_err[p]
+        out["ra"] = self._ra[p]
+        out["dec"] = self._dec[p]
+        out["time"] = self._time[p]
+        return out
+
+
+    def sort(self):
+        """
+        Sort event information in dictionaries by season
+        """
+
+        self._energy = {}
+        self._ang_err = {}
+        self._ra = {}
+        self._dec = {}
+        self._time = {}
+
+        for p in self._periods:
+            self._energy[p] = self.events[p][:, self.energy_]
+            self._ang_err[p] = self.events[p][:, self.ang_err_]
+            self._ra[p] = self.events[p][:, self.ra_]
+            self._dec[p] = self.events[p][:, self.dec_]
+            self._time[p] = self.events[p][:, self.time_]
+
+
+    def add_events(self, *periods):
+        """
+        Add events for multiple data seasons of a single IRF, i.e. only IC86_II and up
+        """
+        events = []
+        for p in periods:
+            events.append(np.loadtxt(join(data_directory, f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv")))
+        return np.concatenate(tuple(events))
+
+
+    def load_events(self, *periods):
+        """
+        Load from file, if belonging to IC86_II or later, add to IC86_II keyword
+        because the same IRF is used
+        """
+
+        self.events = {}
+        add = []
+        for p in periods:
+            print(p)
+            if p in ["IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII"]:
+                add.append(p)
+            else:
+                self.events[p]= np.loadtxt(
+                    join(data_directory, f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv")
+                )
+        if add:
+            self.events["IC86_II"] = self.add_events(*add)
+        self._periods = list(self.events.keys())
+
+
+    @property
+    def periods(self):
+        return self._periods
+
+    
+    @property
+    def energy(self):
+        return self._energy
+
+    
+    @property
+    def ra(self):
+        return self._ra
+
+
+    @property
+    def dec(self):
+        return self._dec
+
+
+    @property
+    def ang_err(self):
+        return self._ang_err
+
+    
+    @property
+    def time(self):
+        return self._time
+    
 
 
 def crawl_delay():
