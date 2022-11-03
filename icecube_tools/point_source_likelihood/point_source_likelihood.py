@@ -535,7 +535,7 @@ class PointSourceLikelihood:
         Calculate the test statistic for the best fit ns
         """
 
-        _ = self._minimize()
+        self._m = self._minimize()
         # self._minimize_grid()
 
         # For resolving the TS peak at zero
@@ -750,7 +750,7 @@ class TimeDependentPointSourceLikelihood:
         self,
         source_coords,
         periods,
-        event_files,
+        events,
         energy_likelihood: MarginalisedEnergyLikelihood,
         path=None,
         index_list=None,
@@ -769,7 +769,7 @@ class TimeDependentPointSourceLikelihood:
         self.which = which
         self.source_coords = source_coords
         #files should be dict of files, with period string as the key
-        self.event_files = event_files
+        self.events = events
         self.periods = periods
         #self.period_dict = period_dict
         """
@@ -781,7 +781,7 @@ class TimeDependentPointSourceLikelihood:
         #self.periods = list(period_dict.keys())
         #self.index_list = 
         self.index_list = index_list
-        assert len(event_files) == len(periods)
+        assert len(events) == len(periods)
 
         #TODO change this to named tuples?
         self.likelihoods = {}
