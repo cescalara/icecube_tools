@@ -12,6 +12,11 @@ from tqdm import tqdm
 from astropy import units as u
 import h5py
 import logging
+from abc import ABC, abstractmethod
+
+from ..source.flux_model import BrokenPowerLawFlux, PowerLawFlux
+from ..source.source_model import Source, DIFFUSE, POINT
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -398,111 +403,41 @@ class Uptime():
 
 
 
-
-        """
-        #this ain't working
-        for p_start, time in zip(available_periods, self.times):
-            if start >= time[0]:
-                break
-        for p_end, time in reversed(zip(available_periods, self.times)):
-            if end <= 
-        """
-
-
-class SimEvents():
-    def __init__(self, path):
-        #read in data, store in attributes
-        self.path = path
-        with h5py.File(path, "r") as f:
-            self.true_energy = f["true_energy"][()]
-            self.reco_energy = f["reco_energy"][()]
-            self.ra = f["ra"][()]
-            self.dec = f["dec"][()]
-            self.ang_err = f["ang_err"][()]
-            self.source_label = f["source_label"][()]
-
-        
-class RealEvents():
+class Events(ABC):
     """
-    Class to handle reading event files
+    Abstract bass class for event classes
     """
 
-    time_ = 0
-    energy_ = 1
-    ang_err_ = 2
-    ra_ = 3
-    dec_ = 4
-
-    def __init__(self, *periods):
-        """
-        Load events from file and sort them
-        """
-        self.load_events(*periods)
-        self.sort()
+    def __init__(self):
+        self._create_dicts()
 
 
-    def period(self, p):
-        """
-        Returns dictionary of events belonging to a specified data season
-        """
-
-        out = {}
-        out["energy"] = self._energy[p]
-        out["ang_err"] = self._ang_err[p]
-        out["ra"] = self._ra[p]
-        out["dec"] = self._dec[p]
-        out["time"] = self._time[p]
-        return out
-
-
-    def sort(self):
-        """
-        Sort event information in dictionaries by season
-        """
-
-        self._energy = {}
+    def _create_dicts(self):
+        self._reco_energy = {}
         self._ang_err = {}
         self._ra = {}
         self._dec = {}
         self._time = {}
 
-        for p in self._periods:
-            self._energy[p] = self.events[p][:, self.energy_]
-            self._ang_err[p] = self.events[p][:, self.ang_err_]
-            self._ra[p] = self.events[p][:, self.ra_]
-            self._dec[p] = self.events[p][:, self.dec_]
-            self._time[p] = self.events[p][:, self.time_]
+
+    def __len__(self):
+        return len(self._periods)
 
 
-    def add_events(self, *periods):
-        """
-        Add events for multiple data seasons of a single IRF, i.e. only IC86_II and up
-        """
-        events = []
-        for p in periods:
-            events.append(np.loadtxt(join(data_directory, f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv")))
-        return np.concatenate(tuple(events))
+    @abstractmethod
+    def period(self):
+        pass
 
 
-    def load_events(self, *periods):
-        """
-        Load from file, if belonging to IC86_II or later, add to IC86_II keyword
-        because the same IRF is used
-        """
+    @classmethod
+    @abstractmethod
+    def load_from_h5(cls):
+        pass
 
-        self.events = {}
-        add = []
-        for p in periods:
-            print(p)
-            if p in ["IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII"]:
-                add.append(p)
-            else:
-                self.events[p]= np.loadtxt(
-                    join(data_directory, f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv")
-                )
-        if add:
-            self.events["IC86_II"] = self.add_events(*add)
-        self._periods = list(self.events.keys())
+
+    @abstractmethod
+    def write_to_h5(self):
+        pass
 
 
     @property
@@ -511,8 +446,8 @@ class RealEvents():
 
     
     @property
-    def energy(self):
-        return self._energy
+    def reco_energy(self):
+        return self._reco_energy
 
     
     @property
@@ -533,6 +468,191 @@ class RealEvents():
     @property
     def time(self):
         return self._time
+
+
+
+class SimEvents(Events):
+    def __init__(self):
+        super().__init__()
+        self._true_energy = {}
+        self._arrival_energy = {}
+        self._source_label = {}
+        
+    
+    @classmethod
+    def load_from_h5(cls, path):
+        inst = cls()
+        inst._periods = []
+        inst.path = path
+        inst._periods = {}
+        with h5py.File(inst.path, "r") as f:
+            for p, data in f.items():
+                if "IC" in p:
+                    inst._periods.append(p)
+                    inst._true_energy[p] = data["true_energy"][()]
+                    inst._reco_energy[p] = data["reco_energy"][()]
+                    inst._ra[p] = data["ra"][()]
+                    inst._dec[p] = data["dec"][()]
+                    inst._ang_err[p] = data["ang_err"][()]
+                    inst._source_label[p] = data["source_label"][()]
+        return inst
+
+
+    def write_to_h5(self, path, sources=None):
+        with h5py.File(path, "w") as f:
+            for p in self._periods:
+                group = f.create_group(p)
+                group.create_dataset("true_energy", data=self._true_energy[p])
+                group.create_dataset("arrival_energy", data=self._arrival_energy[p])
+                group.create_dataset("reco_energy", data=self._reco_energy[p])
+                group.create_dataset("ang_err", data=self._ang_err[p])
+                group.create_dataset("ra", data=self._ra[p])
+                group.create_dataset("dec", data=self._dec[p])
+                group.create_dataset("source_label", data=self._source_label[p])
+
+            for i, source in enumerate(sources):
+                s = f.create_group("source_" + str(i))
+                if isinstance(source.flux_model, PowerLawFlux):
+                    s.create_dataset("index", data=source.flux_model._index)
+                    s.create_dataset(
+                        "normalisation_energy",
+                        data=source.flux_model._normalisation_energy,
+                    )
+                elif isinstance(source.flux_model, BrokenPowerLawFlux):
+                    s.create_dataset("index1", data=source.flux_model._index1)
+                    s.create_dataset("index2", data=source.flux_model._index2)
+                    s.create_dataset(
+                        "break_energy", data=source.flux_model._break_energy
+                    )
+                s.create_dataset("source_type", data=source.source_type)
+                s.create_dataset("normalisation", data=source.flux_model._normalisation)
+                if source.source_type == POINT:
+                    s.create_dataset("source_coord", data=source.coord)
+
+
+    def period(self, p):
+        """
+        Returns dictionary of events belonging to a specified data season
+        """
+
+        out = {}
+        out["true_energy"] = self._true_energy[p]
+        out["reco_energy"] = self._reco_energy[p]
+        out["ang_err"] = self._ang_err[p]
+        out["ra"] = self._ra[p]
+        out["dec"] = self._dec[p]
+        out["source_label"] = self._source_label[p]
+        # out["time"] = self._time[p]
+        return out
+
+
+        
+class RealEvents(Events):
+    """
+    Class to handle reading event files
+    """
+
+    time_ = 0
+    reco_energy_ = 1
+    ang_err_ = 2
+    ra_ = 3
+    dec_ = 4
+
+
+    def __init__(self):
+        """
+        Load events from file and sort them
+        """
+        self._create_dicts()
+
+
+    def period(self, p):
+        """
+        Returns dictionary of events belonging to a specified data season
+        """
+
+        out = {}
+        out["reco_energy"] = self._reco_energy[p]
+        out["ang_err"] = self._ang_err[p]
+        out["ra"] = self._ra[p]
+        out["dec"] = self._dec[p]
+        out["time"] = self._time[p]
+        return out
+
+
+    def _sort(self):
+        """
+        Sort event information in dictionaries by season
+        """
+
+        for p in self._periods:
+            self._reco_energy[p] = self.events[p][:, self.reco_energy_]
+            self._ang_err[p] = self.events[p][:, self.ang_err_]
+            self._ra[p] = self.events[p][:, self.ra_]
+            self._dec[p] = self.events[p][:, self.dec_]
+            self._time[p] = self.events[p][:, self.time_]
+
+
+    def _add_events(self, *periods):
+        """
+        Add events for multiple data seasons of a single IRF, i.e. only IC86_II and up
+        """
+        events = []
+        for p in periods:
+            events.append(np.loadtxt(join(data_directory, f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv")))
+        return np.concatenate(tuple(events))
+
+    @classmethod
+    def from_event_files(cls, *periods):
+        """
+        Load from file, if belonging to IC86_II or later, add to IC86_II keyword
+        because the same IRF is used
+        """
+
+        inst = cls()
+        inst.events = {}
+        add = []
+        for p in periods:
+            print(p)
+            if p in ["IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII"]:
+                add.append(p)
+            else:
+                inst.events[p]= np.loadtxt(
+                    join(data_directory, f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv")
+                )
+                inst._periods.append(p)
+        if add:
+            inst.events["IC86_II"] = inst._add_events(*add)
+            inst._periods.append("IC86_II")
+        inst._sort()
+        return inst
+
+
+    @classmethod
+    def load_from_h5(cls, path):
+        inst = cls()
+        inst._periods = []
+        with h5py.File(path, "r") as f:
+            for p, data in f.items():
+                inst._periods.append(p)
+                inst._reco_energy[p] = data["reco_energy"][()]
+                inst._ang_err[p] = data["ang_err"][()]
+                inst._ra[p] = data["ra"][()]
+                inst._dec[p] = data["dec"][()]
+                inst._time[p] = data["time"][()]
+        return inst
+
+
+    def write_to_h5(self, path):
+        with h5py.File(path, "w") as f:
+            for p in self._periods:
+                group = f.create_group(p)
+                group.create_dataset("reco_energy", data=self._reco_energy[p])
+                group.create_dataset("ang_err", data=self._ang_err[p])
+                group.create_dataset("ra", data=self._ra[p])
+                group.create_dataset("dec", data=self._dec[p])
+                group.create_dataset("time", data=self._time[p])
+
     
 
 

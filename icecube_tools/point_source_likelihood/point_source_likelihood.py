@@ -5,6 +5,8 @@ import logging
 from .energy_likelihood import *
 from .spatial_likelihood import *
 
+from ..utils.data import Events
+
 """
 Module to compute the IceCube point source likelihood
 using publicly available information.
@@ -750,7 +752,7 @@ class TimeDependentPointSourceLikelihood:
         self,
         source_coords,
         periods,
-        events,
+        events: Events,
         energy_likelihood: MarginalisedEnergyLikelihood,
         path=None,
         index_list=None,
@@ -802,10 +804,10 @@ class TimeDependentPointSourceLikelihood:
             self.likelihoods[p] = PointSourceLikelihood(
                 spatial_llh,
                 energy_llh,
-                data["ra"],
-                data["dec"],
-                data["reco_energy"],
-                data["ang_err"],
+                ra,
+                dec,
+                reco_energy,
+                ang_err,
                 self.source_coords,
                 which=self.which
             )
