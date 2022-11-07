@@ -417,7 +417,6 @@ class Events(ABC):
         self._ang_err = {}
         self._ra = {}
         self._dec = {}
-        self._time = {}
 
 
     def __len__(self):
@@ -447,27 +446,35 @@ class Events(ABC):
     
     @property
     def reco_energy(self):
+        if len(self) == 1:
+            return self._return_single_period(self._reco_energy)
         return self._reco_energy
 
     
     @property
     def ra(self):
+        if len(self) == 1:
+            return self._return_single_period(self._ra)
         return self._ra
 
 
     @property
     def dec(self):
+        if len(self) == 1:
+            return self._return_single_period(self._dec)
         return self._dec
 
 
     @property
     def ang_err(self):
+        if len(self) == 1:
+            return self._return_single_period(self._ang_err)
         return self._ang_err
 
-    
-    @property
-    def time(self):
-        return self._time
+
+    def _return_single_period(self, data):
+        return data[self._periods[0]]
+
 
 
 
@@ -484,13 +491,14 @@ class SimEvents(Events):
         inst = cls()
         inst._periods = []
         inst.path = path
-        inst._periods = {}
         with h5py.File(inst.path, "r") as f:
+            #TODO load source data too!
             for p, data in f.items():
                 if "IC" in p:
                     inst._periods.append(p)
                     inst._true_energy[p] = data["true_energy"][()]
                     inst._reco_energy[p] = data["reco_energy"][()]
+                    inst._arrival_energy[p] = data["arrival_energy"][()]
                     inst._ra[p] = data["ra"][()]
                     inst._dec[p] = data["dec"][()]
                     inst._ang_err[p] = data["ang_err"][()]
@@ -509,9 +517,9 @@ class SimEvents(Events):
                 group.create_dataset("ra", data=self._ra[p])
                 group.create_dataset("dec", data=self._dec[p])
                 group.create_dataset("source_label", data=self._source_label[p])
-
+                
             for i, source in enumerate(sources):
-                s = f.create_group("source_" + str(i))
+                s = f.create_group("source_{}".format(str(i)))
                 if isinstance(source.flux_model, PowerLawFlux):
                     s.create_dataset("index", data=source.flux_model._index)
                     s.create_dataset(
@@ -546,13 +554,34 @@ class SimEvents(Events):
         return out
 
 
+    @property
+    def true_energy(self):
+        if len(self) == 1:
+            return self._return_single_period(self._true_energy)
+        return self._true_energy
+
+    
+    @property
+    def arrival_energy(self):
+        if len(self) == 1:
+            return self._return_single_period(self._arrival_energy)
+        return self._arrival_energy
+
+    
+    @property
+    def source_label(self):
+        if len(self) == 1:
+            return self._return_single_period(self._source_label)
+        return self._source_label
+
+
         
 class RealEvents(Events):
     """
     Class to handle reading event files
     """
 
-    time_ = 0
+    mjd_ = 0
     reco_energy_ = 1
     ang_err_ = 2
     ra_ = 3
@@ -564,6 +593,7 @@ class RealEvents(Events):
         Load events from file and sort them
         """
         self._create_dicts()
+        self._mjd = {}
 
 
     def period(self, p):
@@ -576,7 +606,7 @@ class RealEvents(Events):
         out["ang_err"] = self._ang_err[p]
         out["ra"] = self._ra[p]
         out["dec"] = self._dec[p]
-        out["time"] = self._time[p]
+        out["mjd"] = self._mjd[p]
         return out
 
 
@@ -590,7 +620,7 @@ class RealEvents(Events):
             self._ang_err[p] = self.events[p][:, self.ang_err_]
             self._ra[p] = self.events[p][:, self.ra_]
             self._dec[p] = self.events[p][:, self.dec_]
-            self._time[p] = self.events[p][:, self.time_]
+            self._mjd[p] = self.events[p][:, self.time_]
 
 
     def _add_events(self, *periods):
@@ -639,7 +669,7 @@ class RealEvents(Events):
                 inst._ang_err[p] = data["ang_err"][()]
                 inst._ra[p] = data["ra"][()]
                 inst._dec[p] = data["dec"][()]
-                inst._time[p] = data["time"][()]
+                inst._mjd[p] = data["time"][()]
         return inst
 
 
@@ -651,7 +681,14 @@ class RealEvents(Events):
                 group.create_dataset("ang_err", data=self._ang_err[p])
                 group.create_dataset("ra", data=self._ra[p])
                 group.create_dataset("dec", data=self._dec[p])
-                group.create_dataset("time", data=self._time[p])
+                group.create_dataset("mjd", data=self._time[p])
+
+
+    @property
+    def mjd(self):
+        if len(self) == 1:
+            return self._return_single_period(self._mjd)
+        return self._mjd
 
     
 

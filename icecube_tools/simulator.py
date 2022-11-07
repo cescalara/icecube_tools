@@ -21,7 +21,7 @@ from .source.flux_model import PowerLawFlux, BrokenPowerLawFlux
 from .neutrino_calculator import NeutrinoCalculator
 from .detector.angular_resolution import FixedAngularResolution, AngularResolution
 from .detector.r2021 import R2021IRF
-from .utils.data import Uptime, data_directory
+from .utils.data import Uptime, data_directory, SimEvents
 
 """
 Module for running neutrino production 
@@ -32,14 +32,15 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 
 
-class Simulator:
-    def __init__(self, sources, detector):
+class Simulator(SimEvents):
+    def __init__(self, sources, detector, period):
         """
         Class for handling simple neutrino production
         and detection simulations.
 
         :param sources: List of/single Source object.
         """
+        # super.__init__()
         logger.info("Instantiating simulation.")
         if not isinstance(sources, list):
             sources = [sources]
@@ -51,6 +52,9 @@ class Simulator:
         self.max_cosz = 1
 
         self.time = 1  # year
+
+        self._periods = [period]
+        self._period = period
 
 
     @property
@@ -123,14 +127,14 @@ class Simulator:
 
 
 
-        self.true_energy = []
-        self.arrival_energy = []
-        self.reco_energy = []
+        self._true_energy = []
+        self._arrival_energy = []
+        self._reco_energy = []
         self.coordinate = []
-        self.ra = []
-        self.dec = []
-        self.source_label = np.zeros(self.N, dtype=int)
-        self.ang_err = []        
+        self._ra = []
+        self._dec = []
+        self._source_label = np.zeros(self.N, dtype=int)
+        self._ang_err = []        
 
         #During detector simulation, many events are discarded due to 
         #the detection probability (scaled version of the effective area).
@@ -211,21 +215,21 @@ class Simulator:
             if not isinstance(self.detector.energy_resolution, R2021IRF):
                 Ereco = self.detector.energy_resolution.sample(Earr_d[i])
                 try:
-                    self.reco_energy += list(Ereco)
+                    self._reco_energy += list(Ereco)
                 except TypeError:
-                    self.reco_energy += [Ereco]
+                    self._reco_energy += [Ereco]
             else:
                 Ereco = self.detector.energy_resolution.sample_energy(
                     (ra_d[i], dec_d[i]), np.log10(Earr_d[i], seed=seed)
                 )
                 try:
-                    self.reco_energy += list(np.power(10,Ereco))
+                    self._reco_energy += list(np.power(10,Ereco))
                 except TypeError:
-                    self.reco_energy += [np.power(10, Ereco)]
+                    self._reco_energy += [np.power(10, Ereco)]
 
-        self.arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
+        self._arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
 
-        return self.arrival_energy, self.reco_energy
+        return self._arrival_energy, self._reco_energy
 
     # @profile
     def run(self, N=None, seed=1234, show_progress=True):
@@ -262,14 +266,14 @@ class Simulator:
 
         v_lim = (np.cos(np.pi - np.arccos(self.max_cosz)) + 1) / 2
 
-        self.true_energy = []
-        self.arrival_energy = []
-        self.reco_energy = []
+        self._true_energy = []
+        self._arrival_energy = []
+        self._reco_energy = []
         self.coordinate = []
-        self.ra = []
-        self.dec = []
-        self.ang_err = []
-        self.source_label = []
+        self._ra = []
+        self._dec = []
+        self._ang_err = []
+        self._source_label = []
         #During detector simulation, many events are discarded due to 
         #the detection probability (scaled version of the effective area).
         #To increase speed, take many more events at once and only keep
@@ -358,9 +362,9 @@ class Simulator:
                 #are needed if only a single event is sampled
                 #then list() will not work bc float is not an iterable
                 try:
-                    self.reco_energy += list(Ereco)           
+                    self._reco_energy += list(Ereco)           
                 except TypeError:
-                    self.reco_energy += [Ereco]
+                    self._reco_energy += [Ereco]
 
             #do source type specific things here
             if self.sources[i].source_type == DIFFUSE:
@@ -371,21 +375,21 @@ class Simulator:
                         (ra_d[i], dec_d[i]), np.log10(Earr_d[i]), seed=seed
                     )
                     try:
-                        self.ang_err += list(reco_ang_err)
-                        self.reco_energy += list(Ereco)
+                        self._ang_err += list(reco_ang_err)
+                        self._reco_energy += list(Ereco)
                     except TypeError as e:
                         print(e)
-                        self.ang_err += [reco_ang_err]
-                        self.reco_energy += [Ereco]
+                        self._ang_err += [reco_ang_err]
+                        self._reco_energy += [Ereco]
                         
                 elif isinstance(self.detector.angular_resolution, AngularResolution):
                     reco_ang_err = self.detector.angular_resolution.get_ret_ang_err(
                         Earr_d[i]
                     )
                     try:
-                        self.ang_err += list(reco_ang_err)
+                        self._ang_err += list(reco_ang_err)
                     except TypeError:
-                        self.ang_err += [reco_ang_err]
+                        self._ang_err += [reco_ang_err]
                 elif isinstance(
                     self.detector.angular_resolution, FixedAngularResolution
                 ):
@@ -394,11 +398,11 @@ class Simulator:
                     temp = [reco_ang_err] * l_num[i]
 
                 try:
-                    self.dec += list(dec_d[i])
-                    self.ra += list(ra_d[i])
+                    self._dec += list(dec_d[i])
+                    self._ra += list(ra_d[i])
                 except TypeError:
-                    self.dec += [dec_d[i]]
-                    self.ra += [ra_d[i]]
+                    self._dec += [dec_d[i]]
+                    self._ra += [ra_d[i]]
                 logger.info("Sampled angular uncertainty for diffuse source")
 
             else:
@@ -408,7 +412,7 @@ class Simulator:
                     #loop over events handled inside R2021IRF
                     reco_ra, reco_dec, reco_ang_err, Ereco  = self.detector.angular_resolution.sample(
                         (ra_d[i], dec_d[i]), np.log10(Earr_d[i]), seed=seed)
-                    self.reco_energy += list(Ereco)
+                    self._reco_energy += list(Ereco)
 
                 elif isinstance(self.detector.angular_resolution, AngularResolution):
                     reco_ra, reco_dec = self.detector.angular_resolution.sample(
@@ -424,27 +428,34 @@ class Simulator:
                     )
                     reco_ang_err = self.detector.angular_resolution.ret_ang_err
                 try:
-                    self.ang_err +=list(reco_ang_err)
-                    self.dec += list(reco_dec)
-                    self.ra += list(reco_ra)
+                    self._ang_err +=list(reco_ang_err)
+                    self._dec += list(reco_dec)
+                    self._ra += list(reco_ra)
                 except TypeError as e:
                     print(e)
-                    self.ang_err += [reco_ang_err]
-                    self.dec += [reco_dec]
-                    self.ra += [reco_ra]
+                    self._ang_err += [reco_ang_err]
+                    self._dec += [reco_dec]
+                    self._ra += [reco_ra]
                 logger.info("Sampled angular uncertainty for point source")
 
         logger.info("Creating array of simulation data")  
-        self.true_energy = np.concatenate(tuple(Etrue_d[k] for k in Earr_d.keys()))
-        self.arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
-        self.source_label = np.concatenate(tuple(np.full(l_num[l], l, dtype=int) for l in Earr_d.keys()))
+        self._true_energy = np.concatenate(tuple(Etrue_d[k] for k in Earr_d.keys()))
+        self._arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
+        self._source_label = np.concatenate(tuple(np.full(l_num[l], l, dtype=int) for l in Earr_d.keys()))
         if show_progress:
             progress.close()
         logger.info("Created array of simulation data")
+
+        self._ra = {self._period: self._ra}
+        self._dec = {self._period: self._dec}
+        self._true_energy = {self._period: self._true_energy}
+        self._reco_energy = {self._period: self._reco_energy}
+        self._arrival_energy = {self._period: self._arrival_energy}
+        self._source_label = {self._period: self._source_label}
+        self._ang_err = {self._period: self._ang_err}
         
-
-
  
+    '''
     def save(self, filename):
         """
         Save the output to filename.
@@ -454,19 +465,19 @@ class Simulator:
 
         with h5py.File(filename, "w") as f:
 
-            f.create_dataset("true_energy", data=self.true_energy)
+            f.create_dataset("true_energy", data=self._true_energy)
 
-            f.create_dataset("arrival_energy", data=self.arrival_energy)
+            f.create_dataset("arrival_energy", data=self._arrival_energy)
 
-            f.create_dataset("reco_energy", data=self.reco_energy)
+            f.create_dataset("reco_energy", data=self._reco_energy)
 
-            f.create_dataset("ra", data=self.ra)
+            f.create_dataset("ra", data=self._ra)
 
-            f.create_dataset("dec", data=self.dec)
+            f.create_dataset("dec", data=self._dec)
 
-            f.create_dataset("ang_err", data=self.ang_err)
+            f.create_dataset("ang_err", data=self._ang_err)
 
-            f.create_dataset("source_label", data=self.source_label)
+            f.create_dataset("source_label", data=self._source_label)
 
             for i, source in enumerate(self.sources):
 
@@ -494,6 +505,7 @@ class Simulator:
                 s.create_dataset("source_type", data=source.source_type)
 
                 s.create_dataset("normalisation", data=source.flux_model._normalisation)
+    '''
 
 
 class Braun2008Simulator:
@@ -540,12 +552,12 @@ class Braun2008Simulator:
 
         self.N = N
 
-        self.true_energy = []
-        self.reco_energy = []
+        self._true_energy = []
+        self._reco_energy = []
         self.coordinate = []
-        self.ra = []
-        self.dec = []
-        self.source_label = []
+        self._ra = []
+        self._dec = []
+        self._source_label = []
 
         self.reco_energy_sampler.set_index(self.reco_energy_index)
 
@@ -581,16 +593,16 @@ class Braun2008Simulator:
                     [True, False], p=[detection_prob, 1 - detection_prob]
                 )
 
-            self.true_energy.append(Etrue)
+            self._true_energy.append(Etrue)
 
             Ereco = self.reco_energy_sampler()
-            self.reco_energy.append(Ereco)
+            self._reco_energy.append(Ereco)
 
             if self.source.source_type == DIFFUSE:
 
                 self.coordinate.append(SkyCoord(ra * u.rad, dec * u.rad, frame="icrs"))
-                self.ra.append(ra)
-                self.dec.append(dec)
+                self._ra.append(ra)
+                self._dec.append(dec)
 
             else:
 
@@ -603,9 +615,10 @@ class Braun2008Simulator:
                 self.coordinate.append(
                     SkyCoord(reco_ra * u.rad, reco_dec * u.rad, frame="icrs")
                 )
-                self.ra.append(reco_ra)
-                self.dec.append(reco_dec)
+                self._ra.append(reco_ra)
+                self._dec.append(reco_dec)
 
+    '''
     def save(self, filename):
         """
         Save the output to filename.
@@ -615,13 +628,13 @@ class Braun2008Simulator:
 
         with h5py.File(filename, "w") as f:
 
-            f.create_dataset("true_energy", data=self.true_energy)
+            f.create_dataset("true_energy", data=self._true_energy)
 
-            f.create_dataset("reco_energy", data=self.reco_energy)
+            f.create_dataset("reco_energy", data=self._reco_energy)
 
-            f.create_dataset("ra", data=self.ra)
+            f.create_dataset("ra", data=self._ra)
 
-            f.create_dataset("dec", data=self.dec)
+            f.create_dataset("dec", data=self._dec)
 
             f.create_dataset("index", data=self.source.flux_model._index)
 
@@ -635,8 +648,9 @@ class Braun2008Simulator:
                 "normalisation_energy",
                 data=self.source.flux_model._normalisation_energy,
             )
+    '''
 
-class TimeDependentSimulator:
+class TimeDependentSimulator(SimEvents):
     """
     Simulator-class for simulations spanning multiple data taking periods.
     """
@@ -657,7 +671,7 @@ class TimeDependentSimulator:
         :param sources: List of sources to be simulated.
         :param kwargs: Dict with further settings.
         """
-
+        super().__init__()
         self.simulators = {}
         if not all(_ in self._available_periods for _ in periods):
             raise ValueError("Some periods not supported.")
@@ -665,9 +679,10 @@ class TimeDependentSimulator:
         #Get time dependent detector.
         time_dependent_detector = TimeDependentIceCube.from_periods(*periods)
         self.simulators = {
-            p: Simulator(sources, sim) for p, sim in time_dependent_detector.yield_detectors()
+            p: Simulator(sources, sim, p) for p, sim in time_dependent_detector.yield_detectors()
         }
         self.sources = sources
+        self._periods = periods
 
         if kwargs.get("time"):
             self.time = kwargs["time"]
@@ -686,6 +701,13 @@ class TimeDependentSimulator:
         for p, sim in self.simulators.items():
             logger.info(f"Simulating period {p}.")
             sim.run(N=None, seed=1234, show_progress=show_progress)
+            self._true_energy[sim._period] = sim.true_energy
+            self._arrival_energy[sim._period] = sim.arrival_energy
+            self._reco_energy[sim._period] = sim.reco_energy
+            self._ra[sim._period] = sim.ra
+            self._dec[sim._period] = sim.dec
+            self._ang_err[sim._period] = sim.ang_err
+            self._source_label[sim._period] = sim.source_label
 
 
     def save(self, path, file_prefix):
