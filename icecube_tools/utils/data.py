@@ -220,6 +220,7 @@ class IceCubeData:
         return local_path
 
 
+
 class ddict(dict):
     """
     Modified dictionary class, derived from `dict`.
@@ -368,8 +369,6 @@ class Uptime():
             p_end = np.searchsorted(self.times[:, 1], end)
             future = False
 
-        
-
         # repeat searchsorted procedure for the periods containing start/end:
         # add up all the detector uptime in those to get the resulting obs time
         # or... just go for 'reasonable approximation':
@@ -477,7 +476,6 @@ class Events(ABC):
 
 
 
-
 class SimEvents(Events):
     def __init__(self):
         super().__init__()
@@ -494,7 +492,7 @@ class SimEvents(Events):
         with h5py.File(inst.path, "r") as f:
             #TODO load source data too!
             for p, data in f.items():
-                if "IC" in p:
+                if not "source" in p:
                     inst._periods.append(p)
                     inst._true_energy[p] = data["true_energy"][()]
                     inst._reco_energy[p] = data["reco_energy"][()]
@@ -503,6 +501,7 @@ class SimEvents(Events):
                     inst._dec[p] = data["dec"][()]
                     inst._ang_err[p] = data["ang_err"][()]
                     inst._source_label[p] = data["source_label"][()]
+                
         return inst
 
 

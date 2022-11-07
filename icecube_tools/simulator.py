@@ -455,29 +455,29 @@ class Simulator(SimEvents):
         self._ang_err = {self._period: self._ang_err}
         
  
-    '''
+
     def save(self, filename):
         """
-        Save the output to filename.
+        Save the output to filename, for all but the R2021 release.
         """
 
         self._filename = filename
 
         with h5py.File(filename, "w") as f:
 
-            f.create_dataset("true_energy", data=self._true_energy)
+            f.create_dataset("true_energy", data=self.true_energy)
 
-            f.create_dataset("arrival_energy", data=self._arrival_energy)
+            f.create_dataset("arrival_energy", data=self.arrival_energy)
 
-            f.create_dataset("reco_energy", data=self._reco_energy)
+            f.create_dataset("reco_energy", data=self.reco_energy)
 
-            f.create_dataset("ra", data=self._ra)
+            f.create_dataset("ra", data=self.ra)
 
-            f.create_dataset("dec", data=self._dec)
+            f.create_dataset("dec", data=self.dec)
 
-            f.create_dataset("ang_err", data=self._ang_err)
+            f.create_dataset("ang_err", data=self.ang_err)
 
-            f.create_dataset("source_label", data=self._source_label)
+            f.create_dataset("source_label", data=self.source_label)
 
             for i, source in enumerate(self.sources):
 
@@ -505,7 +505,7 @@ class Simulator(SimEvents):
                 s.create_dataset("source_type", data=source.source_type)
 
                 s.create_dataset("normalisation", data=source.flux_model._normalisation)
-    '''
+
 
 
 class Braun2008Simulator:
