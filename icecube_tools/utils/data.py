@@ -409,6 +409,7 @@ class Events(ABC):
 
     def __init__(self):
         self._create_dicts()
+        self._periods = []
 
 
     def _create_dicts(self):
@@ -436,6 +437,21 @@ class Events(ABC):
     @abstractmethod
     def write_to_h5(self):
         pass
+
+
+    def apply_mask(self, mask):
+        """
+        Apply mask to events stored in self.
+        :param mask: List of `np.nonzero()`
+        :return: Dict of events with applied cuts
+        """
+        
+        new_events = {}
+        for p, m in zip(self._periods, mask):
+            data = self.period(p)
+            for key, value in data.items():
+                new_events[key] = value[m]
+        return new_events
 
 
     @property
@@ -477,6 +493,10 @@ class Events(ABC):
 
 
 class SimEvents(Events):
+
+    keys = ["true_energy", "arrival_energy", "reco_energy",
+        "ra", "dec", "ang_err", "source_label"]
+
     def __init__(self):
         super().__init__()
         self._true_energy = {}
@@ -500,8 +520,7 @@ class SimEvents(Events):
                     inst._ra[p] = data["ra"][()]
                     inst._dec[p] = data["dec"][()]
                     inst._ang_err[p] = data["ang_err"][()]
-                    inst._source_label[p] = data["source_label"][()]
-                
+                    inst._source_label[p] = data["source_label"][()]         
         return inst
 
 
@@ -545,11 +564,11 @@ class SimEvents(Events):
         out = {}
         out["true_energy"] = self._true_energy[p]
         out["reco_energy"] = self._reco_energy[p]
+        out["arrival_energy"] = self._arrival_energy[p]
         out["ang_err"] = self._ang_err[p]
         out["ra"] = self._ra[p]
         out["dec"] = self._dec[p]
         out["source_label"] = self._source_label[p]
-        # out["time"] = self._time[p]
         return out
 
 
@@ -577,7 +596,7 @@ class SimEvents(Events):
         
 class RealEvents(Events):
     """
-    Class to handle reading event files
+    Class to handle reading real event files of 2021 release.
     """
 
     mjd_ = 0
@@ -586,12 +605,10 @@ class RealEvents(Events):
     ra_ = 3
     dec_ = 4
 
+    keys = ["reco_energy", "ra", "dec", "ang_err", "mjd"]
 
     def __init__(self):
-        """
-        Load events from file and sort them
-        """
-        self._create_dicts()
+        super().__init__()
         self._mjd = {}
 
 
@@ -619,7 +636,7 @@ class RealEvents(Events):
             self._ang_err[p] = self.events[p][:, self.ang_err_]
             self._ra[p] = self.events[p][:, self.ra_]
             self._dec[p] = self.events[p][:, self.dec_]
-            self._mjd[p] = self.events[p][:, self.time_]
+            self._mjd[p] = self.events[p][:, self.mjd_]
 
 
     def _add_events(self, *periods):
@@ -630,6 +647,7 @@ class RealEvents(Events):
         for p in periods:
             events.append(np.loadtxt(join(data_directory, f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv")))
         return np.concatenate(tuple(events))
+
 
     @classmethod
     def from_event_files(cls, *periods):
@@ -673,6 +691,9 @@ class RealEvents(Events):
 
 
     def write_to_h5(self, path):
+        """
+        Write selected events to hdf5 file specified by path
+        """
         with h5py.File(path, "w") as f:
             for p in self._periods:
                 group = f.create_group(p)

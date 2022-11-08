@@ -408,13 +408,13 @@ class PointSourceLikelihood:
         if self.which == 'spatial':
             #Spatial-only likelihood needs special function, because no spectral index is used
             logger.info("Using only spatial information.")
-            func_to_minimize = self._func_to_minimize_sp
+            self.minimize_this = self._func_to_minimize_sp
         else:
-            func_to_minimize = self._func_to_minimize
+            self.minimize_this = self._func_to_minimize
             logger.info("Using all information.")
 
         m = Minuit(
-            func_to_minimize,
+            self.minimize_this,
             ns=init_ns,
             index=init_index,
         )
@@ -552,7 +552,8 @@ class PointSourceLikelihood:
 
         # else:
 
-        neg_log_lik = self._func_to_minimize(
+        # make sure that correct minimum (i.e. spatial/energy/both) is calculated:
+        neg_log_lik = self.minimize_this(
             self._best_fit_ns, self._best_fit_index
         )
 
@@ -752,7 +753,10 @@ class TimeDependentPointSourceLikelihood:
         self,
         source_coords,
         periods,
-        events: Events,
+        ra,
+        dec,
+        reco_energy,
+        ang_err,
         energy_likelihood: MarginalisedEnergyLikelihood,
         path=None,
         index_list=None,
@@ -768,27 +772,22 @@ class TimeDependentPointSourceLikelihood:
         :param which: String, `both`, `spatial`, `energy` indicating which likelihoods are to be used.
         """
 
+        #assert len(events) == len(periods)
         self.which = which
         self.source_coords = source_coords
         #files should be dict of files, with period string as the key
-        self.events = events
+        #self.events = events
         self.periods = periods
         self.index_list = index_list
-        assert len(events) == len(periods)
+        #assert len(events) == len(periods)
 
         self.likelihoods = {}
         # Can use one spatial llh for all periods, 'tis but a Gaussian
         spatial_llh = EventDependentSpatialGaussianLikelihood()
 
-
-        for p, file in zip(self.periods, self.events):
-            print(p)
-            data = {}
+        for p in self.periods:
             # Open event files
-            with h5py.File(file, "r") as f:
-                for key in f:
-                    if "source_0" not in key and "source_1" not in key:
-                        data[key] = f[key][()]
+            #data = events.period(p)
             if energy_likelihood == MarginalisedEnergyLikelihood2021:
                 energy_llh = MarginalisedEnergyLikelihood2021(
                     index_list, path, f"p_{p}", self.source_coords[1]
@@ -804,10 +803,10 @@ class TimeDependentPointSourceLikelihood:
             self.likelihoods[p] = PointSourceLikelihood(
                 spatial_llh,
                 energy_llh,
-                ra,
-                dec,
-                reco_energy,
-                ang_err,
+                ra[p],
+                dec[p],
+                reco_energy[p],
+                ang_err[p],
                 self.source_coords,
                 which=self.which
             )
@@ -833,7 +832,6 @@ class TimeDependentPointSourceLikelihood:
         neg_log_like = 0
         for (n, llh) in zip(arg[:-1], self.likelihoods.values()):
             val = llh(n, arg[-1])
-            #print(val)
             neg_log_like += val
         return neg_log_like
 
@@ -847,7 +845,6 @@ class TimeDependentPointSourceLikelihood:
         neg_log_like = 0
         for (n, llh) in zip(arg, self.likelihoods.values()):
             val = llh._func_to_minimize_sp(n)
-            #print(val)
             neg_log_like += val
         return neg_log_like
 
@@ -879,36 +876,51 @@ class TimeDependentPointSourceLikelihood:
 
         if self.which == 'spatial':
             #Only spatial-only likelihood needs special function, because no spectral index is used
-            func_to_minimize = self._func_to_minimize_sp
+            self.minimize_this = self._func_to_minimize_sp
         else:
-            func_to_minimize = self._func_to_minimize
+            self.minimize_this = self._func_to_minimize
             #add errors, limits, start value and name of index
             errors += [error_index]
             limits += [limit_index]
             init += [init_index]
             name += ("index",)
 
-        m = Minuit(func_to_minimize, *init, name=name)
-        m.errordef = 0.5
-        m.errors = errors
-        m.limits = limits        
-        m.migrad()
+        self.m = Minuit(self.minimize_this, *init, name=name)
+        self.m.errordef = 0.5
+        self.m.errors = errors
+        self.m.limits = limits        
+        self.m.migrad()
 
         if self.which != 'spatial':
-            if not m.fmin.is_valid or not m.fmin.has_covariance:
+            if not self.m.fmin.is_valid or not self.m.fmin.has_covariance:
 
                 # Fix the index as can be uninformative
-                m.fixed["index"] = True
-                m.migrad()
+                self.m.fixed["index"] = True
+                self.m.migrad()
         else:
-            if not m.fmin.is_valid or not m.fmin.has_covariance:
+            if not self.m.fmin.is_valid or not self.m.fmin.has_covariance:
                 logger.warning("Fit has not converged, proceed with caution.")
 
-        return m
+        self._best_fit_index = self.m.values["index"]
+        self._best_fit_ns = tuple(self.m.values[n] for n in name if n != "index")
+        return self.m
 
 
     def get_test_statistic(self):
-        raise NotImplementedError("Not yet implemented.")
+        self._minimize()
+        neg_log_lik = self.minimize_this(*self._best_fit_ns, self._best_fit_index)
+        self.likelihood_ratio = np.exp(neg_log_lik)
+        self.test_statistic = -2 * neg_log_lik
+        return self.test_statistic
+
+        
+
+    @property
+    def N(self):
+        n = 0
+        for l in self.likelihoods.values():
+            n += l.N
+        return n
 
 
 
