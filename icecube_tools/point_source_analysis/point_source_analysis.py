@@ -73,7 +73,7 @@ class MapScan(PointSourceAnalysis):
     }
 
 
-    def __init__(self, path, events):
+    def __init__(self, path: str, events: Events):
         """
         Instantiate analysis object.
         :param path: Path to config
@@ -86,7 +86,8 @@ class MapScan(PointSourceAnalysis):
         self.num_of_irf_periods = 0
         is_86 = False
         for p in events.periods:
-            if "86" in p and not is_86:
+            #if "86" in p and and not is_86:
+            if p in ["IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII"] and not is_86:
                 self.num_of_irf_periods += 1
                 is_86 = True
             else:
@@ -237,10 +238,10 @@ class MapScan(PointSourceAnalysis):
     def apply_cuts(self):
         #make cuts based on config
         #incudes right now: energy only
-        mask = []
+        mask = {}
         for p in self.periods:
             events = self.events.period(p)
-            mask += np.nonzero(
+            mask[p] = np.nonzero(
                 (events["reco_energy"] > self.northern_emin) & (events["dec"] > np.deg2rad(10)) &
                 (events["reco_energy"] > self.equator_emin) & (events["dec"] < np.deg2rad(10) & 
                     events["reco_energy"] > self.equator_emin) & (events["dec"] > np.deg2rad(-10)) &

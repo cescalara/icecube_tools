@@ -692,7 +692,6 @@ class RealEvents(Events):
         inst.events = {}
         add = []
         for p in periods:
-            print(p)
             if p in ["IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII"]:
                 add.append(p)
             else:
@@ -701,6 +700,7 @@ class RealEvents(Events):
                 )
                 inst._periods.append(p)
         if add:
+            logging.info("Appending IC86_II and later events")
             inst.events["IC86_II"] = inst._add_events(*add)
             inst._periods.append("IC86_II")
         inst._sort()
