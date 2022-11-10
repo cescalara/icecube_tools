@@ -17,6 +17,8 @@ from abc import ABC, abstractmethod
 from ..source.flux_model import BrokenPowerLawFlux, PowerLawFlux
 from ..source.source_model import Source, DIFFUSE, POINT
 
+from typing import List, Dict
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -405,6 +407,7 @@ class Uptime():
 class Events(ABC):
     """
     Abstract bass class for event classes
+    For single period event files, the properties return not a dictionary but a single array of data.
     """
 
     def __init__(self):
@@ -439,15 +442,16 @@ class Events(ABC):
         pass
 
 
-    def apply_mask(self, mask):
+    def apply_mask(self, mask: Dict):
         """
         Apply mask to events stored in self.
-        :param mask: List of `np.nonzero()`
+        :param mask: Dict of `np.nonzero()`, key is period identifier
         :return: Dict of events with applied cuts
         """
         
         new_events = {}
-        for p, m in zip(self._periods, mask):
+        for p in self._periods:
+            m = mask[p]
             data = self.period(p)
             for key, value in data.items():
                 new_events[key] = value[m]
@@ -493,6 +497,9 @@ class Events(ABC):
 
 
 class SimEvents(Events):
+    """
+    Class to store simulated events.
+    """
 
     keys = ["true_energy", "arrival_energy", "reco_energy",
         "ra", "dec", "ang_err", "source_label"]
@@ -505,7 +512,12 @@ class SimEvents(Events):
         
     
     @classmethod
-    def load_from_h5(cls, path):
+    def load_from_h5(cls, path: str):
+        """
+        Load events from hdf5 file.
+        :param path: Path to file
+        """
+
         inst = cls()
         inst._periods = []
         inst.path = path
@@ -524,7 +536,13 @@ class SimEvents(Events):
         return inst
 
 
-    def write_to_h5(self, path, sources=None):
+    def write_to_h5(self, path: str, sources: List[Source]):
+        """
+        Write events to hdf5 file.
+        :param path: Path to file
+        :sources: List of sources used to generate events
+        """
+
         with h5py.File(path, "w") as f:
             for p in self._periods:
                 group = f.create_group(p)
@@ -556,9 +574,10 @@ class SimEvents(Events):
                     s.create_dataset("source_coord", data=source.coord)
 
 
-    def period(self, p):
+    def period(self, p: str):
         """
         Returns dictionary of events belonging to a specified data season
+        :param p: Period identifier
         """
 
         out = {}
@@ -612,9 +631,10 @@ class RealEvents(Events):
         self._mjd = {}
 
 
-    def period(self, p):
+    def period(self, p: str):
         """
         Returns dictionary of events belonging to a specified data season
+        :param p: Period identifier
         """
 
         out = {}
@@ -639,9 +659,10 @@ class RealEvents(Events):
             self._mjd[p] = self.events[p][:, self.mjd_]
 
 
-    def _add_events(self, *periods):
+    def _add_events(self, *periods: str):
         """
-        Add events for multiple data seasons of a single IRF, i.e. only IC86_II and up
+        Add events for multiple data seasons of a single IRF, i.e. only IC86_II and up.
+        :param periods: Arbitrary number of period identifiers
         """
         events = []
         for p in periods:
@@ -650,10 +671,12 @@ class RealEvents(Events):
 
 
     @classmethod
-    def from_event_files(cls, *periods):
+    def from_event_files(cls, *periods: str):
         """
-        Load from file, if belonging to IC86_II or later, add to IC86_II keyword
+        Load from files provided by data release,
+        if belonging to IC86_II or later, add to IC86_II keyword
         because the same IRF is used
+        :param periods: Arbitrary number of period identifiers
         """
 
         inst = cls()
@@ -676,7 +699,12 @@ class RealEvents(Events):
 
 
     @classmethod
-    def load_from_h5(cls, path):
+    def load_from_h5(cls, path: str):
+        """
+        Load events from hdf5 file
+        :param path: Path to file
+        """
+
         inst = cls()
         inst._periods = []
         with h5py.File(path, "r") as f:
@@ -692,8 +720,10 @@ class RealEvents(Events):
 
     def write_to_h5(self, path):
         """
-        Write selected events to hdf5 file specified by path
+        Write selected events to hdf5 file.
+        :param path: Path to hdf5 file
         """
+
         with h5py.File(path, "w") as f:
             for p in self._periods:
                 group = f.create_group(p)
