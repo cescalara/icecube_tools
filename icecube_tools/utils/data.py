@@ -521,6 +521,7 @@ class SimEvents(Events):
         inst = cls()
         inst._periods = []
         inst.path = path
+        inst.sources = {}
         with h5py.File(inst.path, "r") as f:
             #TODO load source data too!
             for p, data in f.items():
@@ -532,7 +533,15 @@ class SimEvents(Events):
                     inst._ra[p] = data["ra"][()]
                     inst._dec[p] = data["dec"][()]
                     inst._ang_err[p] = data["ang_err"][()]
-                    inst._source_label[p] = data["source_label"][()]         
+                    inst._source_label[p] = data["source_label"][()]  
+                else:
+                    indices = []
+                    for s in ["index", "index1", "index2"]:
+                        try:
+                            indices.append(data[s][()])
+                        except:
+                            pass
+                    inst.sources[p] = indices
         return inst
 
 
