@@ -7,6 +7,8 @@ from .spatial_likelihood import *
 
 from ..utils.data import Events
 
+from typing import Dict, List, Tuple, Sequence
+
 """
 Module to compute the IceCube point source likelihood
 using publicly available information.
@@ -35,17 +37,17 @@ class PointSourceLikelihood:
 
     def __init__(
         self,
-        direction_likelihood,
-        energy_likelihood,
-        ras,
-        decs,
-        energies,
-        ang_errs=[],
-        source_coord=(),
-        which='both',
+        direction_likelihood: SpatialLikelihood,
+        energy_likelihood: MarginalisedEnergyLikelihood,
+        ras: Sequence[float],
+        decs: Sequence[float],
+        energies: Sequence[float],
+        ang_errs: Sequence[float],
+        source_coord: Tuple[float, float],
+        which: str='both',
         bg_energy_likelihood=None,
         index_prior=None,
-        band_width_factor=3.0,
+        band_width_factor: float=3.0
     ):
         """
         Calculate the point source likelihood for a given
@@ -54,9 +56,12 @@ class PointSourceLikelihood:
 
         :param direction_likelihood: An instance of SpatialLikelihood.
         :param energy_likelihood: An instance of MarginalisedEnergyLikelihood.
-        :param event_coords: List of (ra, dec) tuples for reconstructed coords.
-        :param energies: The reconstructed nu energies.
+        :param ras: Right ascensions of events, in rad
+        :param decs: Declination of events, in rad
+        :param energies: The reconstructed nu energies in GeV.
+        :param ang_errs: $1 \sigma$ angular errors of events, in degrees
         :param source_coord: (ra, dec) pf the point to test.
+        :param which: str, either `spatial`, `both`, which information of event to be used
         :param index_prior: Optional prior on the spectral index, instance of Prior.
         """
 
@@ -71,14 +76,6 @@ class PointSourceLikelihood:
         self._energy_likelihood = energy_likelihood
 
         self._bg_energy_likelihood = bg_energy_likelihood
-
-        """
-        try:
-            if 3.7 in energy_likelihood.index_list:
-                self._bg_energy_likelihood = energy_likelihood.likelihood['3.7']
-        except AttributeError:
-            pass
-        """
         
         if isinstance(
             self._direction_likelihood, EnergyDependentSpatialGaussianLikelihood
@@ -757,7 +754,7 @@ class TimeDependentPointSourceLikelihood:
         dec,
         reco_energy,
         ang_err,
-        energy_likelihood: MarginalisedEnergyLikelihood,
+        energy_llh,
         path=None,
         index_list=None,
         which="both"):
@@ -788,6 +785,7 @@ class TimeDependentPointSourceLikelihood:
         for p in self.periods:
             # Open event files
             #data = events.period(p)
+            """
             if energy_likelihood == MarginalisedEnergyLikelihood2021:
                 energy_llh = MarginalisedEnergyLikelihood2021(
                     index_list, path, f"p_{p}", self.source_coords[1]
@@ -798,11 +796,11 @@ class TimeDependentPointSourceLikelihood:
                     EffectiveArea.from_dataset("20210126", p),
                     np.linspace(2, 9, num=20)
                 )
-
+            """
             #create likelihood objects
             self.likelihoods[p] = PointSourceLikelihood(
                 spatial_llh,
-                energy_llh,
+                energy_llh[p],
                 ra[p],
                 dec[p],
                 reco_energy[p],
@@ -836,7 +834,7 @@ class TimeDependentPointSourceLikelihood:
         return neg_log_like
 
 
-    def _func_to_minimize_sp(self, *arg):
+    def _func_to_minimize_sp(self, *arg, index=2.7):
         """
         According to https://github.com/icecube/skyllh/blob/master/doc/user_manual.pdf,
         Eq. (59), the returned values of each period's llh._func_to_minimize() can be added.
@@ -901,7 +899,10 @@ class TimeDependentPointSourceLikelihood:
             if not self.m.fmin.is_valid or not self.m.fmin.has_covariance:
                 logger.warning("Fit has not converged, proceed with caution.")
 
-        self._best_fit_index = self.m.values["index"]
+        if self.which != "spatial":
+            self._best_fit_index = self.m.values["index"]
+        else:
+            self._best_fit_index = 2.7
         self._best_fit_ns = tuple(self.m.values[n] for n in name if n != "index")
         return self.m
 
