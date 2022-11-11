@@ -40,7 +40,7 @@ class Simulator(SimEvents):
 
         :param sources: List of/single Source object.
         """
-        # super.__init__()
+        super().__init__()
         logger.info("Instantiating simulation.")
         if not isinstance(sources, list):
             sources = [sources]

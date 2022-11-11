@@ -55,7 +55,7 @@ def test_simulation():
 
     simulator.run(seed=42)
 
-    assert min(simulator.true_energy) >= 1e4
+    assert min(simulator._true_energy["IC86_II"]) >= 1e4
 
 
 
