@@ -183,12 +183,12 @@ events.arrival_energy
 ```
 
 ```python
-events._periods
+events.periods
 ```
 
 ```python
 # Get all point source events
-ps_sel = events.source_label == 1
+ps_sel = events.source_label[events.periods[0]] == 1
 ntot_ps_events = len(np.where(ps_sel==True)[0])
 
 # Remove them one by one and find test statistic
@@ -237,7 +237,7 @@ _ = m.draw_profile("ns")
 ```
 
 ```python
-np.nonzero(events.source_label == 1)[0].size
+np.nonzero(events.source_label["IC86_II"] == 1)[0].size
 ```
 
 ```python
@@ -278,9 +278,14 @@ The error provided by `migrad()` is unreasonably small.
 energy_likelihood = MarginalisedEnergyLikelihood2021(np.round(np.arange(1.5, 4.1, 0.2), decimals=1), 'data', 'p_IC86_II', np.deg2rad(30))
 energy_likelihood._min_index = 1.55
 energy_likelihood._max_index = 3.85
-likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood, 
-                                  events.ra, events.dec, events.reco_energy, events.ang_err,
-                                  source_coord)
+likelihood = PointSourceLikelihood(spatial_likelihood,
+                                   energy_likelihood, 
+                                   events.ra[events.periods[0]],
+                                   events.dec[events.periods[0]],
+                                   events.reco_energy[events.periods[0]],
+                                   events.ang_err[events.periods[0]],
+                                   source_coord
+)
 likelihood._bg_index = 3.7
 likelihood._bg_energy_likelihood = None
 
@@ -321,10 +326,10 @@ energy_likelihood = MarginalisedIntegratedEnergyLikelihood(irf, aeff, new_reco_b
 tllh = TimeDependentPointSourceLikelihood(
     source_coords,
     ["IC86_II"],
-    events._ra,
-    events._dec,
-    events._reco_energy,
-    events._ang_err,
+    events.ra,
+    events.dec,
+    events.reco_energy,
+    events.ang_err,
     {"IC86_II": energy_likelihood},
     which="both"
 )

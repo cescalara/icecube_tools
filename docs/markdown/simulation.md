@@ -160,8 +160,8 @@ for i in [1.5, 2.0, 2.5, 3.0, 3.5, 3.7]:
 # Plot energies
 bins = np.geomspace(1e2, max_energy)
 fig, ax = plt.subplots()
-ax.hist(events.true_energy, bins=bins, alpha=0.7, label="E_true")
-ax.hist(events.reco_energy, bins=bins, alpha=0.7, label="E_reco")
+ax.hist(events.true_energy["IC86_II"], bins=bins, alpha=0.7, label="E_true")
+ax.hist(events.reco_energy["IC86_II"], bins=bins, alpha=0.7, label="E_reco")
 ax.set_xscale("log")
 ax.set_yscale("log")
 ax.set_xlabel("E [GeV]")
@@ -170,19 +170,19 @@ ax.legend()
 
 ```python
 # Plot directions
-ps_sel = events.source_label == 1
+ps_sel = events.source_label["IC86_II"] == 1
 
 fig, ax = plt.subplots(subplot_kw={"projection": "aitoff"})
 fig.set_size_inches((12, 7))
 
 circles = []
-for r, d, a in zip(events.ra[~ps_sel], events.dec[~ps_sel], events.ang_err[~ps_sel]):
+for r, d, a in zip(events.ra["IC86_II"][~ps_sel], events.dec["IC86_II"][~ps_sel], events.ang_err["IC86_II"][~ps_sel]):
     circle = Circle((r-np.pi, d), radius=np.deg2rad(a))
     circles.append(circle)
 df_nu = PatchCollection(circles)
 
 circles = []
-for r, d, a in zip(events.ra[ps_sel], events.dec[ps_sel], events.ang_err[ps_sel]):
+for r, d, a in zip(events.ra["IC86_II"][ps_sel], events.dec["IC86_II"][ps_sel], events.ang_err["IC86_II"][ps_sel]):
     circle = Circle((r-np.pi, d), radius=np.deg2rad(a))
     circles.append(circle)
 ps_nu = PatchCollection(circles, color="r")
