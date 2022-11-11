@@ -69,7 +69,7 @@ class PointSourceLikelihood:
             raise ValueError("No other type of likelihood available.")
         else:
             self.which = which
-            logger.info(f"Using {which} likelihoods.")
+            logger.debug(f"Using {which} likelihoods.")
 
         self._direction_likelihood = direction_likelihood
 
@@ -415,11 +415,11 @@ class PointSourceLikelihood:
 
         if self.which == 'spatial':
             #Spatial-only likelihood needs special function, because no spectral index is used
-            logger.info("Using only spatial information.")
+            logger.debug("Using only spatial information.")
             self.minimize_this = self._func_to_minimize_sp
         else:
             self.minimize_this = self._func_to_minimize
-            logger.info("Using all information.")
+            logger.debug("Using all information.")
 
         if self.which != "spatial":
             m = Minuit(
@@ -968,6 +968,13 @@ class TimeDependentPointSourceLikelihood:
             n += l.N
         return n
 
+
+    @property
+    def Nprime(self):
+        n = 0
+        for l in self.likelihood_ratio.values():
+            n += l.Nprime
+        return n
 
 
 class EnergyDependentSpatialPointSourceLikelihood:

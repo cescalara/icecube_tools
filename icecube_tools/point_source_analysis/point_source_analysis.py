@@ -11,9 +11,9 @@ from ..utils.data import data_directory, available_periods, ddict, Events
 from ..utils.coordinate_transforms import *
 
 import yaml
-
 import healpy as hp
 import numpy as np
+from tqdm import tqdm as progress_bar
 
 from abc import ABC, abstractmethod
 
@@ -65,7 +65,8 @@ class MapScan(PointSourceAnalysis):
             {"nside": int, "npix": int, "ras": list, "decs": list}, 
         "data": {
             "periods": list,
-            "cuts": {"northern": {"emin": float}, "equator": {"emin": float}, "southern": {"emin": float}
+            "cuts": {"northern": {"emin": float}, "equator": {"emin": float}, "southern": {"emin": float},
+            "min_dec": float, "max_dec": float
             },
             "likelihood": str
 
@@ -112,15 +113,19 @@ class MapScan(PointSourceAnalysis):
         
 
 
-    def perform_scan(self):
+    def perform_scan(self, show_progress=False):
         logger.info("Performing scan for periods: {}".format(self.events.periods))
         ra = self.events.ra
         dec = self.events.dec
         ang_err = self.events.ang_err
         reco_energy = self.events.reco_energy
-        for c, (ra_t, dec_t) in enumerate(zip(self.ra_test, self.dec_test)):
-            print(ra_t, dec_t)
-            self._test_source((ra_t, dec_t), c, ra, dec, reco_energy, ang_err)
+        if show_progress:
+            for c in progress_bar(range(len(self.ra_test))):
+                self._test_source((self.ra_test[c], self.dec_test[c]), c, ra, dec, reco_energy, ang_err)
+        else:
+            for c, (ra_t, dec_t) in enumerate(zip(self.ra_test, self.dec_test)):
+                self._test_source((ra_t, dec_t), c, ra, dec, reco_energy, ang_err)
+
 
 
     def _test_source(self, source_coord, num, ra, dec, reco_energy, ang_err):
@@ -135,11 +140,11 @@ class MapScan(PointSourceAnalysis):
                 self.energy_likelihood,
                 which=self.which
             )
-            if likelihood.N > 0:    # else somewhere division by zero
+            if likelihood.Nprime > 0:    # else somewhere division by zero
                 self.ts[num] = likelihood.get_test_statistic()
-                #self.index[num] = likelihood._best_fit_index
+                self.index[num] = likelihood._best_fit_index
                 self.ns[num] = likelihood._best_fit_ns
-                #self.index_err[num] = likelihood.m.errors["index"]
+                self.index_err[num] = likelihood.m.errors["index"]
                 self.ns_err[num] = np.array(
                     [likelihood.m.errors[n] for n in likelihood.m.parameters if n != "index"]
                 )
@@ -167,6 +172,8 @@ class MapScan(PointSourceAnalysis):
             self.northern_emin = float(data_config.get("cuts").get("northern").get("emin"))
             self.equator_emin = float(data_config.get("cuts").get("equator").get("emin"))
             self.southern_emin = float(data_config.get("cuts").get("southern").get("emin"))
+            self.min_dec = data_config.get("cuts").get("min_dec", -90)
+            self.max_dec = data_config.get("cuts").get("max_dec", 90)
         self._which = data_config.get("likelihood", "both")
 
 
@@ -216,8 +223,12 @@ class MapScan(PointSourceAnalysis):
             logger.info(f"resolution in degrees: {hp.nside2resol(self.nside, arcmin=True)/60}")
             theta_test, phi_test = hp.pix2ang(self.nside, np.arange(self.npix), nest=False)
             ra_test, dec_test = spherical_to_icrs(theta_test, phi_test)
-            self.ra_test = ra_test
-            self.dec_test = dec_test
+            self.ra_test = ra_test[
+                np.nonzero((dec_test <= np.deg2rad(self.max_dec)) & (dec_test >= np.deg2rad(self.min_dec)))
+            ]
+            self.dec_test = dec_test[
+                np.nonzero((dec_test <= np.deg2rad(self.max_dec)) & (dec_test >= np.deg2rad(self.min_dec)))
+            ]
         self._make_output_arrays()
 
     
