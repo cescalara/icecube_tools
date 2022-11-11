@@ -163,9 +163,9 @@ class MapScan(PointSourceAnalysis):
         self.periods = data_config.get("periods")
         cuts = data_config.get("cuts", False)
         if cuts:
-            self.northern_emin = data_config.get("cuts").get("northern").get("emin")
-            self.equator_emin = data_config.get("cuts").get("equator").get("emin")
-            self.southern_emin = data_config.get("cuts").get("southern").get("emin")
+            self.northern_emin = float(data_config.get("cuts").get("northern").get("emin"))
+            self.equator_emin = float(data_config.get("cuts").get("equator").get("emin"))
+            self.southern_emin = float(data_config.get("cuts").get("southern").get("emin"))
         self._which = data_config.get("likelihood", "both")
 
 
@@ -242,9 +242,10 @@ class MapScan(PointSourceAnalysis):
         for p in self.periods:
             events = self.events.period(p)
             mask[p] = np.nonzero(
-                (events["reco_energy"] > self.northern_emin) & (events["dec"] > np.deg2rad(10)) &
-                (events["reco_energy"] > self.equator_emin) & (events["dec"] < np.deg2rad(10) & 
-                    events["reco_energy"] > self.equator_emin) & (events["dec"] > np.deg2rad(-10)) &
-                (events["reco_energy"] > self.southern_emin) & (events["dec"] < np.deg2rad(10))
+                ((events["reco_energy"] > self.northern_emin) & (events["dec"] >= np.deg2rad(10))) |
+                ((events["reco_energy"] > self.equator_emin) & (events["dec"] < np.deg2rad(10)) & 
+                    (events["dec"] > np.deg2rad(-10))) |
+                ((events["reco_energy"] > self.southern_emin) & (events["dec"] <= np.deg2rad(-10)))
             )
+        self.reduced_events = self.events.apply_mask(mask)
         

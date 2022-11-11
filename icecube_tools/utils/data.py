@@ -16,6 +16,7 @@ from abc import ABC, abstractmethod
 
 from ..source.flux_model import BrokenPowerLawFlux, PowerLawFlux
 from ..source.source_model import Source, DIFFUSE, POINT
+from ..utils.vMF import get_kappa, get_theta_p
 
 from typing import List, Dict
 
@@ -662,9 +663,9 @@ class RealEvents(Events):
 
         for p in self._periods:
             self._reco_energy[p] = self.events[p][:, self.reco_energy_]
-            self._ang_err[p] = self.events[p][:, self.ang_err_]
-            self._ra[p] = self.events[p][:, self.ra_]
-            self._dec[p] = self.events[p][:, self.dec_]
+            self._ang_err[p] = get_theta_p(get_kappa(self.events[p][:, self.ang_err_], 0.5))
+            self._ra[p] = np.deg2rad(self.events[p][:, self.ra_])
+            self._dec[p] = np.deg2rad(self.events[p][:, self.dec_])
             self._mjd[p] = self.events[p][:, self.mjd_]
 
 
