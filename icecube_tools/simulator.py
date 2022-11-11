@@ -701,13 +701,13 @@ class TimeDependentSimulator(SimEvents):
         for p, sim in self.simulators.items():
             logger.info(f"Simulating period {p}.")
             sim.run(N=None, seed=1234, show_progress=show_progress)
-            self._true_energy[sim._period] = sim.true_energy
-            self._arrival_energy[sim._period] = sim.arrival_energy
-            self._reco_energy[sim._period] = sim.reco_energy
-            self._ra[sim._period] = sim.ra
-            self._dec[sim._period] = sim.dec
-            self._ang_err[sim._period] = sim.ang_err
-            self._source_label[sim._period] = sim.source_label
+            self._true_energy[sim._period] = sim.true_energy[p]
+            self._arrival_energy[sim._period] = sim.arrival_energy[p]
+            self._reco_energy[sim._period] = sim.reco_energy[p]
+            self._ra[sim._period] = sim.ra[p]
+            self._dec[sim._period] = sim.dec[p]
+            self._ang_err[sim._period] = sim.ang_err[p]
+            self._source_label[sim._period] = sim.source_label[p]
 
 
     def save(self, path, file_prefix):

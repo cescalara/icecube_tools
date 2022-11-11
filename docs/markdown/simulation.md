@@ -244,6 +244,10 @@ tsim.run(show_progress=True)
 ```
 
 ```python
+tsim._true_energy
+```
+
+```python
 tsim.write_to_h5("multi_test.hdf5", sources)
 ```
 
