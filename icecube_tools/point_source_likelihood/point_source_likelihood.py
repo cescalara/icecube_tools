@@ -229,9 +229,13 @@ class PointSourceLikelihood:
         return output
 
 
-    def _background_likelihood(self, energy, dec):
+    def _background_likelihood(self, energy, dec, weight=0., index_astro=2.5, index_atmo=3.7):
         """
         Calculate the background likelihood for an event of given energy.
+        Split this into two background contributions:
+        one for atmospheric events (atmo_index) and one for astrophysical events (astro_index)
+        Likelihood is sum of two components, `weight` is parameter of simplex,
+        weight = 0 -> fully atmospheric, weight = 1 -> fully astrophysical
         :param energy: Energy of event in GeV
         """
 
@@ -240,8 +244,8 @@ class PointSourceLikelihood:
                 return self._bg_energy_likelihood(energy) 
             
         else:
-            def en():
-                return self._energy_likelihood(energy, self._bg_index, dec)
+            def en(energy, index, dec):
+                return self._energy_likelihood(energy, index, dec)
         
         def spatial():
             return 1. / self._band_solid_angle
@@ -250,9 +254,9 @@ class PointSourceLikelihood:
         if self.which == 'spatial':
             output = spatial()
         elif self.which == 'energy':
-            output = en()
+            output = (1 - weight) * en(energy, index_atmo, dec) + weight * en(energy, index_astro, dec)
         else:
-            output = en() * spatial()
+            output = ((1 - weight) * en(energy, index_atmo, dec) + weight * en(energy, index_astro, dec)) * spatial()
 
         if output == 0.0:
             output = 1e-10
@@ -260,7 +264,7 @@ class PointSourceLikelihood:
         return output
 
 
-    def _func_to_minimize(self, ns, index):
+    def _func_to_minimize(self, ns, index, weight, index_astro, index_atmo):
         """
         Calculate the -log(likelihood_ratio) for minimization.
 
@@ -297,7 +301,10 @@ class PointSourceLikelihood:
 
                 bg = self._background_likelihood(
                     self._selected_energies[i],
-                    self._selected_decs[i]
+                    self._selected_decs[i],
+                    weight,
+                    index_astro,
+                    index_atmo
                 )
 
                 chi = (1 / self.N) * (signal / bg - 1)
@@ -383,12 +390,12 @@ class PointSourceLikelihood:
         return -log_likelihood_ratio
 
 
-    def __call__(self, ns, index):
+    def __call__(self, ns, index, weight=0, index_astro=2.5, index_atmo=3.7):
         """
         Wrapper function for convenience.
         """
 
-        return self._func_to_minimize(ns, index)
+        return self._func_to_minimize(ns, index, weight, index_astro, index_atmo)
 
 
     def _minimize(self):
@@ -401,6 +408,9 @@ class PointSourceLikelihood:
 
         init_index = self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index) / 2
         init_ns = self._ns_min + (self._ns_max - self._ns_min) / 2
+        init_weight = 0.0
+        init_astro = 2.5
+        init_atmo = 3.7
 
         if self.which == 'spatial':
             #Spatial-only likelihood needs special function, because no spectral index is used
@@ -414,14 +424,32 @@ class PointSourceLikelihood:
             self.minimize_this,
             ns=init_ns,
             index=init_index,
+            weight=init_weight,
+            index_astro=init_astro,
+            index_atmo=init_atmo,
         )
-        # m.fixed["index"] = True
+
         m.limits["ns"] = (self._ns_min, self._ns_max)
-        m.errors["index"] = 0.1
-        m.errors["ns"] = 1
         m.limits["index"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
+        m.limits["weight"] = (0., 1.)
+        m.limits["index_astro"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
+        m.limits["index_atmo"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
+
+        m.errors["ns"] = 1
+        m.errors["index"] = 0.1
+        m.errors["weight"] = 0.05
+        m.errors["index_atmo"] = 0.1
+        m.errors["index_astro"] = 0.1
+
+        m.fixed["index_atmo"] = True
+        m.fixed["index_astro"] = True
+        m.fixed["weight"] = True
+
         if self.which == 'spatial':
             m.fixed["index"] = True
+            m.fixed["weight"] = True
+            m.fixed["index_atmo"] = True
+            m.fixed["index_astro"] = True
         m.errordef = 0.5
         m.migrad()
 
@@ -429,10 +457,13 @@ class PointSourceLikelihood:
 
             # Fix the index as can be uninformative
             m.fixed["index"] = True
+            m.fixed["index_atmo"] = True
+            m.fixed["index_astro"] = True
             m.migrad()
 
         self._best_fit_ns = m.values["ns"]
         self._best_fit_index = m.values["index"]
+        self.m = m
         return m
 
 
@@ -550,9 +581,18 @@ class PointSourceLikelihood:
         # else:
 
         # make sure that correct minimum (i.e. spatial/energy/both) is calculated:
-        neg_log_lik = self.minimize_this(
-            self._best_fit_ns, self._best_fit_index
-        )
+        if self.which != "spatial":
+            neg_log_lik = self.minimize_this(
+                self._best_fit_ns,
+                self._best_fit_index,
+                self.m.values["weight"], 
+                self.m.values["index_astro"],
+                self.m.values["index_atmo"]
+            )
+        else:
+            neg_log_lik = self.minimize_this(
+                self._best_fit_ns, self._best_fit_index
+            )
 
         self.likelihood_ratio = np.exp(neg_log_lik)
 
