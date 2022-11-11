@@ -120,8 +120,13 @@ Now lets put our likelihood structure and data in together, along with a propose
 
 ```python
 likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood, 
-                                  events.ra, events.dec, events.reco_energy, events.ang_err,
-                                  source_coord, which='both')
+                                   events.ra[events.periods[0]],
+                                   events.dec[events.periods[0]],
+                                   events.reco_energy[events.periods[0]],
+                                   events.ang_err[events.periods[0]],
+                                   source_coord,
+                                   which='both'
+)
 ```
 
 The likelihood will automatically select a declination band around the proposed source location. Because of the Gaussian spatial likelihood, neutrinos far from the source will have negligible contribution. We can control the width of this band with the optional argument `band_width_factor`. Let's see how many events ended up in the band, compared to the total number:
@@ -158,10 +163,6 @@ ax.set_ylabel("Background likelihood")
 A point source search is usually carried out by defining the likelihood ratio of source and background hypotheses, then maximising this ratio as a function of $n_s$ and $\gamma$. The log likelihood ratio evaluated at the maximum likelihood values is then reffered to as the *test statistic*.
 
 `icecube_tools` includes calculation of the test statistic, with optimisation performed by `iminuit`.
-
-```python
-np.log10(events.reco_energy).max()
-```
 
 ```python
 likelihood.get_test_statistic()

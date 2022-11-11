@@ -81,8 +81,8 @@ def test_fit_from_single(source_coords, output_directory, single_file_sim):
 
     source_coord=(np.pi, np.deg2rad(30))
     likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood["IC86_II"], 
-                                    events.ra, events.dec, events.reco_energy,
-                                    events.ang_err,
+                                    events.ra["IC86_II"], events.dec["IC86_II"], events.reco_energy["IC86_II"],
+                                    events.ang_err["IC86_II"],
                                     source_coords)
     energy_likelihood["IC86_II"]._min_index = 1.4
     energy_likelihood["IC86_II"]._max_index = 4.0
