@@ -97,7 +97,6 @@ class MapScan(PointSourceAnalysis):
        
 
         self.load_config(path)
-        assert set(self.periods) == set(self.events.periods)
         self.apply_cuts()
         self.energy_likelihood = {}
         for p in self.events.periods:
@@ -129,7 +128,7 @@ class MapScan(PointSourceAnalysis):
 
 
     def _test_source(self, source_coord, num, ra, dec, reco_energy, ang_err):
-        if source_coord[1] <= np.deg2rad(90):
+        if source_coord[1] <= np.deg2rad(90):    #delete this...
             likelihood = TimeDependentPointSourceLikelihood(
                 source_coord,
                 self.events.periods,
@@ -141,6 +140,7 @@ class MapScan(PointSourceAnalysis):
                 which=self.which
             )
             if likelihood.Nprime > 0:    # else somewhere division by zero
+                logging.info("Nearby events: {}".format(likelihood.Nprime))
                 self.ts[num] = likelihood.get_test_statistic()
                 self.index[num] = likelihood._best_fit_index
                 self.ns[num] = likelihood._best_fit_ns
@@ -252,13 +252,16 @@ class MapScan(PointSourceAnalysis):
         #incudes right now: energy only
         mask = {}
         self.events.mask = None
-        for p in self.periods:
-            events = self.events.period(p)
-            mask[p] = np.nonzero(
-                ((events["reco_energy"] > self.northern_emin) & (events["dec"] >= np.deg2rad(10))) |
-                ((events["reco_energy"] > self.equator_emin) & (events["dec"] < np.deg2rad(10)) & 
-                    (events["dec"] > np.deg2rad(-10))) |
-                ((events["reco_energy"] > self.southern_emin) & (events["dec"] <= np.deg2rad(-10)))
-            )
-        self.events.mask = mask
+        try:
+            for p in self.periods:
+                events = self.events.period(p)
+                mask[p] = np.nonzero(
+                    ((events["reco_energy"] > self.northern_emin) & (events["dec"] >= np.deg2rad(10))) |
+                    ((events["reco_energy"] > self.equator_emin) & (events["dec"] < np.deg2rad(10)) & 
+                        (events["dec"] > np.deg2rad(-10))) |
+                    ((events["reco_energy"] > self.southern_emin) & (events["dec"] <= np.deg2rad(-10)))
+                )
+            self.events.mask = mask
+        except AttributeError:
+            pass
         

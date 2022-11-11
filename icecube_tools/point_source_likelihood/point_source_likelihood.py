@@ -972,7 +972,7 @@ class TimeDependentPointSourceLikelihood:
     @property
     def Nprime(self):
         n = 0
-        for l in self.likelihood_ratio.values():
+        for l in self.likelihoods.values():
             n += l.Nprime
         return n
 
