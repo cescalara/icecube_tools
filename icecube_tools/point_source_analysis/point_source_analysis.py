@@ -97,6 +97,7 @@ class MapScan(PointSourceAnalysis):
 
         self.load_config(path)
         assert set(self.periods) == set(self.events.periods)
+        self.apply_cuts()
         self.energy_likelihood = {}
         for p in self.events.periods:
             aeff = EffectiveArea.from_dataset("20210126", p)
@@ -113,10 +114,10 @@ class MapScan(PointSourceAnalysis):
 
     def perform_scan(self):
         logger.info("Performing scan for periods: {}".format(self.events.periods))
-        ra = self.events._ra
-        dec = self.events._dec
-        ang_err = self.events._ang_err
-        reco_energy = self.events._reco_energy
+        ra = self.events.ra
+        dec = self.events.dec
+        ang_err = self.events.ang_err
+        reco_energy = self.events.reco_energy
         for c, (ra_t, dec_t) in enumerate(zip(self.ra_test, self.dec_test)):
             print(ra_t, dec_t)
             self._test_source((ra_t, dec_t), c, ra, dec, reco_energy, ang_err)
@@ -239,6 +240,7 @@ class MapScan(PointSourceAnalysis):
         #make cuts based on config
         #incudes right now: energy only
         mask = {}
+        self.events.mask = None
         for p in self.periods:
             events = self.events.period(p)
             mask[p] = np.nonzero(
@@ -247,5 +249,5 @@ class MapScan(PointSourceAnalysis):
                     (events["dec"] > np.deg2rad(-10))) |
                 ((events["reco_energy"] > self.southern_emin) & (events["dec"] <= np.deg2rad(-10)))
             )
-        self.reduced_events = self.events.apply_mask(mask)
+        self.events.mask = mask
         

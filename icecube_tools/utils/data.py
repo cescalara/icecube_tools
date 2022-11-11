@@ -414,6 +414,7 @@ class Events(ABC):
     def __init__(self):
         self._create_dicts()
         self._periods = []
+        self.mask = None
 
 
     def _create_dicts(self):
@@ -442,21 +443,9 @@ class Events(ABC):
     def write_to_h5(self):
         pass
 
-
-    def apply_mask(self, mask: Dict):
-        """
-        Apply mask to events stored in self.
-        :param mask: Dict of `np.nonzero()`, key is period identifier
-        :return: Dict of events with applied cuts
-        """
-        
-        new_events = {}
-        for p in self._periods:
-            m = mask[p]
-            data = self.period(p)
-            for key, value in data.items():
-                new_events[key] = value[m]
-        return new_events
+    #@abstractmethod
+    #def apply_mask(self, mask: Dict):
+    #    pass
 
 
     @property
@@ -466,30 +455,34 @@ class Events(ABC):
     
     @property
     def reco_energy(self):
-        if len(self) == 1:
-            return self._return_single_period(self._reco_energy)
-        return self._reco_energy
+        if self.mask:
+            return {p: self._reco_energy[p][self.mask[p]] for p in self.periods}
+        else:
+            return self._reco_energy
 
     
     @property
     def ra(self):
-        if len(self) == 1:
-            return self._return_single_period(self._ra)
-        return self._ra
+        if self.mask:
+            return {p: self._ra[p][self.mask[p]] for p in self.periods}
+        else:
+            return self._ra
 
 
     @property
     def dec(self):
-        if len(self) == 1:
-            return self._return_single_period(self._dec)
-        return self._dec
+        if self.mask:
+            return {p: self._dec[p][self.mask[p]] for p in self.periods}
+        else:
+            return self._dec
 
 
     @property
     def ang_err(self):
-        if len(self) == 1:
-            return self._return_single_period(self._ang_err)
-        return self._ang_err
+        if self.mask:
+            return {p: self._ang_err[p][self.mask[p]] for p in self.periods}
+        else:
+            return self._ang_err
 
 
     def _return_single_period(self, data):
@@ -591,35 +584,52 @@ class SimEvents(Events):
         """
 
         out = {}
-        out["true_energy"] = self._true_energy[p]
-        out["reco_energy"] = self._reco_energy[p]
-        out["arrival_energy"] = self._arrival_energy[p]
-        out["ang_err"] = self._ang_err[p]
-        out["ra"] = self._ra[p]
-        out["dec"] = self._dec[p]
-        out["source_label"] = self._source_label[p]
+        if self.mask:
+            out["true_energy"] = self._true_energy[p][self.mask[p]]
+            out["reco_energy"] = self._reco_energy[p][self.mask[p]]
+            out["arrival_energy"] = self._arrival_energy[p][self.mask[p]]
+            out["ang_err"] = self._ang_err[p][self.mask[p]]
+            out["ra"] = self._ra[p][self.mask[p]]
+            out["dec"] = self._dec[p][self.mask[p]]
+            out["source_label"] = self._source_label[p][self.mask[p]]
+        else:
+            out["true_energy"] = self._true_energy[p]
+            out["reco_energy"] = self._reco_energy[p]
+            out["arrival_energy"] = self._arrival_energy[p]
+            out["ang_err"] = self._ang_err[p]
+            out["ra"] = self._ra[p]
+            out["dec"] = self._dec[p]
+            out["source_label"] = self._source_label[p]
         return out
 
+    """
+    def apply_mask(self, mask: Dict):
+        for p in self.periods:
+            self._true_energy[p] = self._true_energy[p][mask[p]]
+    """
 
     @property
     def true_energy(self):
-        if len(self) == 1:
-            return self._return_single_period(self._true_energy)
-        return self._true_energy
+        if self.mask:
+            return {p: self._true_energy[p][self.mask[p]] for p in self.periods}
+        else:
+            return self._true_energy
 
     
     @property
     def arrival_energy(self):
-        if len(self) == 1:
-            return self._return_single_period(self._arrival_energy)
-        return self._arrival_energy
+        if self.mask:
+            return {p: self._arrival_energy[p][self.mask[p]] for p in self.periods}
+        else:
+            return self._arrival_energy
 
     
     @property
     def source_label(self):
-        if len(self) == 1:
-            return self._return_single_period(self._source_label)
-        return self._source_label
+        if self.mask:
+            return {p: self._source_label[p][self.mask[p]] for p in self.periods}
+        else:
+            return self._source_label
 
 
         
@@ -648,17 +658,26 @@ class RealEvents(Events):
         """
 
         out = {}
-        out["reco_energy"] = self._reco_energy[p]
-        out["ang_err"] = self._ang_err[p]
-        out["ra"] = self._ra[p]
-        out["dec"] = self._dec[p]
-        out["mjd"] = self._mjd[p]
+        if self.mask:
+            out["reco_energy"] = self._reco_energy[p][self.mask[p]]
+            out["ang_err"] = self._ang_err[p][self.mask[p]]
+            out["ra"] = self._ra[p][self.mask[p]]
+            out["dec"] = self._dec[p][self.mask[p]]
+            out["mjd"] = self._mjd[p][self.mask[p]]
+        else:
+            out["reco_energy"] = self._reco_energy[p]
+            out["ang_err"] = self._ang_err[p]
+            out["ra"] = self._ra[p]
+            out["dec"] = self._dec[p]
+            out["mjd"] = self._mjd[p]
         return out
 
 
     def _sort(self):
         """
-        Sort event information in dictionaries by season
+        Sort event information in dictionaries by season,
+        converts (assumed) 50% containment for angular errors to 68%,
+        converts ra/dec from degrees to radians.
         """
 
         for p in self._periods:
@@ -746,9 +765,10 @@ class RealEvents(Events):
 
     @property
     def mjd(self):
-        if len(self) == 1:
-            return self._return_single_period(self._mjd)
-        return self._mjd
+        if self.mask:
+            return {p: self._mjd[p][self.mask[p]] for p in self.periods}
+        else:
+            return self._mjd
 
     
 
