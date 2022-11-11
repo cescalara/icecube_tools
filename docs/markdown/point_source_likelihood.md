@@ -171,6 +171,10 @@ likelihood.get_test_statistic()
 likelihood._best_fit_index, likelihood._best_fit_ns
 ```
 
+```python
+likelihood.m.values
+```
+
 To understand the significance of this results, we would have to calculate the test statistic for a large number of background-only simulations. These could then be used to calculate a p-value. Given there is a strong point source in the simulation we used, we can expect the test stastic to be lower if we remove the source events. Let's try this:
 
 ```python
@@ -200,7 +204,7 @@ for n_rm in range(ntot_ps_events):
     new_likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood,
                                        new_data["ra"], new_data["dec"], 
                                        new_data["reco_energy"], new_data["ang_err"],
-                                       source_coord, which='spatial')
+                                       source_coord, which='both')
     new_likelihood._bg_energy_likelihood = None
     test_statistics.append(new_likelihood.get_test_statistic())
 ```

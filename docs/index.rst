@@ -19,4 +19,5 @@ You can find more information on how to make use of ``icecube_tools`` in the exa
    notebooks/source_model.ipynb
    notebooks/simulation.ipynb
    notebooks/point_source_likelihood.ipynb
+   notebooks/events.ipynb
    api/api

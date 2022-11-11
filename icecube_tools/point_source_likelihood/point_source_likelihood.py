@@ -264,7 +264,7 @@ class PointSourceLikelihood:
         return output
 
 
-    def _func_to_minimize(self, ns, index, weight, index_astro, index_atmo):
+    def _func_to_minimize(self, ns, index=2.0, weight=0., index_astro=2.5, index_atmo=3.7):
         """
         Calculate the -log(likelihood_ratio) for minimization.
 
@@ -339,7 +339,7 @@ class PointSourceLikelihood:
         
         return -log_likelihood_ratio
 
-
+    
     def _func_to_minimize_sp(self, ns, index=2.0):
         """
         Calculate the -log(likelihood_ratio) for minimization using spatial information only.
@@ -388,6 +388,7 @@ class PointSourceLikelihood:
         log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
 
         return -log_likelihood_ratio
+    
 
 
     def __call__(self, ns, index, weight=0, index_astro=2.5, index_atmo=3.7):
@@ -420,36 +421,40 @@ class PointSourceLikelihood:
             self.minimize_this = self._func_to_minimize
             logger.info("Using all information.")
 
-        m = Minuit(
-            self.minimize_this,
-            ns=init_ns,
-            index=init_index,
-            weight=init_weight,
-            index_astro=init_astro,
-            index_atmo=init_atmo,
-        )
+        if self.which != "spatial":
+            m = Minuit(
+                self.minimize_this,
+                ns=init_ns,
+                index=init_index,
+                weight=init_weight,
+                index_astro=init_astro,
+                index_atmo=init_atmo,
+            )
+        else:
+            m = Minuit(
+                self.minimize_this,
+                ns=init_ns,
+                index=init_index,
+            )
 
         m.limits["ns"] = (self._ns_min, self._ns_max)
         m.limits["index"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
-        m.limits["weight"] = (0., 1.)
-        m.limits["index_astro"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
-        m.limits["index_atmo"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
-
         m.errors["ns"] = 1
         m.errors["index"] = 0.1
-        m.errors["weight"] = 0.05
-        m.errors["index_atmo"] = 0.1
-        m.errors["index_astro"] = 0.1
 
-        m.fixed["index_atmo"] = True
-        m.fixed["index_astro"] = True
-        m.fixed["weight"] = True
-
-        if self.which == 'spatial':
-            m.fixed["index"] = True
-            m.fixed["weight"] = True
+        if self.which != "spatial":
+            m.limits["weight"] = (0., 1.)
+            m.limits["index_astro"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
+            m.limits["index_atmo"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
+            m.errors["weight"] = 0.05
+            m.errors["index_atmo"] = 0.1
+            m.errors["index_astro"] = 0.1
             m.fixed["index_atmo"] = True
             m.fixed["index_astro"] = True
+            m.fixed["weight"] = True
+        elif self.which == "spatial":
+            m.fixed["index"] = True
+
         m.errordef = 0.5
         m.migrad()
 
