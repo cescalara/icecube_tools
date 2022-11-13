@@ -82,7 +82,11 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
                     self._cdf[c_true, c_dec, c] = pdf.cdf(erecoh) - pdf.cdf(erecol)
 
     # @profile
-    def __call__(self, ereco, index, dec):
+    def __call__(
+        self,
+        ereco: np.ndarray,
+        index: float,
+        dec: np.ndarray):
         """
         Wrapper on _calc_likelihood to retrieve only the likelihood for a specific Ereco value.
         Saves time by storing data and checking if data of the same index is requested
@@ -112,24 +116,6 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
             output[needed] = self._values[dec_idx][reco_ind[needed]]
 
         return output
-        
-        #if there was a previous index, look it up,
-        # edit: can be deleted, was to save time in external for-loop!
-        if self._previous_index is not None:
-            #if asked for index is close to previous, look up declination
-            if np.isclose(self._previous_index, index):
-                try:
-                    return self._values[dec_ind][reco_ind]
-                except KeyError:
-                    self._values[dec_ind] = self._calc_likelihood(index, dec)
-            #else calculate from scratch and overwrite all previous values
-            else:
-                self._previous_index = index
-                self._values = {}
-                self._values[dec_ind] = self._calc_likelihood(index, dec)
-        else:
-            self._values[dec_ind] = self._calc_likelihood(index, dec)
-        return self._values[dec_ind][reco_ind]
 
 
     #@profile
@@ -182,8 +168,6 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
     Compute the marginalised energy likelihood by reading in the provided IRF data of 2021.
     Creates instances of MarginalisedEnergyLikelihoodFromSimFixedIndex (slightly copied from
     MarginalisedEnergyLikelihoodFromSim but with different interpolating) for each given index.
-    If the likelihood is requested for an index not provided with a dataset,
-    the likelihood will be interpolated (linearly) between provided indices.
     """
 
     def __init__(self,

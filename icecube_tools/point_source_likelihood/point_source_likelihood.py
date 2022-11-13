@@ -175,15 +175,22 @@ class PointSourceLikelihood:
         self.N = len(selected_dec_band)
 
     # @profile
-    def _signal_likelihood(self, ra, dec, source_coord, energy, index, ang_err=1):
+    def _signal_likelihood(
+        self,
+        ra: np.ndarray,
+        dec: np.ndarray,
+        source_coord: Tuple[float, float],
+        energy: np.ndarray,
+        index: float,
+        ang_err: np.ndarray):
         """
         Calculate the signal likelihood of a given event.
-        :param ra: RA of event
-        :param dec: DEC of event
-        :param source_coord: Tuple of source coordinate (ra, dec)
+        :param ra: RA of event, in rad
+        :param dec: DEC of event, in rad
+        :param source_coord: Tuple of source coordinate (ra, dec), in rad
         :param energy: Energy of event in GeV
         :param index: Spectral index of source model
-        :param ang_err: Angular error on the event, defaults to 1 degree.
+        :param ang_err: Angular error on the event, in degrees
         """
 
         
@@ -193,7 +200,7 @@ class PointSourceLikelihood:
         ):
             def spatial():
                 return self._direction_likelihood(
-                    (ra, dec), source_coord, energy, index
+                    ra, dec, source_coord, energy, index
                 )
 
             def en():
@@ -214,7 +221,7 @@ class PointSourceLikelihood:
         else:
             def spatial():
                 return self._direction_likelihood(
-                    (ra, dec), source_coord
+                    ra, dec, source_coord
                 )
             def en():
                 return self._energy_likelihood(energy, index, dec)

@@ -1,5 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
+from typing import Tuple
 
 
 """
@@ -26,64 +27,7 @@ class SpatialLikelihood(ABC):
 
         pass
 
-'''
-class EventDependentSpatialGaussianLikelihood(SpatialLikelihood):
-    """
-    Handles spatial likelihood of 2021 data release,
-    where for each event a different sigma is assumed.
-    """
 
-    def __init__(self, etrue_list, ereco_list, dec_list):
-        # from scipy.optimize import fsolve
-        pass
-
-    def __call__(self, angerr, event_coord, source_coord):
-        """
-        Use the neutrino energy to determine sigma and 
-        evaluate the likelihood.
-
-        P(x_i | x_s) = (1 / (2pi * sigma^2)) * exp( |x_i - x_s|^2/ (2*sigma^2) )
-
-        :param event_coord: (ra, dec) of event [rad].
-        :param source_coord: (ra, dec) of point source [rad].
-        """
-
-        sigma_rad = np.deg2rad(angerr)
-
-        ra, dec = event_coord
-
-        src_ra, src_dec = source_coord
-
-
-        #for now, assume that angerr=sigma, not 50% coverage!
-        #TODO fix this by using fsolve on the appropriate eq
-
-        norm = 0.5 / (np.pi * sigma_rad ** 2)
-
-        # Calculate the cosine of the distance of the source and the event on
-        # the sphere.
-        cos_r = np.cos(src_ra - ra) * np.cos(src_dec) * np.cos(dec) + np.sin(
-            src_dec
-        ) * np.sin(dec)
-
-        # Handle possible floating precision errors.
-        """
-        if cos_r < -1.0:
-            cos_r = 1.0
-        if cos_r > 1.0:
-            cos_r = 1.0
-        """
-        idx = np.nonzero(cos_r < -1.0)
-        cos_r[idx] = 1.0
-        idx = np.nonzero(cos_r > 1.0)
-        cos_r[idx] = 1.0
-
-        r = np.arccos(cos_r)
-
-        dist = np.exp(-0.5 * (r / sigma_rad) ** 2)
-
-        return norm * dist
-'''
 
 class EventDependentSpatialGaussianLikelihood(SpatialLikelihood):
     def __init__(self, sigma=5.):
@@ -96,7 +40,13 @@ class EventDependentSpatialGaussianLikelihood(SpatialLikelihood):
         self._sigma = sigma
 
     # @profile
-    def __call__(self, ang_err, ra, dec, source_coord):
+    def __call__(
+        self,
+        ang_err: np.ndarray,
+        ra: np.ndarray,
+        dec: np.ndarray,
+        source_coord: Tuple[float, float]
+    ):
         """
         Use the neutrino energy to determine sigma and 
         evaluate the likelihood.
@@ -104,13 +54,12 @@ class EventDependentSpatialGaussianLikelihood(SpatialLikelihood):
         P(x_i | x_s) = (1 / (2pi * sigma^2)) * exp( |x_i - x_s|^2/ (2*sigma^2) )
 
         :param ang_err: Angular error to be used in the Gaussian, in degrees
-        :param event_coord: (ra, dec) of event [rad].
-        :param source_coord: (ra, dec) of point source [rad].
+        :param ra: RAs of events, in rad
+        :param dec: DECs of events, in rad
+        :param source_coord: Tuple (ra, dec) of point source [rad].
         """
 
         sigma_rad = np.deg2rad(ang_err)
-
-        #ra, dec = event_coord
 
         src_ra, src_dec = source_coord
 
@@ -123,14 +72,10 @@ class EventDependentSpatialGaussianLikelihood(SpatialLikelihood):
         ) * np.sin(dec)
 
         # Handle possible floating precision errors.
-        #if cos_r < -1.0:
-        #    cos_r = 1.0
         idx = np.nonzero((cos_r < -1.0))
         cos_r[idx] = 1.0
         idx = np.nonzero((cos_r > 1.0))
         cos_r[idx] = 1.0
-        #if cos_r > 1.0:
-        #    cos_r = 1.0
 
         r = np.arccos(cos_r)
 
@@ -161,7 +106,7 @@ class SpatialGaussianLikelihood(SpatialLikelihood):
         self._sigma = angular_resolution
 
    
-    def __call__(self, event_coord, source_coord):
+    def __call__(self, ra, dec, source_coord):
         """
         Use the neutrino energy to determine sigma and 
         evaluate the likelihood.
@@ -174,8 +119,6 @@ class SpatialGaussianLikelihood(SpatialLikelihood):
 
         sigma_rad = np.deg2rad(self._sigma)
 
-        ra, dec = event_coord
-
         src_ra, src_dec = source_coord
 
         norm = 0.5 / (np.pi * sigma_rad ** 2)
@@ -187,16 +130,17 @@ class SpatialGaussianLikelihood(SpatialLikelihood):
         ) * np.sin(dec)
 
         # Handle possible floating precision errors.
-        if cos_r < -1.0:
-            cos_r = 1.0
-        if cos_r > 1.0:
-            cos_r = 1.0
+        idx = np.nonzero((cos_r < -1.0))
+        cos_r[idx] = 1.0
+        idx = np.nonzero((cos_r > 1.0))
+        cos_r[idx] = 1.0
 
         r = np.arccos(cos_r)
 
         dist = np.exp(-0.5 * (r / sigma_rad) ** 2)
 
         return norm * dist
+
 
 
 class EnergyDependentSpatialGaussianLikelihood(SpatialLikelihood):
@@ -258,7 +202,7 @@ class EnergyDependentSpatialGaussianLikelihood(SpatialLikelihood):
 
         return self._get_sigma(low_energy, bg_index)
 
-    def __call__(self, event_coord, source_coord, reco_energy, index=2.0):
+    def __call__(self, ra, dec, source_coord, reco_energy, index=2.0):
         """
         Evaluate PDF for a given event.
 
@@ -267,29 +211,30 @@ class EnergyDependentSpatialGaussianLikelihood(SpatialLikelihood):
         :param reco_energy: Reconstructed energy [GeV]
         :param index: Spectral index of source
         """
-
-        sigma_rad = np.deg2rad(self._get_sigma(reco_energy, index))
-
-        ra, dec = event_coord
-
+        output = np.zeros_like(ra)
         src_ra, src_dec = source_coord
+        for c, (r, d, e) in enumerate(zip(ra, dec, reco_energy)):
 
-        norm = 0.5 / (np.pi * sigma_rad ** 2)
+            sigma_rad = np.deg2rad(self._get_sigma(e, index))
 
-        # Calculate the cosine of the distance of the source and the event on
-        # the sphere.
-        cos_r = np.cos(src_ra - ra) * np.cos(src_dec) * np.cos(dec) + np.sin(
-            src_dec
-        ) * np.sin(dec)
+            norm = 0.5 / (np.pi * sigma_rad ** 2)
 
-        # Handle possible floating precision errors.
-        if cos_r < -1.0:
-            cos_r = 1.0
-        if cos_r > 1.0:
-            cos_r = 1.0
+            # Calculate the cosine of the distance of the source and the event on
+            # the sphere.
+            cos_r = np.cos(src_ra - r) * np.cos(src_dec) * np.cos(d) + np.sin(
+                src_dec
+            ) * np.sin(d)
 
-        r = np.arccos(cos_r)
+            # Handle possible floating precision errors.
+            if cos_r < -1.0:
+                cos_r = 1.0
+            if cos_r > 1.0:
+                cos_r = 1.0
 
-        dist = np.exp(-0.5 * (r / sigma_rad) ** 2)
+            r = np.arccos(cos_r)
 
-        return norm * dist
+            dist = np.exp(-0.5 * (r / sigma_rad) ** 2)
+
+            output[c] = dist * norm
+
+        return output
