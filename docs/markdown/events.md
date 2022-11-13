@@ -51,11 +51,3 @@ events.period("IC86_II")
 ```
 
 Through the method `apply_mask()` a mask is applied and a nested dictionary (1st key is period, 2nd key is name of the data field, as returned by `keys`) is returned containing the selected events. The order of entries in mask needs to be the same as the periods in `events.periods`. For application, see the notebook on point source analysis.
-
-```python
-help(events.apply_mask)
-```
-
-```python
-
-```
