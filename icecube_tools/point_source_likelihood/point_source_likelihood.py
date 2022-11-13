@@ -174,7 +174,7 @@ class PointSourceLikelihood:
 
         self.N = len(selected_dec_band)
 
-    @profile
+    # @profile
     def _signal_likelihood(self, ra, dec, source_coord, energy, index, ang_err=1):
         """
         Calculate the signal likelihood of a given event.
@@ -228,7 +228,7 @@ class PointSourceLikelihood:
 
         return output
 
-    @profile
+    # @profile
     def _background_likelihood(self, energy, dec, weight=0., index_astro=2.5, index_atmo=3.7):
         """
         Calculate the background likelihood for an event of given energy.
@@ -264,7 +264,7 @@ class PointSourceLikelihood:
 
         return output
 
-    @profile
+    # @profile
     def _func_to_minimize(self, ns, index=2.0, weight=0., index_astro=2.5, index_atmo=3.7):
         """
         Calculate the -log(likelihood_ratio) for minimization.

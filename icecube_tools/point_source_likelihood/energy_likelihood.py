@@ -81,7 +81,7 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
                     pdf = self._irf.reco_energy[c_irf_true, c_dec]
                     self._cdf[c_true, c_dec, c] = pdf.cdf(erecoh) - pdf.cdf(erecol)
 
-    @profile
+    # @profile
     def __call__(self, ereco, index, dec):
         """
         Wrapper on _calc_likelihood to retrieve only the likelihood for a specific Ereco value.
