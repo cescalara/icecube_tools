@@ -95,7 +95,7 @@ class EventDependentSpatialGaussianLikelihood(SpatialLikelihood):
         #omit for now
         self._sigma = sigma
 
-    #@profile
+    @profile
     def __call__(self, ang_err, event_coord, source_coord):
         """
         Use the neutrino energy to determine sigma and 
