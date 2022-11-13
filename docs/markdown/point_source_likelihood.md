@@ -60,11 +60,12 @@ We show the likelihood profile for a single event with an assumed uncertainty of
 
 ```python
 source_coord = (np.pi, np.deg2rad(30))
-test_coords = [(np.pi+_, source_coord[1]) for _ in np.linspace(-0.1, 0.1, 100)]
+test_ra = np.pi + np.linspace(-0.1, 0.1, 100)
+test_dec = np.full((100), source_coord[1])
 
 fig, ax = plt.subplots()
-ax.plot(np.rad2deg([tc[0] for tc in test_coords]), 
-        [spatial_likelihood(1., tc, source_coord) for tc in test_coords])
+ax.plot(np.rad2deg(test_ra), 
+        spatial_likelihood(1., test_ra, test_dec, source_coord))
 ax.axvline(np.rad2deg(source_coord[0]), color="k", linestyle=":", 
            label="Source location")
 ax.set_xlabel("RA [deg]")
@@ -99,7 +100,7 @@ test_indices = [2.0, 2.5, 3, 3.5]
 energy = np.logspace(2, 7.66, num=1000, endpoint=False)
 fig, ax = plt.subplots()
 for index in test_indices:
-    ax.plot(energy, energy_likelihood(energy, index, np.deg2rad(45)), label=f"{index:.1f}")
+    ax.plot(energy, energy_likelihood(energy, index, np.full(energy.shape, np.deg2rad(45))), label=f"{index:.1f}")
 ax.set_xscale("log")
 ax.set_yscale("log")
 ax.set_xlabel("E_reco [GeV]")
@@ -150,7 +151,7 @@ We also note that the background likelihood is implemented automatically, for mo
 ```python
 fig, ax = plt.subplots()
 energy = np.logspace(new_reco_bins[0], new_reco_bins[-1], num=1000, endpoint=False)
-ax.step(energy, energy_likelihood(energy, 3.7, np.deg2rad(30)), 
+ax.step(energy, energy_likelihood(energy, 3.7, np.full(energy.shape, np.deg2rad(30))), 
         label=f"index 3.7")
 ax.set_xscale("log")
 ax.set_yscale("log")
@@ -169,7 +170,7 @@ likelihood.get_test_statistic()
 ```
 
 ```python
-likelihood._best_fit_index, likelihood._best_fit_ns
+likelihood._selected_energies.size
 ```
 
 ```python

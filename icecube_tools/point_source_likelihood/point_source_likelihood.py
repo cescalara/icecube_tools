@@ -248,7 +248,7 @@ class PointSourceLikelihood:
                 return self._energy_likelihood(energy, index, dec)
         
         def spatial():
-            return 1. / self._band_solid_angle
+            return np.full(energy.shape, 1. / self._band_solid_angle)
 
         #Check which part is used for likelihood calculation
         if self.which == 'spatial':
@@ -361,38 +361,33 @@ class PointSourceLikelihood:
         one_plus_alpha = 1e-10
         alpha = one_plus_alpha - 1
 
-        log_likelihood_ratio = 0.0
-        for i in range(self.Nprime):
-            signal = self._signal_likelihood(
-                self._selected_ras[i],
-                self._selected_decs[i],
-                self._source_coord,
-                self._selected_energies[i],
-                2.0,
-                ang_err=self._selected_ang_errs[i]
-            )
+        log_likelihood_ratio = np.zeros_like(self._selected_ras)
+        #
+        signal = self._signal_likelihood(
+            self._selected_ras,
+            self._selected_decs,
+            self._source_coord,
+            self._selected_energies,
+            2.0,
+            ang_err=self._selected_ang_errs
+        )
 
-            bg = self._background_likelihood(self._selected_energies[i], self._selected_decs[i])
+        bg = self._background_likelihood(self._selected_energies, self._selected_decs)
 
-            chi = (1 / self.N) * (signal / bg - 1)
+        chi = (1 / self.N) * (signal / bg - 1)
 
-            alpha_i = ns * chi
+        alpha_i = ns * chi
 
-            if (1 + alpha_i) < one_plus_alpha:
-
-                alpha_tilde = (alpha_i - alpha) / one_plus_alpha
-                log_likelihood_ratio += (
-                    np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde ** 2)
-                )
-
-            else:
-
-                log_likelihood_ratio += np.log1p(alpha_i)
+        one_p = 1 + alpha_i < one_plus_alpha
+        
+        alpha_tilde = (alpha_i[one_p] - alpha) / one_plus_alpha
+        log_likelihood_ratio[one_p] = np.log1p(alpha) + alpha_tilde - 0.5 * np.power(alpha_tilde, 2)
+        log_likelihood_ratio[~one_p] = np.log1p(alpha_i)
+        log_likelihood_ratio = np.sum(log_likelihood_ratio)
 
         log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
 
         return -log_likelihood_ratio
-    
 
 
     def __call__(self, ns, index, weight=0, index_astro=2.5, index_atmo=3.7):
