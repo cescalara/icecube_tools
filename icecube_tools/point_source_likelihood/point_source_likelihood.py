@@ -174,7 +174,7 @@ class PointSourceLikelihood:
 
         self.N = len(selected_dec_band)
 
-
+    @profile
     def _signal_likelihood(self, ra, dec, source_coord, energy, index, ang_err=1):
         """
         Calculate the signal likelihood of a given event.
@@ -205,7 +205,7 @@ class PointSourceLikelihood:
         ):
             def spatial():
                 return self._direction_likelihood(
-                    ang_err, (ra, dec), source_coord
+                    ang_err, ra, dec, source_coord
                 )
             
             def en():
@@ -228,7 +228,7 @@ class PointSourceLikelihood:
 
         return output
 
-
+    @profile
     def _background_likelihood(self, energy, dec, weight=0., index_astro=2.5, index_atmo=3.7):
         """
         Calculate the background likelihood for an event of given energy.
@@ -258,12 +258,13 @@ class PointSourceLikelihood:
         else:
             output = ((1 - weight) * en(energy, index_atmo, dec) + weight * en(energy, index_astro, dec)) * spatial()
 
-        if output == 0.0:
-            output = 1e-10
+        output[np.nonzero(output==0)] = 1e-10
+        #if output == 0.0:
+        #    output = 1e-10
 
         return output
 
-
+    @profile
     def _func_to_minimize(self, ns, index=2.0, weight=0., index_astro=2.5, index_atmo=3.7):
         """
         Calculate the -log(likelihood_ratio) for minimization.
@@ -288,39 +289,42 @@ class PointSourceLikelihood:
             index_list = self._energy_likelihood.index_list[idx-1:idx+1]
 
         for c, indx in enumerate(index_list):
-            log_likelihood_ratio = 0.0
-            for i in range(self.Nprime):
-                signal = self._signal_likelihood(
-                    self._selected_ras[i],
-                    self._selected_decs[i],
-                    self._source_coord,
-                    self._selected_energies[i],
-                    indx,
-                    ang_err=self._selected_ang_errs[i]
-                )
+            log_likelihood_ratio = np.zeros_like(self._selected_ras)
+            signal = self._signal_likelihood(
+                self._selected_ras,
+                self._selected_decs,
+                self._source_coord,
+                self._selected_energies,
+                indx,
+                ang_err=self._selected_ang_errs
+            )
 
-                bg = self._background_likelihood(
-                    self._selected_energies[i],
-                    self._selected_decs[i],
-                    weight,
-                    index_astro,
-                    index_atmo
-                )
+            bg = self._background_likelihood(
+                self._selected_energies,
+                self._selected_decs,
+                weight,
+                index_astro,
+                index_atmo
+            )
 
-                chi = (1 / self.N) * (signal / bg - 1)
+            chi = (1 / self.N) * (signal / bg - 1)
 
-                alpha_i = ns * chi
+            alpha_i = ns * chi
 
-                if (1 + alpha_i) < one_plus_alpha:
+            one_p = 1 + alpha_i < one_plus_alpha
+            
+            #if (1 + alpha_i) < one_plus_alpha:
+            alpha_tilde = (alpha_i[one_p] - alpha) / one_plus_alpha
+            log_likelihood_ratio[one_p] = np.log1p(alpha) + alpha_tilde - 0.5 * np.power(alpha_tilde, 2)
+                #alpha_tilde = (alpha_i - alpha) / one_plus_alpha
+                #log_likelihood_ratio += (
+                #    np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde ** 2)
+                #)
+            log_likelihood_ratio[~one_p] = np.log1p(alpha_i)
+            log_likelihood_ratio = np.sum(log_likelihood_ratio)
+            #else:
 
-                    alpha_tilde = (alpha_i - alpha) / one_plus_alpha
-                    log_likelihood_ratio += (
-                        np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde ** 2)
-                    )
-
-                else:
-
-                    log_likelihood_ratio += np.log1p(alpha_i)
+            #    log_likelihood_ratio += np.log1p(alpha_i)
 
             log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
 

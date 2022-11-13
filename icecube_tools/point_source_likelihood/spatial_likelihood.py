@@ -95,8 +95,8 @@ class EventDependentSpatialGaussianLikelihood(SpatialLikelihood):
         #omit for now
         self._sigma = sigma
 
-    #@profile
-    def __call__(self, ang_err, event_coord, source_coord):
+    @profile
+    def __call__(self, ang_err, ra, dec, source_coord):
         """
         Use the neutrino energy to determine sigma and 
         evaluate the likelihood.
@@ -110,7 +110,7 @@ class EventDependentSpatialGaussianLikelihood(SpatialLikelihood):
 
         sigma_rad = np.deg2rad(ang_err)
 
-        ra, dec = event_coord
+        #ra, dec = event_coord
 
         src_ra, src_dec = source_coord
 
@@ -123,10 +123,14 @@ class EventDependentSpatialGaussianLikelihood(SpatialLikelihood):
         ) * np.sin(dec)
 
         # Handle possible floating precision errors.
-        if cos_r < -1.0:
-            cos_r = 1.0
-        if cos_r > 1.0:
-            cos_r = 1.0
+        #if cos_r < -1.0:
+        #    cos_r = 1.0
+        idx = np.nonzero((cos_r < -1.0))
+        cos_r[idx] = 1.0
+        idx = np.nonzero((cos_r > 1.0))
+        cos_r[idx] = 1.0
+        #if cos_r > 1.0:
+        #    cos_r = 1.0
 
         r = np.arccos(cos_r)
 
@@ -156,6 +160,7 @@ class SpatialGaussianLikelihood(SpatialLikelihood):
 
         self._sigma = angular_resolution
 
+   
     def __call__(self, event_coord, source_coord):
         """
         Use the neutrino energy to determine sigma and 

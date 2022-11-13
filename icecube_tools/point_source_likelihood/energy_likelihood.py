@@ -81,7 +81,7 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
                     pdf = self._irf.reco_energy[c_irf_true, c_dec]
                     self._cdf[c_true, c_dec, c] = pdf.cdf(erecoh) - pdf.cdf(erecol)
 
-    #@profile
+    @profile
     def __call__(self, ereco, index, dec):
         """
         Wrapper on _calc_likelihood to retrieve only the likelihood for a specific Ereco value.
@@ -99,17 +99,29 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
             raise ValueError("Index too low")
 
         log_ereco = np.log10(ereco)
-        reco_ind = np.digitize(log_ereco, self.reco_bins) - 1
-        dec_ind = np.digitize(dec, self.declination_bins_aeff) - 1
+        reco_ind = np.digitize(log_ereco, self.reco_bins) - 1    # is np.ndarray
+        dec_ind = np.digitize(dec, self.declination_bins_aeff) - 1 # is np.ndarray
+
+        dec_ind_set = set(dec_ind)
+        output = np.zeros_like(log_ereco)
+        # loop over set(sec_ind):
+        for dec_idx in dec_ind_set:
+            single_dec = self.declination_bins_aeff[dec_idx]
+            self._values[dec_idx] = self._calc_likelihood(index, single_dec)
+            needed = np.nonzero((dec_ind == dec_idx))
+            output[needed] = self._values[dec_idx][reco_ind[needed]]
+
+        return output
         
-        #if there was a previous index, look it up
+        #if there was a previous index, look it up,
+        # edit: can be deleted, was to save time in external for-loop!
         if self._previous_index is not None:
             #if asked for index is close to previous, look up declination
             if np.isclose(self._previous_index, index):
                 try:
                     return self._values[dec_ind][reco_ind]
                 except KeyError:
-                    self._values[dec_ind] = self._calculate_values(index, dec)
+                    self._values[dec_ind] = self._calc_likelihood(index, dec)
             #else calculate from scratch and overwrite all previous values
             else:
                 self._previous_index = index
