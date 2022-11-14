@@ -8,6 +8,7 @@ from .spatial_likelihood import *
 from ..utils.data import Events
 
 from typing import Dict, List, Tuple, Sequence
+from collections import OrderedDict
 
 """
 Module to compute the IceCube point source likelihood
@@ -829,7 +830,7 @@ class TimeDependentPointSourceLikelihood:
         self.index_list = index_list
         #assert len(events) == len(periods)
 
-        self.likelihoods = {}
+        self.likelihoods = OrderedDict()
         # Can use one spatial llh for all periods, 'tis but a Gaussian
         spatial_llh = EventDependentSpatialGaussianLikelihood()
 

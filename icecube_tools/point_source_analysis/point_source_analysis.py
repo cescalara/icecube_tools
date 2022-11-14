@@ -11,6 +11,7 @@ from ..utils.data import data_directory, available_periods, ddict, Events
 from ..utils.coordinate_transforms import *
 
 import yaml
+import h5py
 import healpy as hp
 import numpy as np
 from tqdm import tqdm as progress_bar
@@ -18,6 +19,7 @@ from tqdm import tqdm as progress_bar
 from abc import ABC, abstractmethod
 
 from os.path import join
+import os.path
 import logging
 
 logger = logging.getLogger(__name__)
@@ -46,6 +48,11 @@ class PointSourceAnalysis(ABC):
 
 
     @abstractmethod
+    def write_output(self):
+        pass
+
+
+    @abstractmethod
     def apply_cuts(self):
         """Make cuts on loaded data"""
         pass
@@ -69,7 +76,6 @@ class MapScan(PointSourceAnalysis):
             "min_dec": float, "max_dec": float
             },
             "likelihood": str
-
         },
     }
 
@@ -93,7 +99,6 @@ class MapScan(PointSourceAnalysis):
                 is_86 = True
             else:
                 self.num_of_irf_periods += 1
-
        
 
         self.load_config(path)
@@ -108,11 +113,9 @@ class MapScan(PointSourceAnalysis):
                 np.linspace(2, 9, num=25)
             )
         #self._make_output_arrays()
-        
-        
 
 
-    def perform_scan(self, show_progress=False):
+    def perform_scan(self, show_progress=False, minos=False):
         logger.info("Performing scan for periods: {}".format(self.events.periods))
         ra = self.events.ra
         dec = self.events.dec
@@ -123,11 +126,11 @@ class MapScan(PointSourceAnalysis):
                 self._test_source((self.ra_test[c], self.dec_test[c]), c, ra, dec, reco_energy, ang_err)
         else:
             for c, (ra_t, dec_t) in enumerate(zip(self.ra_test, self.dec_test)):
-                self._test_source((ra_t, dec_t), c, ra, dec, reco_energy, ang_err)
+                self._test_source((ra_t, dec_t), c, ra, dec, reco_energy, ang_err, minos)
 
 
 
-    def _test_source(self, source_coord, num, ra, dec, reco_energy, ang_err):
+    def _test_source(self, source_coord, num, ra, dec, reco_energy, ang_err, minos=False):
         if source_coord[1] <= np.deg2rad(90):    #delete this...
             likelihood = TimeDependentPointSourceLikelihood(
                 source_coord,
@@ -144,10 +147,22 @@ class MapScan(PointSourceAnalysis):
                 self.ts[num] = likelihood.get_test_statistic()
                 self.index[num] = likelihood._best_fit_index
                 self.ns[num] = likelihood._best_fit_ns
-                self.index_err[num] = likelihood.m.errors["index"]
-                self.ns_err[num] = np.array(
+                self.index_error[num] = likelihood.m.errors["index"]
+                self.ns_error[num] = np.array(
                     [likelihood.m.errors[n] for n in likelihood.m.parameters if n != "index"]
                 )
+                self.fit_ok[num] = likelihood.m.fmin.is_valid
+                
+                # is computationally too expensive for the entire grid, only use at certain points!
+                if self.fit_ok[num] and minos:
+                    minos = likelihood.m.minos()
+                    if minos.valid:
+                        self.index_merror[num, 0] = minos.merrors["index"].lower
+                        self.index_merror[num, 1] = minos.merrors["index"].upper
+                        for c, p in enumerate(self.events.periods):
+                            self.ns_merror[num, c, 0] = minos.merrors["n{}".format(c)].lower
+                            self.ns_merror[num, c, 1] = minos.merrors["n{}".format(c)].upper
+                
 
 
     def load_config(self, path):
@@ -177,7 +192,7 @@ class MapScan(PointSourceAnalysis):
         self._which = data_config.get("likelihood", "both")
 
 
-    def write_config(self, path):
+    def write_config(self, path, source_list=False):
         """
         Write config used in analysis to file
         """
@@ -191,16 +206,58 @@ class MapScan(PointSourceAnalysis):
             config.add(self.npix, "sources", "npix")
         except AttributeError:
             pass
+        if source_list:
+            config.add(self.ra_test, "sources", "ra")
+            config.add(self.dec_test, "sources", "dec")
         config.add(self.periods, "data", "periods")
         for emin, region in zip([self.northern_emin, self.equator_emin, self.southern_emin], ["northern", "equator", "southern"]):
             try:
                 config.add(emin, "data", "cuts", region, "emin")
             except AttributeError:
                 pass
+        try:
+            config.add(self.min_dec, "data", "cuts", "min_dec")
+        except AttributeError:
+            config.add(-90, "data", "cuts", "min_dec")
+        try:
+            config.add(self.max_dec, "data", "cuts", "max_dec")
+        except AttributeError:
+            config.add(90, "data", "cuts", "min_dec")
         config.add(self.which, "data", "likelihood")
 
         with open(path, "w") as f:
             yaml.dump(config, f)
+
+
+    def write_output(self, path: str):
+        """
+        Save analysis results to hdf5 and additionally the used config, path is saved in results hdf5.
+        """
+
+        try:
+            self.ts
+            assert np.any(self.ts)
+        except (AttributeError, AssertionError):
+            logging.error("Call perform_scan() first")
+            return
+
+        self.write_config(join(os.path.dirname(path), ".yaml"))
+            
+        with h5py.File(path, "w") as f:
+            meta = f.create_group("meta")
+            meta.create_dataset("ra", shape=self.ra_test.shape, data=self.ra_test)
+            meta.create_dataset("dec", shape=self.dec_test.shape, data=self.dec_test)
+            meta.create_dataset("periods", data=self.periods)
+            meta.attrs["config_path"] = join(os.path.dirname(path), ".yaml")
+        
+            data = f.create_group("output")
+            data.create_dataset("ts", shape=self.ts.shape, data=self.ts)
+            data.create_dataset("index", shape=self.index.shape, data=self.index)
+            data.create_dataset("ns", shape=self.ns.shape, data=self.ns)
+            data.create_dataset("ns_error", shape=self.ns_error.shape, data=self.ns_error)
+            data.create_dataset("index_error", shape=self.index_error.shape, data=self.index_error)
+            data.create_dataset("ns_merror", shape=self.ns_merror.shape, data=self.ns_merror)
+            data.create_dataset("index_merror", shape=self.index_merror.shape, data=self.index_merror)
 
 
     def generate_sources(self, nside=True):
@@ -243,8 +300,11 @@ class MapScan(PointSourceAnalysis):
         self.ts = np.zeros(num)
         self.index = np.zeros(num)
         self.ns = np.zeros((num, self.num_of_irf_periods))
-        self.ns_err = np.zeros((num, self.num_of_irf_periods))
-        self.index_err = np.zeros(num)
+        self.ns_error = np.zeros((num, self.num_of_irf_periods))
+        self.index_error = np.zeros(num)
+        self.fit_ok = np.zeros(num, dtype=bool)
+        self.index_merror = np.zeros((num, 2))                          #for asymmetric minos errors
+        self.ns_merror = np.zeros((num, self.num_of_irf_periods, 2))    #for asymmetric minos errors
 
 
     def apply_cuts(self):
