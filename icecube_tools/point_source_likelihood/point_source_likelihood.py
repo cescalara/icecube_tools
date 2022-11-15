@@ -332,7 +332,7 @@ class PointSourceLikelihood:
                 #log_likelihood_ratio += (
                 #    np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde ** 2)
                 #)
-            log_likelihood_ratio[~one_p] = np.log1p(alpha_i)
+            log_likelihood_ratio[~one_p] = np.log1p(alpha_i[~one_p])
             log_likelihood_ratio = np.sum(log_likelihood_ratio)
             #else:
 
@@ -897,6 +897,8 @@ class TimeDependentPointSourceLikelihood:
         neg_log_like = 0
         weights = self._calc_weights(index)
         for (w, llh) in zip(weights, self.likelihoods.values()):
+            if llh.N == 0:
+                continue
             val = llh(ns * w, index)
             neg_log_like += val
         return neg_log_like

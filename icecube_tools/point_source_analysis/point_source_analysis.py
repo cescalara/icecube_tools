@@ -69,7 +69,7 @@ class MapScan(PointSourceAnalysis):
     #Config structure for yaml files
     config_structure = {
         "sources":
-            {"nside": int, "npix": int, "ras": list, "decs": list}, 
+            {"nside": int, "npix": int, "ra": list, "dec": list}, 
         "data": {
             "periods": list,
             "cuts": {"northern": {"emin": float}, "equator": {"emin": float}, "southern": {"emin": float},
@@ -180,8 +180,12 @@ class MapScan(PointSourceAnalysis):
         if source_config:
             self.nside = source_config.get("nside")
             self.npix = source_config.get("npix")
-            self.ra_test = source_config.get("ras")
-            self.dec_test = source_config.get("decs")
+            self.ra_test = source_config.get("ra")
+            self.dec_test = source_config.get("dec")
+            if self.ra_test and self.dec_test:
+                self.ra_test = np.array(self.ra_test)
+                self.dec_test = np.array(self.dec_test)
+
         data_config = config.get("data")
         self.periods = data_config.get("periods")
         cuts = data_config.get("cuts", False)
@@ -215,16 +219,16 @@ class MapScan(PointSourceAnalysis):
         except AttributeError:
             pass
         if source_list:
-            config.add(self.ra_test, "sources", "ra")
-            config.add(self.dec_test, "sources", "dec")
+            config.add(self.ra_test.tolist(), "sources", "ra")
+            config.add(self.dec_test.tolist(), "sources", "dec")
         config.add(self.periods, "data", "periods")
-        for emin, region in zip([self.northern_emin, self.equator_emin, self.southern_emin],
-            ["northern", "equator", "southern"]
-        ):
-            try:
+        try:
+            for emin, region in zip([self.northern_emin, self.equator_emin, self.southern_emin],
+                ["northern", "equator", "southern"]
+            ):
                 config.add(emin, "data", "cuts", region, "emin")
-            except AttributeError:
-                pass
+        except AttributeError:
+            pass
         try:
             config.add(self.min_dec, "data", "cuts", "min_dec")
         except AttributeError:
@@ -239,7 +243,7 @@ class MapScan(PointSourceAnalysis):
             yaml.dump(config, f)
 
 
-    def write_output(self, path: str):
+    def write_output(self, path: str, source_list=False):
         """
         Save analysis results to hdf5 and additionally the used config, path is saved in results hdf5.
         """
@@ -251,7 +255,7 @@ class MapScan(PointSourceAnalysis):
             logging.error("Call perform_scan() first")
             return
 
-        self.write_config(os.path.splitext(path)[0]+".yaml")
+        self.write_config(os.path.splitext(path)[0]+".yaml", source_list=source_list)
             
         with h5py.File(path, "w") as f:
             meta = f.create_group("meta")
@@ -276,15 +280,16 @@ class MapScan(PointSourceAnalysis):
         """
 
         reload = True
-        if self.nside is not None and nside:
+        if self.ra_test is not None and self.dec_test is not None:
+            assert len(self.ra_test) == len(self.dec_test)
+            logger.info("Using provided ra and dec")
+            reload = False
+        elif self.nside is not None and nside:
             self.npix = hp.nside2npix(self.nside)
             logger.warning("Overwriting npix with nside = {}".format(self.nside))
         elif self.npix is not None and not nside:
             logger.info("Using npix = {}".format(self.npix))
-        elif self.ra_test is not None and self.dec_test is not None:
-            logger.info("Using provided ra and dec")
-            assert len(self.ra_test) == len(self.dec_test)
-            reload = False
+        
 
         if reload:
             logger.info(f"resolution in degrees: {hp.nside2resol(self.nside, arcmin=True)/60}")
