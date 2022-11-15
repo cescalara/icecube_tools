@@ -930,7 +930,7 @@ class TimeDependentPointSourceLikelihood:
         for llh in self.likelihoods.values():
             init_ns += llh._ns_min + (llh._ns_max - llh._ns_min) / 2
         init = [init_ns, init_index]
-        limits = [(0, self.Nprime), limit_index]
+        limits = [(0, self.N), limit_index]
 
         # Get errors to start with
         errors = [1, 0.1]  
