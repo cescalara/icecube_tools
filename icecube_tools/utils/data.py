@@ -289,7 +289,7 @@ class Uptime():
             self.times.add(self.data[p][0, 0], p, "start")
             self.times.add(self.data[p][-1, -1], p, "end")
         """
-        self.times= np.zeros((len(available_periods), 2))
+        self.times = np.zeros((len(available_periods), 2))
         for c, p in enumerate(available_periods):
             self.data[p] = np.loadtxt(os.path.join(
                 data_directory,
