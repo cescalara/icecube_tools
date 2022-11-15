@@ -180,6 +180,14 @@ likelihood.m.values
 To understand the significance of this results, we would have to calculate the test statistic for a large number of background-only simulations. These could then be used to calculate a p-value. Given there is a strong point source in the simulation we used, we can expect the test stastic to be lower if we remove the source events. Let's try this:
 
 ```python
+likelihood.m
+```
+
+```python
+likelihood.N
+```
+
+```python
 events.arrival_energy
 ```
 
@@ -319,6 +327,8 @@ plt.title(f"index = {m.values['index']:.1f} - {m.values['index']-lower_lim:.1f} 
 
 # Time dependent point source analysis
 
+Encompassing multiple data seasons, although shown only for one (the same as above), uses a single `ns`, which is distributed among the seasons with the number of expected events for `gamma` and the provided observational times (`times`) as relative weight.
+
 ```python
 events = SimEvents.load_from_h5("h5_test.hdf5")
 source_coords = (np.pi, np.deg2rad(30))
@@ -332,7 +342,8 @@ tllh = TimeDependentPointSourceLikelihood(
     events.reco_energy,
     events.ang_err,
     {"IC86_II": energy_likelihood},
-    which="both"
+    which="both",
+    times={"IC86_II": 1}
 )
 
 m = tllh._minimize()
@@ -341,11 +352,11 @@ m
 ```
 
 ```python
-_ = m.draw_profile("n0")
+_ = m.draw_profile("index")
 ```
 
 ```python
-_ = m.draw_profile("index")
+_ = m.draw_profile("ns")
 ```
 
 ```python
