@@ -814,7 +814,9 @@ class TimeDependentPointSourceLikelihood:
         times: Dict,
         path=None,
         index_list=None,
-        which="both"):
+        which="both",
+        emin: float=1e1,
+        emax: float=1e9):
         """
         Create likelihood covering multiple data taking periods.
         :param source_coords: Tuple of ra, dec.
@@ -841,7 +843,7 @@ class TimeDependentPointSourceLikelihood:
         self.times = times
         self.aeffs = {}
         self.nu_calcs = {}
-        flux = PowerLawFlux(1e-20, 1e6, 2.5)
+        flux = PowerLawFlux(1e-20, 1e6, 2.5, lower_energy=emin, upper_energy=emax)
         self.source = PointSource(flux_model=flux, z=0., coord=self.source_coords)
 
         for p in self.periods:
@@ -978,7 +980,7 @@ class TimeDependentPointSourceLikelihood:
         n_i = np.zeros(len(self.periods))
         for c, p in enumerate(self.periods):
             self.nu_calcs[p]._sources[0]._flux_model._index = index
-            n_i[c] = self.nu_calcs[p](time=self.times[p])[0]
+            n_i[c] = self.nu_calcs[p](time=self.times[p], )[0]
         N = np.sum(n_i)
         weights = n_i / N
         logger.debug(weights)
