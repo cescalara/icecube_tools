@@ -5,7 +5,10 @@ import logging
 from .energy_likelihood import *
 from .spatial_likelihood import *
 
-from ..utils.data import Events
+from ..utils.data import Events, Uptime
+from ..source.source_model import PointSource
+from ..source.flux_model import PowerLawFlux
+from ..neutrino_calculator import NeutrinoCalculator
 
 from typing import Dict, List, Tuple, Sequence
 from collections import OrderedDict
@@ -62,6 +65,7 @@ class PointSourceLikelihood:
         :param energies: The reconstructed nu energies in GeV.
         :param ang_errs: $1 \sigma$ angular errors of events, in degrees
         :param source_coord: (ra, dec) pf the point to test.
+        :param mjd: Start, End of observation campaign used, needed for relative weighting of ns_i
         :param which: str, either `spatial`, `both`, which information of event to be used
         :param index_prior: Optional prior on the spectral index, instance of Prior.
         """
@@ -807,6 +811,7 @@ class TimeDependentPointSourceLikelihood:
         reco_energy,
         ang_err,
         energy_llh,
+        times: Dict,
         path=None,
         index_list=None,
         which="both"):
@@ -833,8 +838,15 @@ class TimeDependentPointSourceLikelihood:
         self.likelihoods = OrderedDict()
         # Can use one spatial llh for all periods, 'tis but a Gaussian
         spatial_llh = EventDependentSpatialGaussianLikelihood()
+        self.times = times
+        self.aeffs = {}
+        self.nu_calcs = {}
+        flux = PowerLawFlux(1e-20, 1e6, 2.5)
+        self.source = PointSource(flux_model=flux, z=0., coord=self.source_coords)
 
         for p in self.periods:
+            self.aeffs[p] = EffectiveArea.from_dataset("20210126", p)
+            self.nu_calcs[p] = NeutrinoCalculator([self.source], self.aeffs[p])
             # Open event files
             #data = events.period(p)
             """
@@ -862,31 +874,33 @@ class TimeDependentPointSourceLikelihood:
             )
 
 
-    def __call__(self, *ns, index):
+    def __call__(self, ns, index):
         """
         Calculate negative log-like ratio as function of ns and index.
         ns is now vector with an entry for each period.
         :param ns: List of numbers of source events.
         :param index: Spectral index of source spectrum.
         """
-        assert len(ns) == len(self.likelihoods.keys())
-        return self._func_to_minimize(np.hstack((ns, index)))
+
+        # assert len(ns) == len(self.likelihoods.keys())
+        return self._func_to_minimize(ns, index)
 
 
-    def _func_to_minimize(self, *arg):
+    def _func_to_minimize(self, ns, index):
         """
         According to https://github.com/icecube/skyllh/blob/master/doc/user_manual.pdf,
         Eq. (59), the returned values of each period's llh._func_to_minimize() can be added.
         :param arg: numpy.ndarray, last entry is index, all before are number of source events.
         """
         neg_log_like = 0
-        for (n, llh) in zip(arg[:-1], self.likelihoods.values()):
-            val = llh(n, arg[-1])
+        weights = self._calc_weights(index)
+        for (w, llh) in zip(weights, self.likelihoods.values()):
+            val = llh(ns * w, index)
             neg_log_like += val
         return neg_log_like
 
-
-    def _func_to_minimize_sp(self, *arg, index=2.7):
+    '''
+    def _func_to_minimize_sp(self, ns, index=2.7):
         """
         According to https://github.com/icecube/skyllh/blob/master/doc/user_manual.pdf,
         Eq. (59), the returned values of each period's llh._func_to_minimize() can be added.
@@ -897,6 +911,7 @@ class TimeDependentPointSourceLikelihood:
             val = llh._func_to_minimize_sp(n)
             neg_log_like += val
         return neg_log_like
+    '''
 
 
     def _minimize(self):
@@ -907,33 +922,28 @@ class TimeDependentPointSourceLikelihood:
         Uses the iMinuint wrapper.
         """
 
-        error_index = 0.1
         some_llh = self.likelihoods[list(self.likelihoods.keys())[0]]
         init_index = some_llh._min_index + (some_llh._max_index - some_llh._min_index) / 2
         limit_index = (some_llh._energy_likelihood._min_index,
             some_llh._energy_likelihood._max_index)
-        # Get init_ns and limit_ns for each period
-        # could be nicer with some generator method
-        init = []
-        limits = []
+        init_ns = 0
         for llh in self.likelihoods.values():
-            init.append(llh._ns_min + (llh._ns_max - llh._ns_min) / 2)
-            limits.append((llh._ns_min, llh._ns_max))
+            init_ns += llh._ns_min + (llh._ns_max - llh._ns_min) / 2
+        init = [init_ns, init_index]
+        limits = [(0, self.Nprime), limit_index]
 
         # Get errors to start with
-        errors = [1 for _ in init]  
-        name = tuple(f"n{i}" for i in range(len(init)))  
+        errors = [1, 0.1]  
+        name = ["ns", "index"]
+
 
         if self.which == 'spatial':
+            raise ValueError("Currently not supported")
             #Only spatial-only likelihood needs special function, because no spectral index is used
             self.minimize_this = self._func_to_minimize_sp
         else:
             self.minimize_this = self._func_to_minimize
             #add errors, limits, start value and name of index
-            errors += [error_index]
-            limits += [limit_index]
-            init += [init_index]
-            name += ("index",)
 
         self.m = Minuit(self.minimize_this, *init, name=name)
         self.m.errordef = 0.5
@@ -955,13 +965,29 @@ class TimeDependentPointSourceLikelihood:
             self._best_fit_index = self.m.values["index"]
         else:
             self._best_fit_index = 2.7
-        self._best_fit_ns = tuple(self.m.values[n] for n in name if n != "index")
+        self._best_fit_ns = self.m.values["ns"]
         return self.m
+
+
+    def _calc_weights(self, index):
+        """
+        Calculate weights for the individual likelihoods' ns
+        """
+        # works as intended, same numbers as NeutrinoCalculator in simulate.md example
+        #TODO write test?
+        n_i = np.zeros(len(self.periods))
+        for c, p in enumerate(self.periods):
+            self.nu_calcs[p]._sources[0]._flux_model._index = index
+            n_i[c] = self.nu_calcs[p](time=self.times[p])[0]
+        N = np.sum(n_i)
+        weights = n_i / N
+        logger.debug(weights)
+        return weights
 
 
     def get_test_statistic(self):
         self._minimize()
-        neg_log_lik = self.minimize_this(*self._best_fit_ns, self._best_fit_index)
+        neg_log_lik = self.minimize_this(self._best_fit_ns, self._best_fit_index)
         self.likelihood_ratio = np.exp(neg_log_lik)
         self.test_statistic = -2 * neg_log_lik
         return self.test_statistic

@@ -153,6 +153,7 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
 
     @staticmethod
     def integrated_power_law(loge_high, loge_low, index):
+        #works with np.ndarrays!
         return 1. / (1 - index) * \
             (np.power(10, -loge_high * (index - 1)) - np.power(10, -loge_low * (index - 1)))
 

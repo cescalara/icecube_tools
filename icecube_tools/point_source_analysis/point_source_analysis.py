@@ -7,7 +7,7 @@ from ..point_source_likelihood.energy_likelihood import (
 
 from ..detector.r2021 import R2021IRF
 from ..detector.effective_area import EffectiveArea
-from ..utils.data import data_directory, available_periods, ddict, Events
+from ..utils.data import data_directory, available_periods, ddict, Events, Uptime
 from ..utils.coordinate_transforms import *
 
 import yaml
@@ -99,6 +99,8 @@ class MapScan(PointSourceAnalysis):
                 is_86 = True
             else:
                 self.num_of_irf_periods += 1
+        self.uptime = Uptime()
+        self.times = {p: self.uptime.time_obs(p).value for p in self.events.periods}
        
 
         self.load_config(path)
@@ -140,7 +142,8 @@ class MapScan(PointSourceAnalysis):
                 reco_energy,
                 ang_err,
                 self.energy_likelihood,
-                which=self.which
+                which=self.which,
+                times=self.times
             )
             if likelihood.Nprime > 0:    # else somewhere division by zero
                 logging.info("Nearby events: {}".format(likelihood.Nprime))
@@ -159,9 +162,8 @@ class MapScan(PointSourceAnalysis):
                     if minos.valid:
                         self.index_merror[num, 0] = minos.merrors["index"].lower
                         self.index_merror[num, 1] = minos.merrors["index"].upper
-                        for c, p in enumerate(self.events.periods):
-                            self.ns_merror[num, c, 0] = minos.merrors["n{}".format(c)].lower
-                            self.ns_merror[num, c, 1] = minos.merrors["n{}".format(c)].upper
+                        self.ns_merror[num, 0] = minos.merrors["ns"].lower
+                        self.ns_merror[num, 1] = minos.merrors["ns"].upper
                 
 
 
@@ -184,11 +186,17 @@ class MapScan(PointSourceAnalysis):
         self.periods = data_config.get("periods")
         cuts = data_config.get("cuts", False)
         if cuts:
-            self.northern_emin = float(data_config.get("cuts").get("northern").get("emin"))
-            self.equator_emin = float(data_config.get("cuts").get("equator").get("emin"))
-            self.southern_emin = float(data_config.get("cuts").get("southern").get("emin"))
+            self.northern_emin = float(data_config.get("cuts").get("northern").get("emin", 1e1))
+            self.equator_emin = float(data_config.get("cuts").get("equator").get("emin", 1e1))
+            self.southern_emin = float(data_config.get("cuts").get("southern").get("emin", 1e1))
             self.min_dec = data_config.get("cuts").get("min_dec", -90)
             self.max_dec = data_config.get("cuts").get("max_dec", 90)
+        else:
+            self.northern_emin = 1e1
+            self.equator_emin = 1e1
+            self.southern_emin = 1e1
+            self.min_dec = -90.
+            self.max_dec = 90.
         self._which = data_config.get("likelihood", "both")
 
 
@@ -210,7 +218,9 @@ class MapScan(PointSourceAnalysis):
             config.add(self.ra_test, "sources", "ra")
             config.add(self.dec_test, "sources", "dec")
         config.add(self.periods, "data", "periods")
-        for emin, region in zip([self.northern_emin, self.equator_emin, self.southern_emin], ["northern", "equator", "southern"]):
+        for emin, region in zip([self.northern_emin, self.equator_emin, self.southern_emin],
+            ["northern", "equator", "southern"]
+        ):
             try:
                 config.add(emin, "data", "cuts", region, "emin")
             except AttributeError:
@@ -241,14 +251,14 @@ class MapScan(PointSourceAnalysis):
             logging.error("Call perform_scan() first")
             return
 
-        self.write_config(join(os.path.dirname(path), ".yaml"))
+        self.write_config(os.path.splitext(path)[0]+".yaml")
             
         with h5py.File(path, "w") as f:
             meta = f.create_group("meta")
             meta.create_dataset("ra", shape=self.ra_test.shape, data=self.ra_test)
             meta.create_dataset("dec", shape=self.dec_test.shape, data=self.dec_test)
             meta.create_dataset("periods", data=self.periods)
-            meta.attrs["config_path"] = join(os.path.dirname(path), ".yaml")
+            meta.attrs["config_path"] = os.path.splitext(path)[0]+".yaml"
         
             data = f.create_group("output")
             data.create_dataset("ts", shape=self.ts.shape, data=self.ts)
@@ -299,12 +309,12 @@ class MapScan(PointSourceAnalysis):
 
         self.ts = np.zeros(num)
         self.index = np.zeros(num)
-        self.ns = np.zeros((num, self.num_of_irf_periods))
-        self.ns_error = np.zeros((num, self.num_of_irf_periods))
+        self.ns = np.zeros(num)
+        self.ns_error = np.zeros(num)
         self.index_error = np.zeros(num)
         self.fit_ok = np.zeros(num, dtype=bool)
         self.index_merror = np.zeros((num, 2))                          #for asymmetric minos errors
-        self.ns_merror = np.zeros((num, self.num_of_irf_periods, 2))    #for asymmetric minos errors
+        self.ns_merror = np.zeros((num, 2))    #for asymmetric minos errors
 
 
     def apply_cuts(self):
