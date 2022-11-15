@@ -874,7 +874,6 @@ class TimeDependentPointSourceLikelihood:
                 self.source_coords,
                 which=self.which
             )
-            #logger.info("Period: {}, N: {}".format(p, self.likelihoods[p].N))
 
 
     def __call__(self, ns, index):
@@ -897,7 +896,6 @@ class TimeDependentPointSourceLikelihood:
         """
         neg_log_like = 0
         weights = self._calc_weights(index)
-        # print(weights)
         for (w, llh) in zip(weights, self.likelihoods.values()):
             if llh.N == 0 or np.isclose(ns * w / llh.N - 1., 0., atol=1e-7):
                 continue
