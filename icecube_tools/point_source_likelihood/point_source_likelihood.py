@@ -337,7 +337,7 @@ class PointSourceLikelihood:
             #else:
 
             #    log_likelihood_ratio += np.log1p(alpha_i)
-
+            #-ns / self.N)
             log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
 
             if isinstance(self._energy_likelihood, MarginalisedIntegratedEnergyLikelihood):
@@ -874,6 +874,7 @@ class TimeDependentPointSourceLikelihood:
                 self.source_coords,
                 which=self.which
             )
+            #logger.info("Period: {}, N: {}".format(p, self.likelihoods[p].N))
 
 
     def __call__(self, ns, index):
@@ -896,8 +897,9 @@ class TimeDependentPointSourceLikelihood:
         """
         neg_log_like = 0
         weights = self._calc_weights(index)
+        # print(weights)
         for (w, llh) in zip(weights, self.likelihoods.values()):
-            if llh.N == 0:
+            if llh.N == 0 or np.isclose(ns * w / llh.N - 1., 0., atol=1e-7):
                 continue
             val = llh(ns * w, index)
             neg_log_like += val
@@ -930,11 +932,12 @@ class TimeDependentPointSourceLikelihood:
         init_index = some_llh._min_index + (some_llh._max_index - some_llh._min_index) / 2
         limit_index = (some_llh._energy_likelihood._min_index,
             some_llh._energy_likelihood._max_index)
-        init_ns = 0
+        ns_max = []
         for llh in self.likelihoods.values():
-            init_ns += llh._ns_min + (llh._ns_max - llh._ns_min) / 2
+            ns_max.append(llh._ns_max)
+        init_ns = min(ns_max) * 0.1
         init = [init_ns, init_index]
-        limits = [(0, self.N), limit_index]
+        limits = [(0, 0.6*self.Nprime), limit_index]
 
         # Get errors to start with
         errors = [1, 0.1]  

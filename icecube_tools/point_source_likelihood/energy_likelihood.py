@@ -65,7 +65,7 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         self.true_energy_bins = self.true_energy_bins[idx]
         self.declination_bins_irf = irf.declination_bins
         self.cos_z_bins = aeff.cos_zenith_bins
-        self.declination_bins_aeff = np.arcsin(-self.cos_z_bins)
+        self.declination_bins_aeff = np.flip(np.arcsin(-self.cos_z_bins))
         self._min_index = min_index
         self._max_index = max_index
         self.true_bins_c = self.true_energy_bins[:-1] + 0.5 * np.diff(self.true_energy_bins)
@@ -124,7 +124,9 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         Calculates likelihood for new reco energy binning for given index at given declination.
         """
 
-        irf_dec_ind = np.digitize(dec, self.declination_bins_irf) - 1        
+        irf_dec_ind = np.digitize(dec, self.declination_bins_irf) - 1     
+        if irf_dec_ind > 2:
+            print(irf_dec_ind, dec) 
 
         #pre-calculate power law and aeff part, is not dependent on reco energy
         pl = np.zeros(self.true_energy_bins.size - 1)
