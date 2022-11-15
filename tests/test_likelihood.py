@@ -97,13 +97,14 @@ def test_fit_from_single(source_coords, output_directory, single_file_sim):
         events._reco_energy,
         events._ang_err,
         energy_likelihood,
+        times={"IC86_II": 1}
     )
 
     m = tllh._minimize()
 
     assert likelihood._best_fit_index == pytest.approx(m.values["index"], abs=0.1)
 
-    assert likelihood._best_fit_ns == pytest.approx(m.values["n0"], abs=0.1)
+    assert likelihood._best_fit_ns == pytest.approx(m.values["ns"], abs=0.1)
 
 
 #def test_fit_from_multi(output_directory, random_seed, sources):
