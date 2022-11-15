@@ -708,6 +708,11 @@ class RealEvents(Events):
         :param periods: Arbitrary number of period identifiers
         """
 
+        if periods:
+            pass
+        else:
+            #use all periods if none are specified
+            periods = ("IC40", "IC59", "IC79", "IC86_I", "IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII")
         inst = cls()
         inst.events = {}
         add = []
