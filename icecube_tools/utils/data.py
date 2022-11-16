@@ -276,19 +276,6 @@ class Uptime():
     def __init__(self):
         self.data = {}
         #Store start and end times of each period separately
-        """
-        self.times = ddict()
-        for c, p in enumerate(available_periods):
-            self.data[p] = np.loadtxt(os.path.join(
-                data_directory,
-                "20210126_PS-IC40-IC86_VII", 
-                "icecube_10year_ps",
-                "uptime",
-                f"{p}_exp.csv")
-            )
-            self.times.add(self.data[p][0, 0], p, "start")
-            self.times.add(self.data[p][-1, -1], p, "end")
-        """
         self.times = np.zeros((len(available_periods), 2))
         for c, p in enumerate(available_periods):
             self.data[p] = np.loadtxt(os.path.join(
@@ -303,7 +290,7 @@ class Uptime():
 
             
 
-    def time_span(self, period):
+    def time_span(self, period: str):
         """
         :param period: String of data period.
         :return: total time between start and end of data period.
@@ -314,7 +301,7 @@ class Uptime():
         return time.to("year")
 
 
-    def time_obs(self, period):
+    def time_obs(self, period: str):
         """
         :param period: String of data period.
         :return: Return total observation time of data period.
@@ -360,7 +347,6 @@ class Uptime():
             start = self.times[0, 0]
 
         p_start = np.searchsorted(self.times[:, 0], start)
-        
 
         if end > self.times[-1, -1]:
             logger.info("End time outside of provided data set, sending an owl to Professor Trelawney")
@@ -442,10 +428,6 @@ class Events(ABC):
     @abstractmethod
     def write_to_h5(self):
         pass
-
-    #@abstractmethod
-    #def apply_mask(self, mask: Dict):
-    #    pass
 
 
     @property
@@ -602,11 +584,6 @@ class SimEvents(Events):
             out["source_label"] = self._source_label[p]
         return out
 
-    """
-    def apply_mask(self, mask: Dict):
-        for p in self.periods:
-            self._true_energy[p] = self._true_energy[p][mask[p]]
-    """
 
     @property
     def true_energy(self):
@@ -677,7 +654,8 @@ class RealEvents(Events):
         """
         Sort event information in dictionaries by season,
         converts (assumed) 50% containment for angular errors to 68%,
-        converts ra/dec from degrees to radians.
+        converts ra/dec from degrees to radians,
+        converts log10(E/GeV) in GeV.
         """
 
         for p in self._periods:

@@ -21,6 +21,7 @@ from abc import ABC, abstractmethod
 from os.path import join
 import os.path
 import logging
+from typing import Tuple, Dict
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -65,6 +66,10 @@ class PointSourceAnalysis(ABC):
 
 
 class MapScan(PointSourceAnalysis):
+    """
+    Class for performing point source scans of the entire sky
+    or some smaller patches.
+    """
 
     #Config structure for yaml files
     config_structure = {
@@ -85,8 +90,6 @@ class MapScan(PointSourceAnalysis):
         Instantiate analysis object.
         :param path: Path to config
         :param events: object inheriting from :class:`icecube_tools.utils.data.Events`
-        :param energy_likelihood: Dict of energy_likelihoods,
-            key: period, value: :class:`icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedEnergyLikelihood`
         """
 
         self.events = events
@@ -102,7 +105,6 @@ class MapScan(PointSourceAnalysis):
         self.uptime = Uptime()
         self.times = {p: self.uptime.time_obs(p).value for p in self.events.periods}
        
-
         self.load_config(path)
         self.apply_cuts()
         self.energy_likelihood = {}
@@ -112,12 +114,17 @@ class MapScan(PointSourceAnalysis):
             self.energy_likelihood[p] = MarginalisedIntegratedEnergyLikelihood(
                 irf,
                 aeff,
-                np.linspace(2, 9, num=25)
+                np.linspace(2, 9, num=25)    # should be made variable
             )
-        #self._make_output_arrays()
 
 
-    def perform_scan(self, show_progress=False, minos=False):
+    def perform_scan(self, show_progress: bool=False, minos: bool=False):
+        """
+        Perform scan over provided source list whose coordinates are stored in `self.ra_test, self.dec_test`
+        :param show_progress: True if progress bar should be displayd
+        :param minos: True if additionally `Minuit.minos()` should be called for calculating errors
+        """
+
         logger.info("Performing scan for periods: {}".format(self.events.periods))
         ra = self.events.ra
         dec = self.events.dec
@@ -132,7 +139,27 @@ class MapScan(PointSourceAnalysis):
 
 
 
-    def _test_source(self, source_coord, num, ra, dec, reco_energy, ang_err, minos=False):
+    def _test_source(
+        self,
+        source_coord: Tuple[float, float],
+        num: int,
+        ra: Dict,
+        dec: Dict,
+        reco_energy: Dict,
+        ang_err: Dict,
+        minos: bool=False
+    ):
+        """
+        Test source and store results in appropriate array.
+        :param source_coord: Tuple of (ra, dec) in radians of test source
+        :param num: Index of source, result of source is stored in self.some_array[num]
+        :param ra: Dict with period as key, providing event RAs in radians
+        :param dict: Dict with period as key, providing event DECs in radians
+        :param reco_energy: Dict with period as key, providing reconstructed energy in GeV
+        :param ang_err: Dict with period as key, providing 68% angular errors in degrees
+        :param minos: True if `Minuit.minos()` should be called for calculating errors
+        """
+
         if source_coord[1] <= np.deg2rad(90):    #delete this...
             likelihood = TimeDependentPointSourceLikelihood(
                 source_coord,
@@ -167,9 +194,10 @@ class MapScan(PointSourceAnalysis):
                 
 
 
-    def load_config(self, path):
+    def load_config(self, path: str):
         """
         Load analysis config from file
+        :param path: Path to config file
         """
 
         with open(path, "r") as f:
@@ -204,9 +232,11 @@ class MapScan(PointSourceAnalysis):
         self._which = data_config.get("likelihood", "both")
 
 
-    def write_config(self, path, source_list=False):
+    def write_config(self, path:str, source_list: bool=False):
         """
         Write config used in analysis to file
+        :param path: Path to config file
+        :param source_list: True if source list (ra, dec) should be written to config
         """
 
         config = ddict()
@@ -243,9 +273,11 @@ class MapScan(PointSourceAnalysis):
             yaml.dump(config, f)
 
 
-    def write_output(self, path: str, source_list=False):
+    def write_output(self, path: str, source_list: bool=False):
         """
         Save analysis results to hdf5 and additionally the used config, path is saved in results hdf5.
+        :param path: Path to file
+        :param source_list: True if source list should be written to additionally saved yaml config
         """
 
         try:
@@ -274,9 +306,11 @@ class MapScan(PointSourceAnalysis):
             data.create_dataset("index_merror", shape=self.index_merror.shape, data=self.index_merror)
 
 
-    def generate_sources(self, nside=True):
+    def generate_sources(self, nside: bool=True):
         """
-        Generate sources from config-specified specifics
+        Generate sources from config-specified specifics.
+        Provided ra, dec lists take priority over npix and nside.
+        :param nside: If healpy's nside should be used in calculating test sources.
         """
 
         reload = True
@@ -305,10 +339,14 @@ class MapScan(PointSourceAnalysis):
 
     
     def _make_output_arrays(self):
-        if self.npix is not None:
-            num = self.npix
-        elif self.ra_test is not None and self.dec_test is not None:
+        """
+        Creates output arrays based on ra, dec lists.
+        """
+
+        if self.ra_test is not None and self.dec_test is not None:
             num = len(self.ra_test)
+        elif self.npix is not None:
+            num = self.npix
         else:
             raise ValueError("Can't create output arrays, no well-defined source list supplied.")
 
@@ -323,8 +361,13 @@ class MapScan(PointSourceAnalysis):
 
 
     def apply_cuts(self):
-        #make cuts based on config
-        #incudes right now: energy only
+        """
+        Apply cuts of energy and dec that are provided in the yaml config.
+        Actual cuts are only applied to displayed data of `self.events`
+        in terms of masked properties. All data stored in private variables
+        stays in place.
+        """
+
         mask = {}
         self.events.mask = None
         try:

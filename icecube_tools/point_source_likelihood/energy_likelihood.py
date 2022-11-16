@@ -48,7 +48,15 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         reco_bins: np.ndarray,
         min_index: float=1.5,
         max_index: float=4.0,
-        ):
+    ):
+        """
+        Init likelihood.
+        :param irf: Instance of :class:`icecube_tools.detector.r2021.R2021IRF`
+        :param aeff: Instance of :class:`icecube_tools.detector.effective_area.EffectiveArea`
+        :param reco_bins: Array of new reconstructed energy bins at which the likelihood is evaluated
+        :param min_index: Smallest spectral index considered
+        :param max_index: Largest spectral index considered
+        """
 
         # TODO change reco_bins to cover the range provided by all the pdfs
         # and have the coarsest binning of all pdfs
@@ -86,7 +94,7 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         self,
         ereco: np.ndarray,
         index: float,
-        dec: np.ndarray):
+        dec: np.ndarray) -> np.ndarray:
         """
         Wrapper on _calc_likelihood to retrieve only the likelihood for a specific Ereco value.
         Saves time by storing data and checking if data of the same index is requested
@@ -119,14 +127,15 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
 
 
     #@profile
-    def _calc_likelihood(self, index, dec):
+    def _calc_likelihood(self, index: float, dec: float) -> np.ndarray:
         """
-        Calculates likelihood for new reco energy binning for given index at given declination.
+        Calculates likelihood for given index at given declination.
+        :param index: Spectral index
+        :param dec: Declination in rad
+        :return: Likelihood for each reco_bin
         """
 
         irf_dec_ind = np.digitize(dec, self.declination_bins_irf) - 1     
-        if irf_dec_ind > 2:
-            print(irf_dec_ind, dec) 
 
         #pre-calculate power law and aeff part, is not dependent on reco energy
         pl = np.zeros(self.true_energy_bins.size - 1)
@@ -155,6 +164,13 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
 
     @staticmethod
     def integrated_power_law(loge_high, loge_low, index):
+        """
+        Integrates power law
+        :param loge_high: float or np.ndarray of upper integration bound(s)
+        :param loge_low: float or np.ndarray of lower integration bound(s)
+        :param index: spectral index
+        :return: Integrated power law, float or np.ndarray
+        """
         #works with np.ndarrays!
         return 1. / (1 - index) * \
             (np.power(10, -loge_high * (index - 1)) - np.power(10, -loge_low * (index - 1)))
@@ -162,6 +178,13 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
 
     @staticmethod
     def power_law_loge(loge, index):
+        """
+        Evaluated power law
+        :param loge: Logarithmic energy, base 10
+        :param index: Spectral index
+        :return: Evaluated power law
+        """
+        
         return np.power(np.power(10, loge), -index + 1)
 
 
