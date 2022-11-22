@@ -50,6 +50,7 @@ class Simulator(SimEvents):
         self._detector = detector
 
         self.max_cosz = 1
+        self.min_cosz = -1
 
         self.time = 1  # year
 

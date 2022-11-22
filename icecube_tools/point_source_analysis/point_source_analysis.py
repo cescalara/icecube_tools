@@ -22,6 +22,8 @@ from os.path import join
 import os.path
 import logging
 from typing import Tuple, Dict
+import sched
+import time
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -85,7 +87,7 @@ class MapScan(PointSourceAnalysis):
     }
 
 
-    def __init__(self, path: str, events: Events):
+    def __init__(self, path: str, events: Events, output_path: str):
         """
         Instantiate analysis object.
         :param path: Path to config
@@ -116,6 +118,7 @@ class MapScan(PointSourceAnalysis):
                 aeff,
                 np.linspace(2, 9, num=25)    # should be made variable
             )
+        self.output_path = output_path
 
 
     def perform_scan(self, show_progress: bool=False, minos: bool=False):
@@ -124,7 +127,7 @@ class MapScan(PointSourceAnalysis):
         :param show_progress: True if progress bar should be displayd
         :param minos: True if additionally `Minuit.minos()` should be called for calculating errors
         """
-
+        #s = sched.scheduler(time.time, time.sleep)
         logger.info("Performing scan for periods: {}".format(self.events.periods))
         ra = self.events.ra
         dec = self.events.dec
@@ -133,9 +136,17 @@ class MapScan(PointSourceAnalysis):
         if show_progress:
             for c in progress_bar(range(len(self.ra_test))):
                 self._test_source((self.ra_test[c], self.dec_test[c]), c, ra, dec, reco_energy, ang_err)
+                if c % 60 == 59:
+                    #refresh output file
+                    self.write_output(self.output_path, source_list=True)
         else:
             for c, (ra_t, dec_t) in enumerate(zip(self.ra_test, self.dec_test)):
                 self._test_source((ra_t, dec_t), c, ra, dec, reco_energy, ang_err, minos)
+                if c % 60 == 59:
+                    # refresh output file
+                    self.write_output(self.output_path, source_list=True)
+        self.write_output(self.output_path, source_list=True)
+                
 
 
 
@@ -304,6 +315,7 @@ class MapScan(PointSourceAnalysis):
             data.create_dataset("index_error", shape=self.index_error.shape, data=self.index_error)
             data.create_dataset("ns_merror", shape=self.ns_merror.shape, data=self.ns_merror)
             data.create_dataset("index_merror", shape=self.index_merror.shape, data=self.index_merror)
+            data.create_dataset("fit_ok", shape=self.fit_ok.shape, data=self.fit_ok)
 
 
     def generate_sources(self, nside: bool=True):

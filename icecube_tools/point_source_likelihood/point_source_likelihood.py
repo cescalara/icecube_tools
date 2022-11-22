@@ -836,7 +836,7 @@ class TimeDependentPointSourceLikelihood:
         """
         Create likelihood covering multiple data taking periods.
         :param source_coords: Tuple of ra, dec, in rad
-        :param periods: List of str of period names, eg. `IC40`
+        :param periods: List of str of period names, eg. `IC40`. Only periods with IRF, e.g. no IC86_III !!! 
         :param ra: Dict of RAs
         :param dec: Dict of DECs
         :param reco_energy: Dict of reconstructed energies in GeV

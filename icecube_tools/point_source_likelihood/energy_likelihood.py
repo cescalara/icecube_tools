@@ -113,12 +113,14 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         log_ereco = np.log10(ereco)
         reco_ind = np.digitize(log_ereco, self.reco_bins) - 1    # is np.ndarray
         dec_ind = np.digitize(dec, self.declination_bins_aeff) - 1 # is np.ndarray
-
         dec_ind_set = set(dec_ind)
         output = np.zeros_like(log_ereco)
         # loop over set(sec_ind):
         for dec_idx in dec_ind_set:
             single_dec = self.declination_bins_aeff[dec_idx]
+            if dec_idx == 0:
+                single_dec += 0.01     # necessary bc of np.digitize's left/right,
+                                       # would lead to evaluation of upper bound in flipped array -> forbidden
             self._values[dec_idx] = self._calc_likelihood(index, single_dec)
             needed = np.nonzero((dec_ind == dec_idx))
             output[needed] = self._values[dec_idx][reco_ind[needed]]
