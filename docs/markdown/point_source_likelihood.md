@@ -5,7 +5,7 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.14.1
+      jupytext_version: 1.13.8
   kernelspec:
     display_name: Python 3 (ipykernel)
     language: python
@@ -43,6 +43,7 @@ from icecube_tools.point_source_likelihood.point_source_likelihood import (
 
 from icecube_tools.detector.effective_area import EffectiveArea
 from icecube_tools.detector.r2021 import R2021IRF
+from icecube_tools.utils.data import Events, SimEvents, RealEvents
 ```
 
 ## Spatial likelihood
@@ -51,7 +52,7 @@ from icecube_tools.detector.r2021 import R2021IRF
 We can start with the spatial/directional term. Let's use the energy dependent spatial likelihood. It is build from a Gaussian with an event-wise uncertainty sampled from the IRF data. The background case will simply be an isotropic distribution on the sphere.
 
 ```python
-angular_resolution = 1 # deg
+angular_resolution = 5
 spatial_likelihood = EventDependentSpatialGaussianLikelihood(angular_resolution)
 ```
 
@@ -59,11 +60,12 @@ We show the likelihood profile for a single event with an assumed uncertainty of
 
 ```python
 source_coord = (np.pi, np.deg2rad(30))
-test_coords = [(np.pi+_, source_coord[1]) for _ in np.linspace(-0.1, 0.1, 100)]
+test_ra = np.pi + np.linspace(-0.1, 0.1, 100)
+test_dec = np.full((100), source_coord[1])
 
 fig, ax = plt.subplots()
-ax.plot(np.rad2deg([tc[0] for tc in test_coords]), 
-        [spatial_likelihood(1., tc, source_coord) for tc in test_coords])
+ax.plot(np.rad2deg(test_ra), 
+        spatial_likelihood(1., test_ra, test_dec, source_coord))
 ax.axvline(np.rad2deg(source_coord[0]), color="k", linestyle=":", 
            label="Source location")
 ax.set_xlabel("RA [deg]")
@@ -81,8 +83,8 @@ Doing this properly requires a knowledge of the relationship between the true an
 ```python
 aeff = EffectiveArea.from_dataset("20210126", period="IC86_II")
 irf = R2021IRF.from_period("IC86_II")
-new_reco_bins = irf.reco_energy_bins[12, 2]
-new_reco_bins = np.linspace(2, 8, num=15)
+#new_reco_bins = irf.reco_energy_bins[12, 2]
+new_reco_bins = np.linspace(2, 9, num=25)
 energy_likelihood = MarginalisedIntegratedEnergyLikelihood(irf, aeff, new_reco_bins)
 #energy_likelihood = MarginalisedEnergyLikelihood2021([1.5, 2.0, 2.5, 3.0, 3.5, 3.7, 4.0], 'data', 'sim_output', np.pi/4,)
 # the likelihood class is backwardscompatible with the "older" simulation-based energy likelihood
@@ -98,7 +100,7 @@ test_indices = [2.0, 2.5, 3, 3.5]
 energy = np.logspace(2, 7.66, num=1000, endpoint=False)
 fig, ax = plt.subplots()
 for index in test_indices:
-    ax.plot(energy, energy_likelihood(energy, index, np.deg2rad(45)), label=f"{index:.1f}")
+    ax.plot(energy, energy_likelihood(energy, index, np.full(energy.shape, np.deg2rad(45))), label=f"{index:.1f}")
 ax.set_xscale("log")
 ax.set_yscale("log")
 ax.set_xlabel("E_reco [GeV]")
@@ -112,25 +114,26 @@ ax.legend()
 Now we can bring together the spatial and energy terms to build a full `PointSourceLikelihood`. First, let's load some data from the simulation notebook to allow us to demonstrate.
 
 ```python
-data = {}
-with h5py.File("data/sim_output_86_II.h5", "r") as f:
-    for key in f:
-        if "source_0" not in key and "source_1" not in key:
-            data[key] = f[key][()]
+events = SimEvents.load_from_h5("h5_test.hdf5")
 ```
 
 Now lets put our likelihood structure and data in together, along with a proposed source location:
 
 ```python
 likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood, 
-                                  data["ra"], data["dec"], data["reco_energy"], data["ang_err"],
-                                  source_coord)
+                                   events.ra[events.periods[0]],
+                                   events.dec[events.periods[0]],
+                                   events.reco_energy[events.periods[0]],
+                                   events.ang_err[events.periods[0]],
+                                   source_coord,
+                                   which='both'
+)
 ```
 
 The likelihood will automatically select a declination band around the proposed source location. Because of the Gaussian spatial likelihood, neutrinos far from the source will have negligible contribution. We can control the width of this band with the optional argument `band_width_factor`. Let's see how many events ended up in the band, compared to the total number:
 
 ```python
-likelihood.Nprime
+events.ang_err
 ```
 
 ```python
@@ -148,7 +151,7 @@ We also note that the background likelihood is implemented automatically, for mo
 ```python
 fig, ax = plt.subplots()
 energy = np.logspace(new_reco_bins[0], new_reco_bins[-1], num=1000, endpoint=False)
-ax.step(energy, energy_likelihood(energy, 3.7, np.deg2rad(30)), 
+ax.step(energy, energy_likelihood(energy, 3.7, np.full(energy.shape, np.deg2rad(30))), 
         label=f"index 3.7")
 ax.set_xscale("log")
 ax.set_yscale("log")
@@ -163,22 +166,38 @@ A point source search is usually carried out by defining the likelihood ratio of
 `icecube_tools` includes calculation of the test statistic, with optimisation performed by `iminuit`.
 
 ```python
-np.log10(data["reco_energy"]).max()
-```
-
-```python
 likelihood.get_test_statistic()
 ```
 
 ```python
-likelihood._best_fit_index, likelihood._best_fit_ns
+likelihood._selected_energies.size
+```
+
+```python
+likelihood.m.values
 ```
 
 To understand the significance of this results, we would have to calculate the test statistic for a large number of background-only simulations. These could then be used to calculate a p-value. Given there is a strong point source in the simulation we used, we can expect the test stastic to be lower if we remove the source events. Let's try this:
 
 ```python
+likelihood.m
+```
+
+```python
+likelihood.N
+```
+
+```python
+events.arrival_energy
+```
+
+```python
+events.periods
+```
+
+```python
 # Get all point source events
-ps_sel = data["source_label"] == 1
+ps_sel = events.source_label[events.periods[0]] == 1
 ntot_ps_events = len(np.where(ps_sel==True)[0])
 
 # Remove them one by one and find test statistic
@@ -189,13 +208,13 @@ for n_rm in range(ntot_ps_events):
     ps_sel[np.where(ps_sel == True)[0][i_keep]] = False
     
     new_data = {}
-    for key, value in data.items():
-        new_data[key] = data[key][~ps_sel]
+    for key in events.keys:
+        new_data[key] = events.period(events._periods[0])[key][~ps_sel]
         
     new_likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood,
                                        new_data["ra"], new_data["dec"], 
                                        new_data["reco_energy"], new_data["ang_err"],
-                                       source_coord)
+                                       source_coord, which='both')
     new_likelihood._bg_energy_likelihood = None
     test_statistics.append(new_likelihood.get_test_statistic())
 ```
@@ -227,7 +246,7 @@ _ = m.draw_profile("ns")
 ```
 
 ```python
-np.nonzero(data["source_label"] == 1)[0].size
+np.nonzero(events.source_label["IC86_II"] == 1)[0].size
 ```
 
 ```python
@@ -237,10 +256,14 @@ _ = m.draw_profile("index", bound=(likelihood._energy_likelihood._min_index, lik
 And finally have a look at the 2d likelihood profile.
 
 ```python
+_ = m.draw_contour("index", "ns")
+```
+
+```python
 index = np.arange(1.7, 3.4, step=0.2)
 index_pl = np.arange(1.6, 3.5, step=0.2)
-ns_pl = np.arange(24., 46, step=2.)
-ns = np.arange(25, 45, step=2.)
+ns_pl = np.arange(14., 36, step=2.)
+ns = np.arange(15, 35, step=2.)
 ii, nn = np.meshgrid(index, ns, indexing='ij')
 ll = np.zeros(ii.flatten().shape)
 
@@ -264,9 +287,14 @@ The error provided by `migrad()` is unreasonably small.
 energy_likelihood = MarginalisedEnergyLikelihood2021(np.round(np.arange(1.5, 4.1, 0.2), decimals=1), 'data', 'p_IC86_II', np.deg2rad(30))
 energy_likelihood._min_index = 1.55
 energy_likelihood._max_index = 3.85
-likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood, 
-                                  data["ra"], data["dec"], data["reco_energy"], data["ang_err"],
-                                  source_coord)
+likelihood = PointSourceLikelihood(spatial_likelihood,
+                                   energy_likelihood, 
+                                   events.ra[events.periods[0]],
+                                   events.dec[events.periods[0]],
+                                   events.reco_energy[events.periods[0]],
+                                   events.ang_err[events.periods[0]],
+                                   source_coord
+)
 likelihood._bg_index = 3.7
 likelihood._bg_energy_likelihood = None
 
@@ -299,12 +327,24 @@ plt.title(f"index = {m.values['index']:.1f} - {m.values['index']-lower_lim:.1f} 
 
 # Time dependent point source analysis
 
+Encompassing multiple data seasons, although shown only for one (the same as above), uses a single `ns`, which is distributed among the seasons with the number of expected events for `gamma` and the provided observational times (`times`) as relative weight.
+
 ```python
+events = SimEvents.load_from_h5("h5_test.hdf5")
 source_coords = (np.pi, np.deg2rad(30))
+energy_likelihood = MarginalisedIntegratedEnergyLikelihood(irf, aeff, new_reco_bins)
 #index_list = list(np.arange(1.5, 4.25, 0.25))
-event_files = ["data/sim_output_86_II.h5"]
 tllh = TimeDependentPointSourceLikelihood(
-    source_coords, ["IC86_II"], event_files, MarginalisedIntegratedEnergyLikelihood)
+    source_coords,
+    ["IC86_II"],
+    events.ra,
+    events.dec,
+    events.reco_energy,
+    events.ang_err,
+    {"IC86_II": energy_likelihood},
+    which="both",
+    times={"IC86_II": 1}
+)
 
 m = tllh._minimize()
 
@@ -315,7 +355,9 @@ m
 _ = m.draw_profile("index")
 ```
 
-Looks slightly similar, uses a different internal reco energy binning!
+```python
+_ = m.draw_profile("ns")
+```
 
 ```python
 

@@ -50,12 +50,12 @@ def test_nu_calc():
 
 def test_simulation():
 
-    simulator = Simulator(sources, detector)
+    simulator = Simulator(sources, detector, "IC86_II")
     simulator.time = 1
 
     simulator.run(seed=42)
 
-    assert min(simulator.true_energy) >= 1e4
+    assert min(simulator._true_energy["IC86_II"]) >= 1e4
 
 
 

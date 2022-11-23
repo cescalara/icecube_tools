@@ -5,7 +5,7 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.14.1
+      jupytext_version: 1.13.8
   kernelspec:
     display_name: Python 3 (ipykernel)
     language: python
@@ -34,6 +34,7 @@ from icecube_tools.detector.detector import IceCube
 from icecube_tools.source.flux_model import PowerLawFlux
 from icecube_tools.source.source_model import DiffuseSource, PointSource
 from icecube_tools.detector.r2021 import R2021IRF
+from icecube_tools.utils.data import SimEvents
 ```
 
 ```python
@@ -101,7 +102,7 @@ from icecube_tools.simulator import Simulator, TimeDependentSimulator
 
 ```python
 # Set up simulation
-simulator = Simulator(sources, detector)
+simulator = Simulator(sources, detector, "IC86_II")
 simulator.time = 1 # year
 
 # Run simulation
@@ -111,25 +112,23 @@ simulator.run(show_progress=True, seed=42)
 This way, the simulator calculates the expected number of neutrinos from these sources given the observation period, effective area and relevant source properties. We note that we could also run a simulation for a fixed number of neutrinos if we want, simply by passing the optional argument `N` to `simulator.run()`.
 
 ```python
-#simulator.run(N=10, show_progress=True, seed=42)
+simulator.write_to_h5("h5_test.hdf5", sources)
 ```
 
 ```python
-# Save to file
-simulator.save("data/sim_output_86_II.h5")
-
-# Load
-with h5py.File("data/sim_output_86_II.h5", "r") as f:
-    true_energy = f["true_energy"][()]
-    reco_energy = f["reco_energy"][()]
-    ra = f["ra"][()]
-    dec = f["dec"][()]
-    ang_err = f["ang_err"][()]
-    source_label = f["source_label"][()]
+simulator.arrival_energy
 ```
 
 ```python
-np.log10(true_energy.min())
+events = SimEvents.load_from_h5("h5_test.hdf5")
+```
+
+```python
+events.period("IC86_II").keys()
+```
+
+```python
+len(events)
 ```
 
 ```python
@@ -161,8 +160,8 @@ for i in [1.5, 2.0, 2.5, 3.0, 3.5, 3.7]:
 # Plot energies
 bins = np.geomspace(1e2, max_energy)
 fig, ax = plt.subplots()
-ax.hist(true_energy, bins=bins, alpha=0.7, label="E_true")
-ax.hist(reco_energy, bins=bins, alpha=0.7, label="E_reco")
+ax.hist(events.true_energy["IC86_II"], bins=bins, alpha=0.7, label="E_true")
+ax.hist(events.reco_energy["IC86_II"], bins=bins, alpha=0.7, label="E_reco")
 ax.set_xscale("log")
 ax.set_yscale("log")
 ax.set_xlabel("E [GeV]")
@@ -171,19 +170,19 @@ ax.legend()
 
 ```python
 # Plot directions
-ps_sel = source_label == 1
+ps_sel = events.source_label["IC86_II"] == 1
 
 fig, ax = plt.subplots(subplot_kw={"projection": "aitoff"})
 fig.set_size_inches((12, 7))
 
 circles = []
-for r, d, a in zip(ra[~ps_sel], dec[~ps_sel], ang_err[~ps_sel]):
+for r, d, a in zip(events.ra["IC86_II"][~ps_sel], events.dec["IC86_II"][~ps_sel], events.ang_err["IC86_II"][~ps_sel]):
     circle = Circle((r-np.pi, d), radius=np.deg2rad(a))
     circles.append(circle)
 df_nu = PatchCollection(circles)
 
 circles = []
-for r, d, a in zip(ra[ps_sel], dec[ps_sel], ang_err[ps_sel]):
+for r, d, a in zip(events.ra["IC86_II"][ps_sel], events.dec["IC86_II"][ps_sel], events.ang_err["IC86_II"][ps_sel]):
     circle = Circle((r-np.pi, d), radius=np.deg2rad(a))
     circles.append(circle)
 ps_nu = PatchCollection(circles, color="r")
@@ -234,7 +233,6 @@ times
 The returned dictionary can be used to set the simulation times for an instance of `TimeDependentSimulator`:
 
 ```python
-tsim = TimeDependentSimulator(["IC86_I", "IC86_II"], sources)
 tsim.time = times
 ```
 
@@ -242,7 +240,28 @@ The simulation is started by calling `run()`, results can be saved by `save(file
 
 ```python
 tsim.run(show_progress=True)
-tsim.save("data", "test_sim")
+
+```
+
+```python
+tsim._true_energy
+```
+
+```python
+tsim.write_to_h5("multi_test.hdf5", sources)
+```
+
+```python
+tsim.arrival_energy
+```
+
+```python
+events = SimEvents.load_from_h5("multi_test.hdf5")
+```
+
+```python
+events.arrival_energy
+
 ```
 
 ```python
@@ -267,4 +286,8 @@ for i in [3.9]:
     tsim.run(show_progress=True)
     tsim.save(f"index_{i}")
 """
+```
+
+```python
+
 ```

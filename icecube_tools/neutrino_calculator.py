@@ -68,25 +68,16 @@ class NeutrinoCalculator:
 
     def _diffuse_calculation(self, source):
 
-        dN_dt = 0
-        for i, Em in enumerate(self.effective_area.true_energy_bins[:-1]):
+        Em = self.effective_area.true_energy_bins[:-1]
+        EM = self.effective_area.true_energy_bins[1:]
+        czm = self.effective_area.cos_zenith_bins[:-1]
+        czM = self.effective_area.cos_zenith_bins[1:]
 
-            EM = self.effective_area.true_energy_bins[i + 1]
+        integrated_spectrum = source.flux_model.integrated_spectrum(Em, EM)
+        integrated_direction = (czM - czm) * 2* np.pi
 
-            for j, czm in enumerate(self.effective_area.cos_zenith_bins[:-1]):
-
-                czM = self.effective_area.cos_zenith_bins[j + 1]
-
-                integrated_flux = (
-                    source.flux_model.integrated_spectrum(Em, EM)
-                    * (czM - czm)
-                    * 2
-                    * np.pi
-                )
-
-                aeff = self._selected_effective_area_values[i][j] * M_TO_CM ** 2
-
-                dN_dt += aeff * integrated_flux
+        aeff = self._selected_effective_area_values * M_TO_CM ** 2   # 1st index is energy, 2nd is cosz
+        dN_dt = integrated_spectrum.dot(aeff).dot(integrated_direction)
 
         return dN_dt * self._time * source.redshift_factor
 
@@ -101,26 +92,21 @@ class NeutrinoCalculator:
 
         return selected_bin_index
 
+
     def _point_source_calculation(self, source):
 
         selected_bin_index = self._select_single_cos_zenith(source)
 
-        dN_dt = 0
+        Em = self.effective_area.true_energy_bins[:-1]
+        EM = self.effective_area.true_energy_bins[1:]
+        integrated_flux = source.flux_model.integrated_spectrum(Em, EM)
 
-        for i, Em in enumerate(self.effective_area.true_energy_bins[:-1]):
+        aeff = self._selected_effective_area_values.T[selected_bin_index] * M_TO_CM ** 2
 
-            EM = self.effective_area.true_energy_bins[i + 1]
-
-            integrated_flux = source.flux_model.integrated_spectrum(Em, EM)
-
-            aeff = (
-                self._selected_effective_area_values.T[selected_bin_index][i]
-                * M_TO_CM ** 2
-            )
-
-            dN_dt += aeff * integrated_flux
+        dN_dt = np.dot(aeff, integrated_flux)
 
         return dN_dt * self._time * source.redshift_factor
+
 
     def __call__(self, time=1, min_energy=1e2, max_energy=1e9, min_cosz=-1, max_cosz=1):
         """

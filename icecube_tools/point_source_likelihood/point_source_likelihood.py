@@ -5,6 +5,14 @@ import logging
 from .energy_likelihood import *
 from .spatial_likelihood import *
 
+from ..utils.data import Events, Uptime
+from ..source.source_model import PointSource
+from ..source.flux_model import PowerLawFlux
+from ..neutrino_calculator import NeutrinoCalculator
+
+from typing import Dict, List, Tuple, Sequence
+from collections import OrderedDict
+
 """
 Module to compute the IceCube point source likelihood
 using publicly available information.
@@ -33,17 +41,17 @@ class PointSourceLikelihood:
 
     def __init__(
         self,
-        direction_likelihood,
-        energy_likelihood,
-        ras,
-        decs,
-        energies,
-        ang_errs=[],
-        source_coord=(),
-        which='both',
+        direction_likelihood: SpatialLikelihood,
+        energy_likelihood: MarginalisedEnergyLikelihood,
+        ras: Sequence[float],
+        decs: Sequence[float],
+        energies: Sequence[float],
+        ang_errs: Sequence[float],
+        source_coord: Tuple[float, float],
+        which: str='both',
         bg_energy_likelihood=None,
         index_prior=None,
-        band_width_factor=3.0,
+        band_width_factor: float=3.0
     ):
         """
         Calculate the point source likelihood for a given
@@ -52,9 +60,13 @@ class PointSourceLikelihood:
 
         :param direction_likelihood: An instance of SpatialLikelihood.
         :param energy_likelihood: An instance of MarginalisedEnergyLikelihood.
-        :param event_coords: List of (ra, dec) tuples for reconstructed coords.
-        :param energies: The reconstructed nu energies.
+        :param ras: Right ascensions of events, in rad
+        :param decs: Declination of events, in rad
+        :param energies: The reconstructed nu energies in GeV.
+        :param ang_errs: $1 \sigma$ angular errors of events, in degrees
         :param source_coord: (ra, dec) pf the point to test.
+        :param mjd: Start, End of observation campaign used, needed for relative weighting of ns_i
+        :param which: str, either `spatial`, `both`, which information of event to be used
         :param index_prior: Optional prior on the spectral index, instance of Prior.
         """
 
@@ -62,21 +74,13 @@ class PointSourceLikelihood:
             raise ValueError("No other type of likelihood available.")
         else:
             self.which = which
-            logger.info(f"Using {which} likelihoods.")
+            logger.debug(f"Using {which} likelihoods.")
 
         self._direction_likelihood = direction_likelihood
 
         self._energy_likelihood = energy_likelihood
 
         self._bg_energy_likelihood = bg_energy_likelihood
-
-        """
-        try:
-            if 3.7 in energy_likelihood.index_list:
-                self._bg_energy_likelihood = energy_likelihood.likelihood['3.7']
-        except AttributeError:
-            pass
-        """
         
         if isinstance(
             self._direction_likelihood, EnergyDependentSpatialGaussianLikelihood
@@ -142,6 +146,10 @@ class PointSourceLikelihood:
 
 
     def _select_nearby_events(self):
+        """
+        Select events used in analysis nearby the source.
+        """
+
         source_ra, source_dec = self._source_coord
         dec_fac = np.deg2rad(self._band_width)
         selected = list(
@@ -175,26 +183,32 @@ class PointSourceLikelihood:
 
         self.N = len(selected_dec_band)
 
-
-    def _signal_likelihood(self, ra, dec, source_coord, energy, index, ang_err=1):
+    # @profile
+    def _signal_likelihood(
+        self,
+        ra: np.ndarray,
+        dec: np.ndarray,
+        source_coord: Tuple[float, float],
+        energy: np.ndarray,
+        index: float,
+        ang_err: np.ndarray):
         """
         Calculate the signal likelihood of a given event.
-        :param ra: RA of event
-        :param dec: DEC of event
-        :param source_coord: Tuple of source coordinate (ra, dec)
+        :param ra: RA of event, in rad
+        :param dec: DEC of event, in rad
+        :param source_coord: Tuple of source coordinate (ra, dec), in rad
         :param energy: Energy of event in GeV
         :param index: Spectral index of source model
-        :param ang_err: Angular error on the event, defaults to 1 degree.
+        :param ang_err: Angular error on the event, in degrees
+        :return: Likelihood for each provided event
         """
-
-        
 
         if isinstance(
             self._direction_likelihood, EnergyDependentSpatialGaussianLikelihood
         ):
             def spatial():
                 return self._direction_likelihood(
-                    (ra, dec), source_coord, energy, index
+                    ra, dec, source_coord, energy, index
                 )
 
             def en():
@@ -206,7 +220,7 @@ class PointSourceLikelihood:
         ):
             def spatial():
                 return self._direction_likelihood(
-                    ang_err, (ra, dec), source_coord
+                    ang_err, ra, dec, source_coord
                 )
             
             def en():
@@ -215,7 +229,7 @@ class PointSourceLikelihood:
         else:
             def spatial():
                 return self._direction_likelihood(
-                    (ra, dec), source_coord
+                    ra, dec, source_coord
                 )
             def en():
                 return self._energy_likelihood(energy, index, dec)
@@ -229,11 +243,26 @@ class PointSourceLikelihood:
 
         return output
 
-
-    def _background_likelihood(self, energy, dec):
+    # @profile
+    def _background_likelihood(
+        self,
+        energy: np.ndarray,
+        dec: np.ndarray,
+        weight: float=0.,
+        index_astro: float=2.5,
+        index_atmo: float=3.7):
         """
         Calculate the background likelihood for an event of given energy.
-        :param energy: Energy of event in GeV
+        Split this into two background contributions:
+        one for atmospheric events (atmo_index) and one for astrophysical events (astro_index)
+        Likelihood is sum of two components, `weight` is parameter of simplex,
+        weight = 0 -> fully atmospheric, weight = 1 -> fully astrophysical
+        :param energy: Energy of events in GeV
+        :param dec: Declination of events in rad
+        :param weight: Weight of backgrounds, 0 for pure atmospheric (index=3.7), 1 for pure astrophysical (index=2.5)
+        :param index_astro: Astrophysical background spectral index, defaults to 2.5
+        :param index_atmo: Atmospheric background spectral index, defaults to 3.7
+        :return: Likelihood for each provided event
         """
 
         if self._bg_energy_likelihood is not None:
@@ -241,27 +270,34 @@ class PointSourceLikelihood:
                 return self._bg_energy_likelihood(energy) 
             
         else:
-            def en():
-                return self._energy_likelihood(energy, self._bg_index, dec)
+            def en(energy, index, dec):
+                return self._energy_likelihood(energy, index, dec)
         
         def spatial():
-            return 1. / self._band_solid_angle
+            return np.full(energy.shape, 1. / self._band_solid_angle)
 
         #Check which part is used for likelihood calculation
         if self.which == 'spatial':
             output = spatial()
         elif self.which == 'energy':
-            output = en()
+            output = (1 - weight) * en(energy, index_atmo, dec) + weight * en(energy, index_astro, dec)
         else:
-            output = en() * spatial()
+            output = ((1 - weight) * en(energy, index_atmo, dec) + weight * en(energy, index_astro, dec)) * spatial()
 
-        if output == 0.0:
-            output = 1e-10
+        output[np.nonzero(output==0)] = 1e-10
+        #if output == 0.0:
+        #    output = 1e-10
 
         return output
 
-
-    def _func_to_minimize(self, ns, index):
+    # @profile
+    def _func_to_minimize(
+        self,
+        ns: float,
+        index: float=2.0,
+        weight: float=0.,
+        index_astro: float=2.5,
+        index_atmo: float=3.7):
         """
         Calculate the -log(likelihood_ratio) for minimization.
 
@@ -271,8 +307,12 @@ class PointSourceLikelihood:
         If there is a prior, it is added here, as this is equivalent to maximising
         the likelihood.
 
-        :param ns: Number of source counts.
-        :param index: Spectral index of the source.
+        :param ns: Number of source counts
+        :param index: Spectral index of the source, defaults to 2.0
+        :param weight: Weight of backgrounds, 0 for pure atmospheric (index=3.7), 1 for pure astrophysical (index=2.5)
+        :param index_astro: Astrophysical background spectral index, defaults to 2.5
+        :param index_atmo: Atmospheric background spectral index, defaults to 3.7
+        :return: negative log likelihood ratio over all events
         """
 
         one_plus_alpha = 1e-10
@@ -285,36 +325,34 @@ class PointSourceLikelihood:
             index_list = self._energy_likelihood.index_list[idx-1:idx+1]
 
         for c, indx in enumerate(index_list):
-            log_likelihood_ratio = 0.0
-            for i in range(self.Nprime):
-                signal = self._signal_likelihood(
-                    self._selected_ras[i],
-                    self._selected_decs[i],
-                    self._source_coord,
-                    self._selected_energies[i],
-                    indx,
-                    ang_err=self._selected_ang_errs[i]
-                )
+            log_likelihood_ratio = np.zeros_like(self._selected_ras)
+            signal = self._signal_likelihood(
+                self._selected_ras,
+                self._selected_decs,
+                self._source_coord,
+                self._selected_energies,
+                indx,
+                ang_err=self._selected_ang_errs
+            )
 
-                bg = self._background_likelihood(
-                    self._selected_energies[i],
-                    self._selected_decs[i]
-                )
+            bg = self._background_likelihood(
+                self._selected_energies,
+                self._selected_decs,
+                weight,
+                index_astro,
+                index_atmo
+            )
 
-                chi = (1 / self.N) * (signal / bg - 1)
+            chi = (1 / self.N) * (signal / bg - 1)
 
-                alpha_i = ns * chi
+            alpha_i = ns * chi
 
-                if (1 + alpha_i) < one_plus_alpha:
-
-                    alpha_tilde = (alpha_i - alpha) / one_plus_alpha
-                    log_likelihood_ratio += (
-                        np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde ** 2)
-                    )
-
-                else:
-
-                    log_likelihood_ratio += np.log1p(alpha_i)
+            one_p = 1 + alpha_i < one_plus_alpha
+            
+            alpha_tilde = (alpha_i[one_p] - alpha) / one_plus_alpha
+            log_likelihood_ratio[one_p] = np.log1p(alpha) + alpha_tilde - 0.5 * np.power(alpha_tilde, 2)
+            log_likelihood_ratio[~one_p] = np.log1p(alpha_i[~one_p])
+            log_likelihood_ratio = np.sum(log_likelihood_ratio)
 
             log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
 
@@ -333,8 +371,8 @@ class PointSourceLikelihood:
         
         return -log_likelihood_ratio
 
-
-    def _func_to_minimize_sp(self, ns, index=2.0):
+    
+    def _func_to_minimize_sp(self, ns: float, index: float=2.0):
         """
         Calculate the -log(likelihood_ratio) for minimization using spatial information only.
 
@@ -351,45 +389,41 @@ class PointSourceLikelihood:
         one_plus_alpha = 1e-10
         alpha = one_plus_alpha - 1
 
-        log_likelihood_ratio = 0.0
-        for i in range(self.Nprime):
-            signal = self._signal_likelihood(
-                self._selected_ras[i],
-                self._selected_decs[i],
-                self._source_coord,
-                self._selected_energies[i],
-                2.0,
-                ang_err=self._selected_ang_errs[i]
-            )
+        log_likelihood_ratio = np.zeros_like(self._selected_ras)
+        
+        signal = self._signal_likelihood(
+            self._selected_ras,
+            self._selected_decs,
+            self._source_coord,
+            self._selected_energies,
+            2.0,
+            ang_err=self._selected_ang_errs
+        )
 
-            bg = self._background_likelihood(self._selected_energies[i], self._selected_decs[i])
+        bg = self._background_likelihood(self._selected_energies, self._selected_decs)
 
-            chi = (1 / self.N) * (signal / bg - 1)
+        chi = (1 / self.N) * (signal / bg - 1)
 
-            alpha_i = ns * chi
+        alpha_i = ns * chi
 
-            if (1 + alpha_i) < one_plus_alpha:
-
-                alpha_tilde = (alpha_i - alpha) / one_plus_alpha
-                log_likelihood_ratio += (
-                    np.log1p(alpha) + alpha_tilde - (0.5 * alpha_tilde ** 2)
-                )
-
-            else:
-
-                log_likelihood_ratio += np.log1p(alpha_i)
+        one_p = 1 + alpha_i < one_plus_alpha
+        
+        alpha_tilde = (alpha_i[one_p] - alpha) / one_plus_alpha
+        log_likelihood_ratio[one_p] = np.log1p(alpha) + alpha_tilde - 0.5 * np.power(alpha_tilde, 2)
+        log_likelihood_ratio[~one_p] = np.log1p(alpha_i)
+        log_likelihood_ratio = np.sum(log_likelihood_ratio)
 
         log_likelihood_ratio += (self.N - self.Nprime) * np.log1p(-ns / self.N)
 
         return -log_likelihood_ratio
 
 
-    def __call__(self, ns, index):
+    def __call__(self, ns, index, weight=0, index_astro=2.5, index_atmo=3.7):
         """
         Wrapper function for convenience.
         """
 
-        return self._func_to_minimize(ns, index)
+        return self._func_to_minimize(ns, index, weight, index_astro, index_atmo)
 
 
     def _minimize(self):
@@ -402,27 +436,52 @@ class PointSourceLikelihood:
 
         init_index = self._energy_likelihood._min_index + (self._max_index - self._energy_likelihood._min_index) / 2
         init_ns = self._ns_min + (self._ns_max - self._ns_min) / 2
+        init_weight = 0.0
+        init_astro = 2.5
+        init_atmo = 3.7
 
         if self.which == 'spatial':
             #Spatial-only likelihood needs special function, because no spectral index is used
-            logger.info("Using only spatial information.")
-            func_to_minimize = self._func_to_minimize_sp
+            logger.debug("Using only spatial information.")
+            self.minimize_this = self._func_to_minimize_sp
         else:
-            func_to_minimize = self._func_to_minimize
-            logger.info("Using all information.")
+            self.minimize_this = self._func_to_minimize
+            logger.debug("Using all information.")
 
-        m = Minuit(
-            func_to_minimize,
-            ns=init_ns,
-            index=init_index,
-        )
-        # m.fixed["index"] = True
+        if self.which != "spatial":
+            m = Minuit(
+                self.minimize_this,
+                ns=init_ns,
+                index=init_index,
+                weight=init_weight,
+                index_astro=init_astro,
+                index_atmo=init_atmo,
+            )
+        else:
+            m = Minuit(
+                self.minimize_this,
+                ns=init_ns,
+                index=init_index,
+            )
+
         m.limits["ns"] = (self._ns_min, self._ns_max)
-        m.errors["index"] = 0.1
-        m.errors["ns"] = 1
         m.limits["index"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
-        if self.which == 'spatial':
+        m.errors["ns"] = 1
+        m.errors["index"] = 0.1
+
+        if self.which != "spatial":
+            m.limits["weight"] = (0., 1.)
+            m.limits["index_astro"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
+            m.limits["index_atmo"] = (self._energy_likelihood._min_index, self._energy_likelihood._max_index)
+            m.errors["weight"] = 0.05
+            m.errors["index_atmo"] = 0.1
+            m.errors["index_astro"] = 0.1
+            m.fixed["index_atmo"] = True
+            m.fixed["index_astro"] = True
+            m.fixed["weight"] = True
+        elif self.which == "spatial":
             m.fixed["index"] = True
+
         m.errordef = 0.5
         m.migrad()
 
@@ -430,10 +489,13 @@ class PointSourceLikelihood:
 
             # Fix the index as can be uninformative
             m.fixed["index"] = True
+            m.fixed["index_atmo"] = True
+            m.fixed["index_astro"] = True
             m.migrad()
 
         self._best_fit_ns = m.values["ns"]
         self._best_fit_index = m.values["index"]
+        self.m = m
         return m
 
 
@@ -535,7 +597,7 @@ class PointSourceLikelihood:
         Calculate the test statistic for the best fit ns
         """
 
-        _ = self._minimize()
+        self._m = self._minimize()
         # self._minimize_grid()
 
         # For resolving the TS peak at zero
@@ -550,9 +612,19 @@ class PointSourceLikelihood:
 
         # else:
 
-        neg_log_lik = self._func_to_minimize(
-            self._best_fit_ns, self._best_fit_index
-        )
+        # make sure that correct minimum (i.e. spatial/energy/both) is calculated:
+        if self.which != "spatial":
+            neg_log_lik = self.minimize_this(
+                self._best_fit_ns,
+                self._best_fit_index,
+                self.m.values["weight"], 
+                self.m.values["index_astro"],
+                self.m.values["index_atmo"]
+            )
+        else:
+            neg_log_lik = self.minimize_this(
+                self._best_fit_ns, self._best_fit_index
+            )
 
         self.likelihood_ratio = np.exp(neg_log_lik)
 
@@ -748,104 +820,102 @@ class SpatialOnlyPointSourceLikelihood:
 class TimeDependentPointSourceLikelihood:
     def __init__(
         self,
-        source_coords,
-        periods,
-        event_files,
-        energy_likelihood: MarginalisedEnergyLikelihood,
+        source_coords: Tuple[float, float],
+        periods: List[str],
+        ra: Dict,
+        dec: Dict,
+        reco_energy: Dict,
+        ang_err: Dict,
+        energy_llh: Dict,
+        times: Dict,
         path=None,
         index_list=None,
-        which="both"):
+        which: str="both",
+        emin: float=1e1,
+        emax: float=1e9):
         """
         Create likelihood covering multiple data taking periods.
-        :param source_coords: Tuple of ra, dec.
+        :param source_coords: Tuple of ra, dec, in rad
         :param periods: List of str of period names, eg. `IC40`
-        :param event_files: List of event files corresponding the the above periods.
-        :energy_likelihood: Class inheriting from MarginalisedEnergyLikelihood.
+        :param ra: Dict of RAs
+        :param dec: Dict of DECs
+        :param reco_energy: Dict of reconstructed energies in GeV
+        :param ang_err: Dict of 68% angular errors in degrees
+        :energy_llh: Dict of objects inheriting from MarginalisedEnergyLikelihood.
+        :param times: Dict of observational times in years (without astropy.unit attached)
+        :param path: Path to simualation files if energy likelihood is based on simulations
         :param index_list: List of indices covered by the events used to build the energy likelihood.
-        :param path: Path to directory where the simulated events (see above) are located.
         :param which: String, `both`, `spatial`, `energy` indicating which likelihoods are to be used.
+        :param emin: Minimum reco energy considered
+        :param emax: Maximum reco energy considered
         """
 
+        if which not in ["both", "energy", "spatial"]:
+            raise ValueError("Provided likelihood type not provided")
+        
         self.which = which
         self.source_coords = source_coords
-        #files should be dict of files, with period string as the key
-        self.event_files = event_files
         self.periods = periods
-        #self.period_dict = period_dict
-        """
-        self.period_dict = {str(p):
-            {str(index): path to data file for index in index_list} for p in periods
-        }
-
-        """
-        #self.periods = list(period_dict.keys())
-        #self.index_list = 
         self.index_list = index_list
-        assert len(event_files) == len(periods)
-
-        #TODO change this to named tuples?
-        self.likelihoods = {}
+        self.likelihoods = OrderedDict()
         # Can use one spatial llh for all periods, 'tis but a Gaussian
         spatial_llh = EventDependentSpatialGaussianLikelihood()
+        self.times = times
+        self.aeffs = {}
+        self.nu_calcs = {}
+        flux = PowerLawFlux(1e-20, 1e6, 2.5, lower_energy=emin, upper_energy=emax)
+        self.source = PointSource(flux_model=flux, z=0., coord=self.source_coords)
 
-        for p, file in zip(self.periods, self.event_files):
-            print(p)
-            data = {}
-            # Open event files
-            with h5py.File(file, "r") as f:
-                for key in f:
-                    if "source_0" not in key and "source_1" not in key:
-                        data[key] = f[key][()]
-            if energy_likelihood == MarginalisedEnergyLikelihood2021:
-                energy_llh = MarginalisedEnergyLikelihood2021(
-                    index_list, path, f"p_{p}", self.source_coords[1]
-                )
-            elif energy_likelihood == MarginalisedIntegratedEnergyLikelihood:
-                energy_llh = MarginalisedIntegratedEnergyLikelihood(
-                    R2021IRF.from_period(p),
-                    EffectiveArea.from_dataset("20210126", p),
-                    np.linspace(2, 9, num=20)
-                )
+        for p in self.periods:
+            self.aeffs[p] = EffectiveArea.from_dataset("20210126", p)
+            self.nu_calcs[p] = NeutrinoCalculator([self.source], self.aeffs[p])
 
             #create likelihood objects
             self.likelihoods[p] = PointSourceLikelihood(
                 spatial_llh,
-                energy_llh,
-                data["ra"],
-                data["dec"],
-                data["reco_energy"],
-                data["ang_err"],
+                energy_llh[p],
+                ra[p],
+                dec[p],
+                reco_energy[p],
+                ang_err[p],
                 self.source_coords,
                 which=self.which
             )
 
 
-    def __call__(self, *ns, index):
+    def __call__(self, ns: float, index: float):
         """
         Calculate negative log-like ratio as function of ns and index.
         ns is now vector with an entry for each period.
-        :param ns: List of numbers of source events.
+        :param ns: Number of source events.
         :param index: Spectral index of source spectrum.
+        :return: Negative log likelihood ratio
         """
-        assert len(ns) == len(self.likelihoods.keys())
-        return self._func_to_minimize(np.hstack((ns, index)))
+
+        return self._func_to_minimize(ns, index)
 
 
-    def _func_to_minimize(self, *arg):
+    def _func_to_minimize(self, ns, index):
         """
         According to https://github.com/icecube/skyllh/blob/master/doc/user_manual.pdf,
         Eq. (59), the returned values of each period's llh._func_to_minimize() can be added.
-        :param arg: numpy.ndarray, last entry is index, all before are number of source events.
+        :param ns: Number of source events
+        :param index: Spectral index of source spectrum
+        :return: negative log likelihood ratio
         """
         neg_log_like = 0
-        for (n, llh) in zip(arg[:-1], self.likelihoods.values()):
-            val = llh(n, arg[-1])
-            #print(val)
+        weights = self._calc_weights(index)
+        for (w, llh) in zip(weights, self.likelihoods.values()):
+            if llh.N == 0 or np.isclose(ns * w / llh.N - 1., 0., atol=1e-10):
+                # is this appropriate?
+                continue
+            val = llh(ns * w, index)
             neg_log_like += val
         return neg_log_like
 
 
-    def _func_to_minimize_sp(self, *arg):
+    '''
+    def _func_to_minimize_sp(self, ns, index=2.7):
         """
         According to https://github.com/icecube/skyllh/blob/master/doc/user_manual.pdf,
         Eq. (59), the returned values of each period's llh._func_to_minimize() can be added.
@@ -854,9 +924,9 @@ class TimeDependentPointSourceLikelihood:
         neg_log_like = 0
         for (n, llh) in zip(arg, self.likelihoods.values()):
             val = llh._func_to_minimize_sp(n)
-            #print(val)
             neg_log_like += val
         return neg_log_like
+    '''
 
 
     def _minimize(self):
@@ -867,56 +937,93 @@ class TimeDependentPointSourceLikelihood:
         Uses the iMinuint wrapper.
         """
 
-        error_index = 0.1
         some_llh = self.likelihoods[list(self.likelihoods.keys())[0]]
         init_index = some_llh._min_index + (some_llh._max_index - some_llh._min_index) / 2
         limit_index = (some_llh._energy_likelihood._min_index,
             some_llh._energy_likelihood._max_index)
-        # Get init_ns and limit_ns for each period
-        # could be nicer with some generator method
-        init = []
-        limits = []
+        ns_max = []
         for llh in self.likelihoods.values():
-            init.append(llh._ns_min + (llh._ns_max - llh._ns_min) / 2)
-            limits.append((llh._ns_min, llh._ns_max))
+            ns_max.append(llh._ns_max)
+        init_ns = min(ns_max) * 0.01
+        init = [init_ns, init_index]
+        limits = [(0, 0.6*self.N), limit_index]
 
         # Get errors to start with
-        errors = [1 for _ in init]  
-        name = tuple(f"n{i}" for i in range(len(init)))  
+        errors = [1, 0.1]  
+        name = ["ns", "index"]
+
 
         if self.which == 'spatial':
+            raise ValueError("Currently not supported")
             #Only spatial-only likelihood needs special function, because no spectral index is used
-            func_to_minimize = self._func_to_minimize_sp
+            self.minimize_this = self._func_to_minimize_sp
         else:
-            func_to_minimize = self._func_to_minimize
+            self.minimize_this = self._func_to_minimize
             #add errors, limits, start value and name of index
-            errors += [error_index]
-            limits += [limit_index]
-            init += [init_index]
-            name += ("index",)
 
-        m = Minuit(func_to_minimize, *init, name=name)
-        m.errordef = 0.5
-        m.errors = errors
-        m.limits = limits        
-        m.migrad()
+        self.m = Minuit(self.minimize_this, *init, name=name)
+        self.m.errordef = 0.5
+        self.m.errors = errors
+        self.m.limits = limits        
+        self.m.migrad()
 
         if self.which != 'spatial':
-            if not m.fmin.is_valid or not m.fmin.has_covariance:
+            if not self.m.fmin.is_valid or not self.m.fmin.has_covariance:
 
                 # Fix the index as can be uninformative
-                m.fixed["index"] = True
-                m.migrad()
+                self.m.fixed["index"] = True
+                self.m.migrad()
         else:
-            if not m.fmin.is_valid or not m.fmin.has_covariance:
+            if not self.m.fmin.is_valid or not self.m.fmin.has_covariance:
                 logger.warning("Fit has not converged, proceed with caution.")
 
-        return m
+        if self.which != "spatial":
+            self._best_fit_index = self.m.values["index"]
+        else:
+            self._best_fit_index = 2.7
+        self._best_fit_ns = self.m.values["ns"]
+        return self.m
+
+
+    def _calc_weights(self, index: float):
+        """
+        Calculate weights (i.e. number of expected events) for the individual likelihoods'
+        :param index: Spectral index
+        """
+        # works as intended, same numbers as NeutrinoCalculator in simulate.md example
+        #TODO write test?
+        n_i = np.zeros(len(self.periods))
+        for c, p in enumerate(self.periods):
+            self.nu_calcs[p]._sources[0]._flux_model._index = index
+            n_i[c] = self.nu_calcs[p](time=self.times[p], )[0]
+        N = np.sum(n_i)
+        weights = n_i / N
+
+        return weights
 
 
     def get_test_statistic(self):
-        raise NotImplementedError("Not yet implemented.")
+        self._minimize()
+        neg_log_lik = self.minimize_this(self._best_fit_ns, self._best_fit_index)
+        self.likelihood_ratio = np.exp(neg_log_lik)
+        self.test_statistic = -2 * neg_log_lik
+        return self.test_statistic
 
+
+    @property
+    def N(self):
+        n = 0
+        for l in self.likelihoods.values():
+            n += l.N
+        return n
+
+
+    @property
+    def Nprime(self):
+        n = 0
+        for l in self.likelihoods.values():
+            n += l.Nprime
+        return n
 
 
 class EnergyDependentSpatialPointSourceLikelihood:

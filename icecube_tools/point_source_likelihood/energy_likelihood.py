@@ -40,7 +40,7 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
     """
     Calculates energy likelihood by integration rather than simulation.
     """
-
+    #@profile
     def __init__(
         self,
         irf: R2021IRF,
@@ -48,7 +48,15 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         reco_bins: np.ndarray,
         min_index: float=1.5,
         max_index: float=4.0,
-        ):
+    ):
+        """
+        Init likelihood.
+        :param irf: Instance of :class:`icecube_tools.detector.r2021.R2021IRF`
+        :param aeff: Instance of :class:`icecube_tools.detector.effective_area.EffectiveArea`
+        :param reco_bins: Array of new reconstructed energy bins at which the likelihood is evaluated
+        :param min_index: Smallest spectral index considered
+        :param max_index: Largest spectral index considered
+        """
 
         # TODO change reco_bins to cover the range provided by all the pdfs
         # and have the coarsest binning of all pdfs
@@ -65,7 +73,7 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         self.true_energy_bins = self.true_energy_bins[idx]
         self.declination_bins_irf = irf.declination_bins
         self.cos_z_bins = aeff.cos_zenith_bins
-        self.declination_bins_aeff = np.arcsin(-self.cos_z_bins)
+        self.declination_bins_aeff = np.flip(np.arcsin(-self.cos_z_bins))
         self._min_index = min_index
         self._max_index = max_index
         self.true_bins_c = self.true_energy_bins[:-1] + 0.5 * np.diff(self.true_energy_bins)
@@ -81,8 +89,12 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
                     pdf = self._irf.reco_energy[c_irf_true, c_dec]
                     self._cdf[c_true, c_dec, c] = pdf.cdf(erecoh) - pdf.cdf(erecol)
 
-
-    def __call__(self, ereco, index, dec):
+    # @profile
+    def __call__(
+        self,
+        ereco: np.ndarray,
+        index: float,
+        dec: np.ndarray) -> np.ndarray:
         """
         Wrapper on _calc_likelihood to retrieve only the likelihood for a specific Ereco value.
         Saves time by storing data and checking if data of the same index is requested
@@ -99,34 +111,31 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
             raise ValueError("Index too low")
 
         log_ereco = np.log10(ereco)
-        reco_ind = np.digitize(log_ereco, self.reco_bins) - 1
-        dec_ind = np.digitize(dec, self.declination_bins_aeff) - 1
-        
-        #if there was a previous index, look it up
-        if self._previous_index is not None:
-            #if asked for index is close to previous, look up declination
-            if np.isclose(self._previous_index, index):
-                try:
-                    return self._values[dec_ind][reco_ind]
-                except KeyError:
-                    self._values[dec_ind] = self._calculate_values(index, dec)
-            #else calculate from scratch and overwrite all previous values
-            else:
-                self._previous_index = index
-                self._values = {}
-                self._values[dec_ind] = self._calc_likelihood(index, dec)
-        else:
-            self._values[dec_ind] = self._calc_likelihood(index, dec)
-        return self._values[dec_ind][reco_ind]
+        reco_ind = np.digitize(log_ereco, self.reco_bins) - 1    # is np.ndarray
+        dec_ind = np.digitize(dec, self.declination_bins_aeff) - 1 # is np.ndarray
+
+        dec_ind_set = set(dec_ind)
+        output = np.zeros_like(log_ereco)
+        # loop over set(sec_ind):
+        for dec_idx in dec_ind_set:
+            single_dec = self.declination_bins_aeff[dec_idx]
+            self._values[dec_idx] = self._calc_likelihood(index, single_dec)
+            needed = np.nonzero((dec_ind == dec_idx))
+            output[needed] = self._values[dec_idx][reco_ind[needed]]
+
+        return output
 
 
     #@profile
-    def _calc_likelihood(self, index, dec):
+    def _calc_likelihood(self, index: float, dec: float) -> np.ndarray:
         """
-        Calculates likelihood for new reco energy binning for given index at given declination.
+        Calculates likelihood for given index at given declination.
+        :param index: Spectral index
+        :param dec: Declination in rad
+        :return: Likelihood for each reco_bin
         """
 
-        irf_dec_ind = np.digitize(dec, self.declination_bins_irf) - 1        
+        irf_dec_ind = np.digitize(dec, self.declination_bins_irf) - 1     
 
         #pre-calculate power law and aeff part, is not dependent on reco energy
         pl = np.zeros(self.true_energy_bins.size - 1)
@@ -155,12 +164,27 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
 
     @staticmethod
     def integrated_power_law(loge_high, loge_low, index):
+        """
+        Integrates power law
+        :param loge_high: float or np.ndarray of upper integration bound(s)
+        :param loge_low: float or np.ndarray of lower integration bound(s)
+        :param index: spectral index
+        :return: Integrated power law, float or np.ndarray
+        """
+        #works with np.ndarrays!
         return 1. / (1 - index) * \
             (np.power(10, -loge_high * (index - 1)) - np.power(10, -loge_low * (index - 1)))
 
 
     @staticmethod
     def power_law_loge(loge, index):
+        """
+        Evaluated power law
+        :param loge: Logarithmic energy, base 10
+        :param index: Spectral index
+        :return: Evaluated power law
+        """
+        
         return np.power(np.power(10, loge), -index + 1)
 
 
@@ -170,8 +194,6 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
     Compute the marginalised energy likelihood by reading in the provided IRF data of 2021.
     Creates instances of MarginalisedEnergyLikelihoodFromSimFixedIndex (slightly copied from
     MarginalisedEnergyLikelihoodFromSim but with different interpolating) for each given index.
-    If the likelihood is requested for an index not provided with a dataset,
-    the likelihood will be interpolated (linearly) between provided indices.
     """
 
     def __init__(self,

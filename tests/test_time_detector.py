@@ -2,10 +2,26 @@ from logging import raiseExceptions
 from icecube_tools.detector.detector import TimeDependentIceCube
 from icecube_tools.detector.effective_area import EffectiveArea
 from icecube_tools.detector.r2021 import R2021IRF
+from icecube_tools.utils.data import Uptime
 from pytest import raises
 
 
 period = "IC86_II"
+
+
+def test_uptime():
+
+    uptime = Uptime()
+
+    assert uptime.time_obs("IC86_II") <= uptime.time_span("IC86_II")
+
+    times = uptime.find_obs_time(start=55569, duration=3)
+
+    for t in times.values():
+
+        assert t > 0
+
+
 
 def test_time_dependent_icecube():
 
