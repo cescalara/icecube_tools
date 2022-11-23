@@ -162,9 +162,13 @@ class PointSourceLikelihood:
                 )[0]
             )
         )
-        selected_dec_band = np.where(
-            (self._decs >= self._dec_low) & (self._decs <= self._dec_high)
-        )[0]
+        selected_dec_band = list(
+            set(
+                np.where(
+                    (self._decs >= self._dec_low) & (self._decs <= self._dec_high)
+                )[0]
+            )
+        )
 
         self._selected = selected
 
@@ -173,6 +177,13 @@ class PointSourceLikelihood:
         self._selected_decs = self._decs[selected]
 
         self._selected_energies = self._energies[selected]
+
+        self._selected_bg_energies = self._energies[selected_dec_band]
+
+        self._selected_bg_ras = self._ras[selected_dec_band]
+
+        self._selected_bg_decs = self._decs[selected_dec_band]
+    
 
         if isinstance(self._ang_errs, np.ndarray):
             self._selected_ang_errs = self._ang_errs[selected]
@@ -281,6 +292,8 @@ class PointSourceLikelihood:
             output = spatial()
         elif self.which == 'energy':
             output = (1 - weight) * en(energy, index_atmo, dec) + weight * en(energy, index_astro, dec)
+        elif self.which == 'background':
+            output = en(energy, index_atmo, dec)
         else:
             output = ((1 - weight) * en(energy, index_atmo, dec) + weight * en(energy, index_astro, dec)) * spatial()
 
@@ -418,6 +431,19 @@ class PointSourceLikelihood:
         return -log_likelihood_ratio
 
 
+    def _func_to_minimize_bg(self, index):
+        """
+        Negative loglike of background only
+        """
+
+        likelihood = self._background_likelihood(
+            self._selected_bg_energies, 
+            self._selected_bg_decs,
+            index_atmo=index
+        )
+        return - np.sum(np.log(likelihood))
+
+
     def __call__(self, ns, index, weight=0, index_astro=2.5, index_atmo=3.7):
         """
         Wrapper function for convenience.
@@ -497,6 +523,24 @@ class PointSourceLikelihood:
         self._best_fit_index = m.values["index"]
         self.m = m
         return m
+
+
+    def _minimize_bg(self):
+        """
+        Minimize the background negative log-ikelihood only.
+        """
+
+        init_index = np.mean((self._min_index, self._max_index))
+        
+        m = Minuit(self._func_to_minimize_bg, index=init_index)
+        m.errors["index"] = 0.1
+        m.limits["index"] = (self._min_index, self._max_index)
+
+        m.migrad()
+
+        self.m = m
+        return m
+
 
 
     def _minimize_grid(self):
