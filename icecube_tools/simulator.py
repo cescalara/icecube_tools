@@ -124,7 +124,8 @@ class Simulator(SimEvents):
 
             self.N = int(N)
 
-        v_lim = (np.cos(np.pi - np.arccos(self.max_cosz)) + 1) / 2
+        v_min = - self.max_cosz
+        v_max = - self.min_cosz
 
 
 
@@ -174,7 +175,7 @@ class Simulator(SimEvents):
                 Etrue_ = self.sources[i].flux_model.sample(num)
                 if self.sources[i].source_type == DIFFUSE:
 
-                    ra_, dec_ = sphere_sample(v_lim=v_lim, N=num)
+                    ra_, dec_ = sphere_sample(v_min=v_min, v_max=v_max, N=num)
 
                 else:
 
@@ -265,7 +266,8 @@ class Simulator(SimEvents):
             self.N = int(N)
             logger.info("N provided.")
 
-        v_lim = (np.cos(np.pi - np.arccos(self.max_cosz)) + 1) / 2
+        v_min = - self.max_cosz
+        v_max = - self.min_cosz
 
         self._true_energy = []
         self._arrival_energy = []
@@ -312,7 +314,7 @@ class Simulator(SimEvents):
                 Etrue_ = self.sources[i].flux_model.sample(num)
                 if self.sources[i].source_type == DIFFUSE:
 
-                    ra_, dec_ = sphere_sample(v_lim=v_lim, N=num)
+                    ra_, dec_ = sphere_sample(v_min=v_min, v_max=v_max, N=num)
 
                 else:
 
@@ -542,6 +544,7 @@ class Braun2008Simulator:
         # Hard code to match Braun+2008
         self.angular_resolution = angular_resolution
         self.max_cosz = 0.1
+        self.min_cosz = -1.
         self.reco_energy_index = 3.8
 
     def run(self, N, show_progress=True):
@@ -562,7 +565,8 @@ class Braun2008Simulator:
 
         self.reco_energy_sampler.set_index(self.reco_energy_index)
 
-        v_lim = (np.cos(np.pi - np.arccos(self.max_cosz)) + 1) / 2
+        v_min = - self.max_cosz
+        v_max = - self.min_cosz
 
         max_energy = self.source.flux_model._upper_energy
 
@@ -578,7 +582,7 @@ class Braun2008Simulator:
 
                 if self.source.source_type == DIFFUSE:
 
-                    ra, dec = sphere_sample(v_lim=v_lim)
+                    ra, dec = sphere_sample(v_min=v_min, v_max=v_max)
 
                 else:
 
@@ -775,16 +779,16 @@ class TimeDependentSimulator(SimEvents):
 
 
     
-def sphere_sample(radius=1, v_lim=0, N=1):
+def sphere_sample(radius=1, v_min=-1, v_max=1, N=1):
     """
     Sample points uniformly on a sphere.
     """
 
     u = np.random.uniform(0, 1, size=N)
-    v = np.random.uniform(v_lim, 1, size=N)
+    v = np.random.uniform(v_min, v_max, size=N)
 
     phi = 2 * np.pi * u
-    theta = np.arccos(2 * v - 1)
+    theta = np.arccos(v)
 
     ra, dec = spherical_to_icrs(theta, phi)
 
