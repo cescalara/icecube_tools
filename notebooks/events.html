@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event classes &mdash; icecube_tools v3.2 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API" href="../api/api.html" />
+    <link rel="prev" title="Point source likelihood" href="point_source_likelihood.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> icecube_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="public_data_access.html">Data access</a></li>
+<li class="toctree-l1"><a class="reference internal" href="detector_model.html">Detector model interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="detector_model.html#Effective-area,-angular-resolution-and-energy-resolution-of-earlier-releases">Effective area, angular resolution and energy resolution of earlier releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source_model.html">Source model interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html">Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation.html#Time-dependent-simulation">Time dependent simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="point_source_likelihood.html">Point source likelihood</a></li>
+<li class="toctree-l1"><a class="reference internal" href="point_source_likelihood.html#Time-dependent-point-source-analysis">Time dependent point source analysis</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Event classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/api.html#icecube-tools">icecube_tools</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">icecube_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">Event classes</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/notebooks/events.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars and line breaks on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+    white-space: pre;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt .copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+.jp-RenderedHTMLCommon table,
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+.jp-RenderedHTMLCommon thead,
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+.jp-RenderedHTMLCommon tr,
+.jp-RenderedHTMLCommon th,
+.jp-RenderedHTMLCommon td,
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+.jp-RenderedHTMLCommon th,
+div.rendered_html th {
+  font-weight: bold;
+}
+.jp-RenderedHTMLCommon tbody tr:nth-child(odd),
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+.jp-RenderedHTMLCommon tbody tr:hover,
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.utils.data</span> <span class="kn">import</span> <span class="n">SimEvents</span><span class="p">,</span> <span class="n">RealEvents</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+</pre></div>
+</div>
+</div>
+<section id="Event-classes">
+<h1>Event classes<a class="headerlink" href="#Event-classes" title="Permalink to this heading"></a></h1>
+<p>Events of simulations and events detected by icecube are stored in instances of <code class="docutils literal notranslate"><span class="pre">SimEvents</span></code> and <code class="docutils literal notranslate"><span class="pre">RealEvents</span></code>, respectively. We load some simulated events:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span> <span class="o">=</span> <span class="n">SimEvents</span><span class="o">.</span><span class="n">load_from_h5</span><span class="p">(</span><span class="s2">&quot;multi_test.hdf5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Events can span multiple data seasons. For each season, one entry is stored in <code class="docutils literal notranslate"><span class="pre">periods</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span><span class="o">.</span><span class="n">periods</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&#39;IC86_I&#39;, &#39;IC86_II&#39;]
+</pre></div></div>
+</div>
+<p>The properties of the event are stored as properties. A list of all data fields is accessible through</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span><span class="o">.</span><span class="n">keys</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&#39;true_energy&#39;,
+ &#39;arrival_energy&#39;,
+ &#39;reco_energy&#39;,
+ &#39;ra&#39;,
+ &#39;dec&#39;,
+ &#39;ang_err&#39;,
+ &#39;source_label&#39;]
+</pre></div></div>
+</div>
+<p>The entries differ for simulated and actual events.</p>
+<p>For each period a dictionary of all such data fields is returned by <code class="docutils literal notranslate"><span class="pre">period(p)</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span><span class="o">.</span><span class="n">period</span><span class="p">(</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;true_energy&#39;: array([ 1439.12584269,  1070.33816209,   376.15053375,   778.16951869,
+         2723.77380309,   793.34531265,   283.21723606,   489.51087374,
+         1026.20739   ,  1789.70207532,   366.14814975,   976.96041942,
+          429.79856526,   633.41087191,   387.35588377,   275.984806  ,
+         1011.6261498 ,   263.32938263,   506.86068212,   640.85710746,
+         1430.61413912,  1794.70205796,   301.74400674,   223.32750394,
+         1069.16408756,   336.97681994,   229.94324195,   370.37858482,
+          662.57680269,   344.46434889,   261.36270283,   665.81225436,
+          170.35035376,   260.83008867,   422.31946299,   507.51004708,
+          276.57346304,  6336.60548902,  1749.97312342,   431.41349249,
+          596.84647821,   281.59553397,   714.37277932,  1206.56168799,
+          575.11948698,   737.80526473,   472.54574202,   393.3845505 ,
+          665.89778262,   299.00046143,  4099.90685221,   667.76889172,
+          258.26685535,   578.46346148,   240.48310705,  1391.00424212,
+          238.55648739,  3785.21104063,  3753.66080622,   167.97787619,
+         1033.81285036,   724.38194363,   236.92124421,   375.39909155,
+          440.85079671,   505.50486311,   470.40806552,   590.22053866,
+          192.7845899 ,   786.54276069,   258.27216264,   443.90460577,
+          852.97403779,   251.97473913,   258.04936352,   641.71084567,
+         2716.89696819,   494.97073321,   362.65101219,   282.08215318,
+          834.49012328,   178.16432009,   255.20167087,   275.60821166,
+         1769.09966914,  1329.09739864,   230.06352063,   319.92661276,
+          347.09854078,  1545.57092938,   726.72184933,   173.1534375 ,
+          305.88640294,   758.51191969,   452.41265905,  1751.73678331,
+          628.24996032,   271.20116592,   357.68744888,  1984.30341232,
+          474.0017663 ,   535.60359465,   584.51588911,   327.26176475,
+          271.43540937,   216.03879171,  1283.7113103 ,  1709.01158832,
+          407.54507785,   201.86359676,  1212.25959234, 21593.35400656,
+          220.44011627,  2028.61644551,  1031.9943572 ,   262.80357365,
+          664.55004026,   426.60572356,   450.97357174,   179.03909289,
+          296.78707099,   338.56998958,   164.84001292,  1116.35338183,
+          737.239672  ,  1945.48794902,  3164.2421508 ,   473.52706294,
+          258.02174755,   560.77489998,   280.49261091,   710.77817302,
+        19165.53414831,  2565.82813309,   324.61950207,   202.85329846,
+          457.53009093,   440.19818632,   207.05567268,   389.43109172,
+          324.88515886,  1040.32889469,   161.4573835 ,  3980.16685423,
+         1278.42998196,   461.26670252,   390.44453282,   704.28407816,
+          419.57926357,   352.86120367,   212.09394777,   589.85603117,
+         2237.88415093,   672.78658013,   253.48763284,  1225.71372114,
+          373.11041861,  2680.10837178,   662.13646582,   283.26404329,
+          359.71403859,   438.78661427,  1404.60660778,   254.03657018,
+          321.77342337,   444.35407627,  1221.73382257,  5065.9499816 ,
+          451.20754558,   454.91862583,   182.63664382,  1228.06124023,
+          739.29554861,   851.37296897,   252.11195368,   683.31532683,
+          398.25329416,   260.30558359,  3380.62756303,   531.30615087,
+          749.65800672,   498.28217125,   978.60194957,   263.85881855,
+          452.10684035,  1658.25128841,  2056.17512944,   323.37674521,
+          215.39144704,   675.66029609,   261.49803693,   262.34557449,
+          302.6190493 ,   355.13459677,   261.0428991 ,   432.38773125,
+          690.75807007,   982.95670729,   288.40008271,  4337.73303627,
+          309.32343347,  1530.03563383,   284.4873606 ,  1242.42392434,
+          514.42207644,   317.68661557,  1759.74943059,   772.11106918,
+          482.3777585 , 11656.51474783,  1258.93277031,   426.67602015,
+          714.01745319,   338.92180909,   529.55521962,  1244.69333421,
+          479.51070736,   522.62626175,  2044.38225515,   191.08921677,
+         1001.06067727,  1599.2271368 ,   312.5939775 ,  1637.09738122,
+          431.78045462,   380.73265465,   511.91093246,   364.2215234 ,
+          691.25914856,   950.73188353,   279.51442505,   164.8803657 ,
+          256.31098018,   423.79123318,  1072.38294679,   165.01341191,
+         4765.88820344,   335.61847861,   301.65223747,  6900.73339999,
+          266.76778896,   280.19848842,   522.53292511,  1347.07969056,
+          304.36391116,   492.01320361,   208.81925689,  4149.36700795,
+          329.63416324,   162.22722098,   172.15928001,  6292.71469416,
+          949.28144244,   294.86671525,   265.47609013,   330.36975706,
+          163.48284823,   285.31089808,   407.38641525,   264.31490956,
+          569.70427979,   255.03193777,   944.41432538,  6386.18503111,
+         2749.26041682,   745.32182651,   631.82224881,  1458.58841085,
+        61305.74878982, 40338.67493776, 13199.03160056,  3039.09340088,
+        23188.48501932,   264.99846014,  1993.17133744,   541.25557972,
+          896.59035685,  1053.11729773,   693.15947315,  2269.67360791,
+        16123.05667155,  4859.8907438 , 38066.38098232,  3059.17882567,
+         4089.01654088, 14053.95167478,  4767.88324267,  2668.94959947,
+         2884.07268202,  2148.947365  ,   192.18671437,   374.25874134,
+          758.17944371,   695.80738038,  7375.90467107, 14584.29756878,
+          846.41061811,  2780.91397689,   451.66173952,  2550.58362084,
+         1850.37199546]),
+ &#39;reco_energy&#39;: array([ 613.35895407, 1116.86714984,  546.45661588,  936.39582501,
+         678.09345575,  563.97767998,  535.020037  ,  736.2540416 ,
+         872.47456533, 1457.21628634, 1185.11531395,  928.32974114,
+        1175.94625249,  769.21053895,  602.82203415,  512.10080143,
+        1444.49131786,  861.57390129, 1186.99074609,  605.65468115,
+         712.74377547,  716.13085798,  688.96200449, 1051.31086066,
+        1496.95841715, 1213.69320085, 1044.43409931, 1987.24417699,
+        1350.57652791,  668.35265295,  564.65179665,  794.8729433 ,
+         567.29209685, 1072.69160158, 1177.16640976, 1023.07459062,
+        1624.20513163,  740.79722222, 2837.03682666, 1067.16135837,
+         678.4908492 ,  850.23649693,  649.99743142, 1882.33497455,
+         857.60707702,  796.88515884,  226.57794522, 1163.87785883,
+        1369.21846026, 1199.9501671 , 1571.21870165,  652.56876481,
+         625.7177021 ,  674.09771716,  743.53744186,  791.14512527,
+         928.49325484,  818.65935905, 1143.30793704,  962.18917229,
+         942.75437027,  927.36990051,  635.16247858,  387.0837937 ,
+         677.31971865, 1756.6389075 ,  976.79007159,  700.99832501,
+         799.90815977, 1217.64498022,  745.41049964, 1190.89483312,
+         635.99716236,  180.78947211, 1035.37015672,  866.19129363,
+        1234.293179  , 1911.26290183, 1365.15711315, 1229.96447559,
+        1337.37950628,  631.06990775,  854.55162804,  697.89147852,
+        1294.52115442,  803.28252587,  362.15474223,  734.869688  ,
+         709.0146112 , 1014.87756603, 1214.17570874,  634.07148496,
+        1481.35182921,  506.36682432, 1054.24237867, 1180.55085176,
+        1054.7297854 ,  892.87421279,  564.80351119,  928.03459814,
+        1686.38266614,  740.19873233, 1561.82295287,  364.11652402,
+         656.1280677 , 1055.64123709,  945.16793549,  299.35076873,
+         541.69203423,  595.5704896 , 1427.76216086, 1107.30614051,
+         806.66811631, 1533.53737937, 1924.61314337, 1170.25151636,
+         820.47343778,  346.73283479, 1010.48380978,  687.67289194,
+        1073.05191822,  899.98758152,  452.80160119,  798.02283567,
+         826.59166114, 1104.71792731, 2225.41992334,  341.2856616 ,
+         952.33783373,  857.90027442,  952.70984307,  645.95643815,
+         932.8406712 ,  479.42366945,  796.77291721,  529.20888535,
+         446.77959858, 1014.19210075, 1436.90349929,  916.45867029,
+         863.50328793,  801.88034868,  692.63524273, 2189.85629643,
+        2313.26661259,  165.07872281,  930.11111793, 1583.60375634,
+        1193.9815668 , 3105.21881014, 1356.92227873, 1993.74977293,
+        1171.42305679, 1061.02783797, 1015.06914109, 1514.79320037,
+        1196.46501744,  751.90503547,  612.13285143,  344.19396988,
+         940.19745619,  773.13393494,  830.2356485 ,  507.65747683,
+         549.21328634,  688.47699451, 1465.24374093, 1758.85429523,
+         355.7253723 ,  748.76936347,  330.47280764,  752.42334816,
+        2382.57989402,  468.4323687 , 1009.15572261,  460.11334774,
+        1107.67139722,  586.82332033,  876.50522991,  890.53028088,
+         767.10885007,  438.49067778,  571.97926419,  918.82901732,
+        1491.40246605, 1023.49188635, 1840.39626054,  717.79118505,
+         833.1824725 ,  829.13930287,  589.21302982,  773.16973689,
+         312.61559679,  155.0213974 ,  800.13922133,  718.0614583 ,
+         623.64740861,  735.51040923,  604.85082051, 1276.78502424,
+         745.30602086,  870.81557062,  408.03055708, 1497.63046855,
+         923.03493161, 1631.7909511 ,  554.27004124,  941.31050606,
+        1056.8873835 , 2599.63519417, 1276.83830302,  518.57893181,
+        1119.78883597, 1265.80371547,  872.42045207, 1277.50493481,
+         952.22440152,  736.77319855,  649.89070787,  846.04839395,
+        2213.41449842,  877.20203397,  804.5524694 , 2102.32716445,
+         521.28478001,  866.58003693,  822.22231297,  821.51696639,
+        1922.52364566,  775.25757548,  111.49821172,  856.6854427 ,
+        1371.02143412,  796.38009277,  453.07294534, 1057.95267498,
+         883.57468076,  830.17053905, 2332.0118607 , 2338.16847287,
+        1628.17208358, 1059.811684  , 1244.42510191,  604.02054457,
+        1033.42776404,  360.28431147,  573.33015013, 4607.36448363,
+        1002.55528314,  864.52846846,  723.30033838, 2420.37675737,
+        1154.32796354,  514.67151392,  644.46493019, 1060.12198087,
+         337.58483658,  700.61576017, 1204.95969362, 1816.31273285,
+         853.36647181,  424.40928326, 2064.16709719,  740.79722222,
+         613.35895407,  546.45661588,  936.39582501, 1116.86714984,
+        1146.80997392, 4691.10503594,  932.8406712 ,  872.47456533,
+        2599.63519417,  512.10080143, 1457.21628634,  736.2540416 ,
+        1185.11531395, 1444.49131786, 1175.94625249,  712.74377547,
+        1673.49711429, 1571.21870165, 2558.48941238,  716.13085798,
+        1143.30793704, 4082.93627166, 2225.41992334, 1496.95841715,
+        2837.03682666, 1882.33497455,  861.57390129,  602.82203415,
+         605.65468115, 1213.69320085, 2189.85629643, 4017.01926303,
+        1987.24417699,  791.14512527, 1350.57652791,  942.75437027,
+        1234.293179  ]),
+ &#39;arrival_energy&#39;: array([ 1439.12584269,  1070.33816209,   376.15053375,   778.16951869,
+         2723.77380309,   793.34531265,   283.21723606,   489.51087374,
+         1026.20739   ,  1789.70207532,   366.14814975,   976.96041942,
+          429.79856526,   633.41087191,   387.35588377,   275.984806  ,
+         1011.6261498 ,   263.32938263,   506.86068212,   640.85710746,
+         1430.61413912,  1794.70205796,   301.74400674,   223.32750394,
+         1069.16408756,   336.97681994,   229.94324195,   370.37858482,
+          662.57680269,   344.46434889,   261.36270283,   665.81225436,
+          170.35035376,   260.83008867,   422.31946299,   507.51004708,
+          276.57346304,  6336.60548902,  1749.97312342,   431.41349249,
+          596.84647821,   281.59553397,   714.37277932,  1206.56168799,
+          575.11948698,   737.80526473,   472.54574202,   393.3845505 ,
+          665.89778262,   299.00046143,  4099.90685221,   667.76889172,
+          258.26685535,   578.46346148,   240.48310705,  1391.00424212,
+          238.55648739,  3785.21104063,  3753.66080622,   167.97787619,
+         1033.81285036,   724.38194363,   236.92124421,   375.39909155,
+          440.85079671,   505.50486311,   470.40806552,   590.22053866,
+          192.7845899 ,   786.54276069,   258.27216264,   443.90460577,
+          852.97403779,   251.97473913,   258.04936352,   641.71084567,
+         2716.89696819,   494.97073321,   362.65101219,   282.08215318,
+          834.49012328,   178.16432009,   255.20167087,   275.60821166,
+         1769.09966914,  1329.09739864,   230.06352063,   319.92661276,
+          347.09854078,  1545.57092938,   726.72184933,   173.1534375 ,
+          305.88640294,   758.51191969,   452.41265905,  1751.73678331,
+          628.24996032,   271.20116592,   357.68744888,  1984.30341232,
+          474.0017663 ,   535.60359465,   584.51588911,   327.26176475,
+          271.43540937,   216.03879171,  1283.7113103 ,  1709.01158832,
+          407.54507785,   201.86359676,  1212.25959234, 21593.35400656,
+          220.44011627,  2028.61644551,  1031.9943572 ,   262.80357365,
+          664.55004026,   426.60572356,   450.97357174,   179.03909289,
+          296.78707099,   338.56998958,   164.84001292,  1116.35338183,
+          737.239672  ,  1945.48794902,  3164.2421508 ,   473.52706294,
+          258.02174755,   560.77489998,   280.49261091,   710.77817302,
+        19165.53414831,  2565.82813309,   324.61950207,   202.85329846,
+          457.53009093,   440.19818632,   207.05567268,   389.43109172,
+          324.88515886,  1040.32889469,   161.4573835 ,  3980.16685423,
+         1278.42998196,   461.26670252,   390.44453282,   704.28407816,
+          419.57926357,   352.86120367,   212.09394777,   589.85603117,
+         2237.88415093,   672.78658013,   253.48763284,  1225.71372114,
+          373.11041861,  2680.10837178,   662.13646582,   283.26404329,
+          359.71403859,   438.78661427,  1404.60660778,   254.03657018,
+          321.77342337,   444.35407627,  1221.73382257,  5065.9499816 ,
+          451.20754558,   454.91862583,   182.63664382,  1228.06124023,
+          739.29554861,   851.37296897,   252.11195368,   683.31532683,
+          398.25329416,   260.30558359,  3380.62756303,   531.30615087,
+          749.65800672,   498.28217125,   978.60194957,   263.85881855,
+          452.10684035,  1658.25128841,  2056.17512944,   323.37674521,
+          215.39144704,   675.66029609,   261.49803693,   262.34557449,
+          302.6190493 ,   355.13459677,   261.0428991 ,   432.38773125,
+          690.75807007,   982.95670729,   288.40008271,  4337.73303627,
+          309.32343347,  1530.03563383,   284.4873606 ,  1242.42392434,
+          514.42207644,   317.68661557,  1759.74943059,   772.11106918,
+          482.3777585 , 11656.51474783,  1258.93277031,   426.67602015,
+          714.01745319,   338.92180909,   529.55521962,  1244.69333421,
+          479.51070736,   522.62626175,  2044.38225515,   191.08921677,
+         1001.06067727,  1599.2271368 ,   312.5939775 ,  1637.09738122,
+          431.78045462,   380.73265465,   511.91093246,   364.2215234 ,
+          691.25914856,   950.73188353,   279.51442505,   164.8803657 ,
+          256.31098018,   423.79123318,  1072.38294679,   165.01341191,
+         4765.88820344,   335.61847861,   301.65223747,  6900.73339999,
+          266.76778896,   280.19848842,   522.53292511,  1347.07969056,
+          304.36391116,   492.01320361,   208.81925689,  4149.36700795,
+          329.63416324,   162.22722098,   172.15928001,  6292.71469416,
+          949.28144244,   294.86671525,   265.47609013,   330.36975706,
+          163.48284823,   285.31089808,   407.38641525,   264.31490956,
+          569.70427979,   255.03193777,   944.41432538,  6386.18503111,
+         2749.26041682,   745.32182651,   631.82224881,  1458.58841085,
+        61305.74878982, 40338.67493776, 13199.03160056,  3039.09340088,
+        23188.48501932,   264.99846014,  1993.17133744,   541.25557972,
+          896.59035685,  1053.11729773,   693.15947315,  2269.67360791,
+        16123.05667155,  4859.8907438 , 38066.38098232,  3059.17882567,
+         4089.01654088, 14053.95167478,  4767.88324267,  2668.94959947,
+         2884.07268202,  2148.947365  ,   192.18671437,   374.25874134,
+          758.17944371,   695.80738038,  7375.90467107, 14584.29756878,
+          846.41061811,  2780.91397689,   451.66173952,  2550.58362084,
+         1850.37199546]),
+ &#39;ang_err&#39;: array([0.45701446, 0.37058517, 0.50103957, 0.49338363, 0.39242612,
+        0.49140717, 0.67354997, 0.63694461, 0.39269702, 0.6121606 ,
+        0.61970789, 0.42677885, 1.39212725, 0.5239127 , 0.97178223,
+        0.62676821, 0.46067803, 0.65079396, 0.4767553 , 0.86257869,
+        0.47818762, 0.94466699, 0.96300957, 0.94838928, 1.39036895,
+        0.82919603, 2.15665906, 0.53815153, 2.01601171, 1.9949747 ,
+        0.75313863, 0.73556873, 1.20871444, 1.13561263, 0.53261786,
+        1.01798323, 0.84755294, 0.37343551, 0.37199586, 0.74859658,
+        1.34039572, 0.61775148, 0.46417929, 0.36222888, 1.43871059,
+        1.43554973, 0.81777406, 1.48207817, 0.91083687, 1.23109369,
+        0.29071084, 0.62696014, 2.82745691, 1.07714035, 1.57323531,
+        0.63067278, 2.79549617, 0.36559617, 0.32658605, 0.76545846,
+        1.3578091 , 1.01413236, 1.15494536, 0.62972283, 2.74293831,
+        0.67169009, 1.4257469 , 1.32381611, 1.65401796, 0.99938797,
+        2.04000841, 1.00279346, 1.33887343, 1.05453106, 1.99240937,
+        2.76374658, 1.00908169, 0.49789805, 0.62990604, 1.00906572,
+        2.73268568, 1.51009466, 2.06940081, 0.5941767 , 0.71482625,
+        0.72615555, 0.74848443, 0.98468948, 1.19764639, 0.56028679,
+        1.40855064, 3.96925883, 1.46875134, 0.78266372, 1.94909554,
+        0.3644788 , 1.92321604, 1.37418461, 1.84857297, 0.43805601,
+        1.15871213, 0.57397603, 2.78256495, 1.51275421, 2.17777024,
+        1.20093271, 0.99847246, 0.73631853, 1.82257746, 2.10798593,
+        0.54099293, 0.33691022, 1.56554075, 0.34867927, 0.60614526,
+        3.00776276, 0.8249166 , 1.02530919, 0.40302135, 1.54317812,
+        3.87761815, 1.01555167, 1.10688154, 0.88259224, 0.74785979,
+        0.78147281, 0.27431317, 2.14592374, 3.82909166, 2.57300389,
+        2.29923227, 0.41150093, 0.30070656, 0.6869334 , 2.71328542,
+        2.90180584, 1.15384468, 1.23866496, 1.91677197, 0.57096083,
+        0.73841983, 0.79358496, 2.1522216 , 0.50096469, 0.63942989,
+        0.81446479, 0.42726928, 1.59066559, 0.57495653, 0.76660659,
+        1.38558943, 1.13663231, 1.10094372, 0.85916483, 0.79486045,
+        0.4966701 , 1.7815694 , 0.75969569, 1.03786367, 0.88128516,
+        0.74462616, 0.57771326, 0.97776684, 2.86264546, 0.7536151 ,
+        0.43590128, 1.97270215, 0.28235507, 0.89250819, 1.39256652,
+        1.37499207, 0.71121697, 1.06870327, 1.59324439, 0.68036858,
+        1.32372377, 2.03068339, 0.80862629, 0.58592145, 1.02448587,
+        2.62938867, 2.97532572, 1.9306599 , 2.96325221, 2.01180188,
+        1.87119142, 0.44962444, 2.68333471, 2.92526169, 1.04635485,
+        0.67399103, 0.60533379, 1.04676215, 1.16659213, 1.40029353,
+        0.65293687, 1.72917205, 3.71081253, 1.14421154, 0.32122043,
+        0.58016639, 1.84597062, 3.07358519, 0.98835025, 1.4885736 ,
+        1.54120825, 0.53606699, 3.85152119, 3.70676766, 0.25737507,
+        0.95444149, 1.56754616, 2.5151047 , 2.88813976, 0.92493023,
+        1.92333772, 0.85059984, 2.86470347, 1.3897545 , 3.23192699,
+        0.78979138, 0.96446563, 2.26799603, 1.92934338, 0.65495721,
+        5.61428428, 0.76163719, 5.64568559, 3.90411114, 0.82352861,
+        1.00850121, 1.13859145, 3.48954756, 2.39338873, 0.58984872,
+        1.37611906, 0.4423524 , 0.86353975, 1.03240682, 0.34452117,
+        2.12376931, 0.89882894, 3.56784728, 1.04207005, 1.52628284,
+        1.14504969, 3.91844456, 0.26353112, 2.89860641, 2.26306293,
+        1.4690745 , 0.26609199, 3.65248206, 0.87621347, 1.1536711 ,
+        0.86788731, 1.75498418, 0.57999282, 1.23731267, 1.43498222,
+        0.6341429 , 1.31872733, 2.20599374, 0.37343551, 0.45701446,
+        0.50103957, 0.49338363, 0.37058517, 0.2881142 , 0.25689362,
+        0.30070656, 0.39269702, 0.25737507, 0.62676821, 0.6121606 ,
+        0.63694461, 0.61970789, 0.46067803, 1.39212725, 0.47818762,
+        0.26383546, 0.29071084, 0.25764991, 0.94466699, 0.32658605,
+        0.25717202, 0.27431317, 1.39036895, 0.37199586, 0.36222888,
+        0.65079396, 0.97178223, 0.86257869, 0.82919603, 0.50096469,
+        0.3783748 , 0.53815153, 0.63067278, 2.01601171, 1.3578091 ,
+        1.00908169]),
+ &#39;ra&#39;: array([4.23258475, 0.05642995, 3.03388598, 2.84596124, 4.98230957,
+        5.42304491, 4.98858173, 1.24005837, 1.66584424, 0.09820298,
+        5.69015076, 5.48279538, 3.89475259, 4.40383068, 0.92468801,
+        4.00247264, 1.16824346, 1.15675032, 1.80947728, 2.6261517 ,
+        4.98497029, 3.69635644, 4.31950914, 5.80952295, 3.43386521,
+        1.7797515 , 5.46163842, 1.35628276, 6.10434715, 1.46690269,
+        0.6423853 , 5.58558981, 5.83283668, 3.44487593, 2.8922605 ,
+        4.18495963, 1.01044203, 4.30563213, 4.60664432, 0.30693668,
+        3.26166788, 4.17297488, 5.91108658, 2.29122664, 1.74971558,
+        1.55941271, 3.37222352, 1.08961085, 3.26287316, 6.08670702,
+        2.05854298, 4.83604907, 2.80606223, 2.07179999, 5.71468894,
+        3.88328163, 6.18053936, 2.58274068, 5.46536189, 2.19547804,
+        2.7611135 , 2.61975283, 3.7519733 , 5.49459181, 1.1979484 ,
+        4.94164499, 3.9989856 , 1.46450854, 5.72463855, 5.01807782,
+        1.59103899, 2.96915246, 4.5063827 , 3.9535878 , 2.87725675,
+        5.12403641, 4.56923038, 0.8512776 , 5.38749274, 4.49448274,
+        5.87598395, 2.29002617, 0.38941235, 0.39072712, 1.88159691,
+        2.36625256, 2.34577906, 5.03315901, 1.68022535, 1.72063648,
+        3.06807611, 3.81162154, 0.14410259, 5.87241423, 3.34360803,
+        5.92583909, 1.51355279, 0.37959184, 2.15586454, 0.98710615,
+        4.60314551, 2.81056658, 1.62383614, 3.02061203, 0.74687212,
+        3.76738959, 2.21790861, 1.48330947, 1.62153611, 2.93267886,
+        1.49614952, 1.59640242, 2.74389554, 4.18309285, 5.06877926,
+        5.39262238, 5.80813106, 3.17740488, 0.7274904 , 5.22834128,
+        3.58356779, 0.42262042, 4.76724353, 5.13914545, 4.78957277,
+        5.75553556, 5.58919529, 5.46672945, 0.52723664, 0.88912383,
+        5.39187713, 0.15662532, 3.75775086, 1.75525779, 6.22066947,
+        0.78632245, 4.89512306, 6.04068935, 4.44631267, 0.21779515,
+        5.74205138, 2.78636047, 4.68154334, 0.03052599, 0.8680509 ,
+        1.28912347, 4.75548575, 1.94139723, 2.80804051, 3.36086271,
+        2.97365933, 4.94759941, 5.35253693, 6.27438278, 3.66825711,
+        5.68098192, 2.33067681, 0.87788886, 2.92091237, 4.97744811,
+        0.46557296, 3.09597027, 0.87219413, 5.8517704 , 0.32604023,
+        4.69956031, 4.63918396, 3.86674636, 3.8914949 , 2.70985522,
+        5.81824139, 3.56161846, 6.22781856, 2.38547689, 1.35105161,
+        6.23585297, 3.85961481, 5.36875958, 2.64752196, 4.83740677,
+        4.92546063, 3.48092109, 4.76448566, 1.25112498, 3.3147327 ,
+        5.62255245, 6.02827622, 5.19191575, 2.23143851, 1.87543082,
+        3.25531423, 5.13244407, 5.88562108, 2.62630231, 1.35346723,
+        5.27052848, 6.17237318, 3.32505594, 6.03428321, 0.13991179,
+        3.41914564, 1.99353205, 2.49501516, 4.29333976, 3.13854707,
+        0.95903825, 5.3434883 , 5.69878562, 5.37786881, 5.89745219,
+        5.80402348, 0.03962356, 0.6835239 , 2.16271662, 2.51122756,
+        0.3984415 , 5.6847959 , 0.59951639, 1.14598126, 0.40903485,
+        5.22439313, 4.02795569, 4.89197717, 2.69627284, 2.74077578,
+        4.83089816, 2.14464057, 3.43389967, 4.95280766, 2.76811191,
+        1.30992633, 6.10352612, 3.57449815, 4.72495133, 5.24642333,
+        3.90832057, 4.45077183, 5.012315  , 2.05145892, 4.19896013,
+        4.08902586, 3.8535596 , 5.08695034, 6.16675706, 5.28235093,
+        4.63989193, 3.50695647, 5.48217682, 0.61108736, 5.26228165,
+        4.53582683, 4.71553137, 4.50275556, 0.50060974, 2.23735014,
+        0.73621294, 3.02211762, 2.65545378, 3.332531  , 4.3224815 ,
+        0.15306706, 2.11871592, 6.24394932, 3.14084979, 3.14416302,
+        3.13675576, 3.14651279, 3.14784237, 3.14251509, 3.14052213,
+        3.14184705, 3.14517085, 3.13273035, 3.14214716, 3.14087339,
+        3.14574582, 3.14405674, 3.13489352, 3.13236578, 3.15091445,
+        3.13988438, 3.13675007, 3.14419896, 3.15977922, 3.14229756,
+        3.13562099, 3.14175757, 3.12833531, 3.14656371, 3.1390804 ,
+        3.13815663, 3.16635212, 3.11108449, 3.13667644, 3.14334513,
+        3.14478062, 3.14118563, 3.15241848, 3.19807759, 3.12762924,
+        3.12945313]),
+ &#39;dec&#39;: array([ 0.84209153,  0.22644862,  0.36698664,  1.24073448,  0.13765639,
+         0.15204519,  0.05641717,  0.8909821 ,  0.71518075,  0.48992955,
+         1.17013434,  0.08433931,  1.07559327,  0.16653885,  0.24724871,
+         0.26324859,  0.6716402 ,  1.3831361 ,  0.01980073,  0.70966844,
+         0.75653588,  0.30695549,  0.73060919,  0.2220573 ,  0.74304069,
+         0.70203864,  0.2275768 ,  0.64754224,  0.47954393,  0.37432475,
+         0.76072278,  0.99411706,  0.18881334,  1.32651705,  0.13774521,
+         0.56967214,  1.31872867,  0.18047048,  0.89233977,  0.95546007,
+         0.7653075 ,  0.13800625,  0.0855963 ,  0.98917609,  0.27330074,
+         1.05755018,  0.30697883,  1.15305927,  0.23639948,  1.12133765,
+         0.33237575,  0.058329  ,  1.29801294,  0.7620328 ,  0.19327182,
+         0.78260037,  1.41506459,  0.09492712,  0.37509519,  0.481104  ,
+         1.0521199 ,  1.16573629,  0.52343439,  0.21705189,  1.01319351,
+         0.83995823,  0.73306141,  0.27931636,  1.25945761, -0.07389407,
+         0.60462518,  0.89913701,  0.69627456,  0.3406814 ,  0.36405276,
+         0.68589354,  1.1190805 , -0.04196945, -0.06857329,  0.71200712,
+         0.66575809,  0.81591793,  1.42079707,  0.02543965,  1.04847945,
+         0.73358756,  0.68935734,  1.04819847,  0.00879642,  0.38319126,
+         0.87846735,  0.85401297,  0.71785134,  1.09840016,  0.50434431,
+        -0.00742805,  0.21988922,  0.76891412,  1.03270164,  0.13282334,
+         0.56025117,  1.07195682,  0.5013132 ,  0.77526441,  0.91090143,
+         0.31030167,  0.45641455,  0.69767912,  0.17977877,  0.72225104,
+         1.48869852,  0.05770088,  0.98732843, -0.05905464,  0.88437403,
+         0.88364933, -0.0579516 ,  1.36261249,  1.18730435,  0.43066177,
+         0.7719315 ,  0.53627253,  0.44971317,  0.84798509,  0.51785825,
+         0.88923508,  0.41251115,  1.13393606,  0.8592415 ,  0.21014779,
+         0.97375324,  0.64626794,  0.5855093 ,  0.21866021,  0.44074069,
+         1.49914577,  0.23741265,  0.10813532,  0.95333798,  0.81789606,
+         0.39001968,  0.22660704,  0.53635465,  0.71532592,  0.36555185,
+         1.0513373 ,  0.86939505,  1.16221645,  1.23193276,  0.70255861,
+         0.62338551,  0.90112536,  1.17577381,  0.00332967,  0.12472818,
+         0.12598653,  0.36813167,  0.15294508,  0.81480431,  0.33768644,
+         0.47854965,  0.70339445,  0.42231513,  0.83814303,  1.30072195,
+         1.0118844 ,  0.40759139, -0.10854814,  0.41974836,  0.19740608,
+         0.60494412,  0.4027689 ,  0.68177252,  0.35805749,  0.08502278,
+         1.12129796,  0.35609574, -0.00571802,  1.16793613,  1.3733942 ,
+         0.25112538,  0.5883189 ,  0.73346426,  0.85750579,  0.69498215,
+         0.26716941,  0.63466221,  0.48633838,  0.34159285,  0.71372029,
+         0.12999566,  0.3368456 ,  0.31554741,  0.90618205,  0.30196824,
+         0.13784484,  0.70897295,  0.63610661,  1.19048402,  0.10430837,
+         1.11879623,  1.05173146,  0.71463011,  0.43078859,  1.04569161,
+         0.99985505,  0.59109777,  0.62324216,  0.37292105,  0.27168439,
+         1.10375843,  1.15790779,  0.32982778,  0.43575197,  0.02068397,
+         0.88455101,  0.93860717,  0.8779222 ,  1.3014397 ,  0.21802563,
+         0.26932117,  1.04624322,  0.47415688,  0.3020443 ,  0.31416983,
+         0.32634767,  0.16432752,  0.68556734,  1.10878301,  1.03927283,
+         0.30279969,  0.76602906,  0.20227628,  0.71261965,  0.34001384,
+         1.06648936,  0.57520274,  0.17516776,  0.2466069 ,  0.7207232 ,
+         0.82061139,  0.54180306,  0.73212837,  0.1829552 ,  0.08475751,
+         0.61191262,  0.3952166 ,  0.66923244,  0.45132946,  1.35488553,
+         1.0877095 ,  0.12717025,  0.96638176,  0.80392727,  1.10681327,
+         0.7545456 ,  0.61690835,  1.08585434,  0.21176444,  0.59480161,
+         1.03110794,  1.17340897,  0.62500636,  0.5226734 ,  0.52340641,
+         0.52413588,  0.51455007,  0.52472614,  0.5252425 ,  0.51944158,
+         0.52726812,  0.52432681,  0.52092971,  0.5136763 ,  0.51721744,
+         0.51831884,  0.51730617,  0.52501128,  0.52441733,  0.51585243,
+         0.52479671,  0.52314486,  0.52221057,  0.50485403,  0.52832358,
+         0.5226068 ,  0.52794423,  0.52877047,  0.52566375,  0.52964602,
+         0.51603437,  0.51402977,  0.51150349,  0.52937038,  0.51427955,
+         0.52101394,  0.5230125 ,  0.51889355,  0.49369904,  0.51601946,
+         0.52689366]),
+ &#39;source_label&#39;: array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])}
+</pre></div></div>
+</div>
+<p>Through the method <code class="docutils literal notranslate"><span class="pre">apply_mask()</span></code> a mask is applied and a nested dictionary (1st key is period, 2nd key is name of the data field, as returned by <code class="docutils literal notranslate"><span class="pre">keys</span></code>) is returned containing the selected events. The order of entries in mask needs to be the same as the periods in <code class="docutils literal notranslate"><span class="pre">events.periods</span></code>. For application, see the notebook on point source analysis.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="point_source_likelihood.html" class="btn btn-neutral float-left" title="Point source likelihood" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api/api.html" class="btn btn-neutral float-right" title="API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Francesca Capel.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

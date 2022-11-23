@@ -50,6 +50,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html">Point source likelihood</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html#Time-dependent-point-source-analysis">Time dependent point source analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/events.html">Event classes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html#icecube-tools">icecube_tools</a></li>
 </ul>
@@ -67,11 +68,11 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="api.html">API</a> &raquo;</li>
-          <li><a href="icecube_tools.html">icecube_tools package</a> &raquo;</li>
-          <li><a href="icecube_tools.point_source_likelihood.html">icecube_tools.point_source_likelihood package</a> &raquo;</li>
-      <li>icecube_tools.point_source_likelihood.energy_likelihood module</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="api.html">API</a></li>
+          <li class="breadcrumb-item"><a href="icecube_tools.html">icecube_tools package</a></li>
+          <li class="breadcrumb-item"><a href="icecube_tools.point_source_likelihood.html">icecube_tools.point_source_likelihood package</a></li>
+      <li class="breadcrumb-item active">icecube_tools.point_source_likelihood.energy_likelihood module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/api/icecube_tools.point_source_likelihood.energy_likelihood.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -121,9 +122,7 @@
 <dd><p>Bases: <a class="reference internal" href="#icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedEnergyLikelihood" title="icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedEnergyLikelihood"><code class="xref py py-class docutils literal notranslate"><span class="pre">MarginalisedEnergyLikelihood</span></code></a></p>
 <p>Compute the marginalised energy likelihood by reading in the provided IRF data of 2021.
 Creates instances of MarginalisedEnergyLikelihoodFromSimFixedIndex (slightly copied from
-MarginalisedEnergyLikelihoodFromSim but with different interpolating) for each given index.
-If the likelihood is requested for an index not provided with a dataset,
-the likelihood will be interpolated (linearly) between provided indices.</p>
+MarginalisedEnergyLikelihoodFromSim but with different interpolating) for each given index.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedEnergyLikelihood2021.calc_loglike">
 <span class="sig-name descname"><span class="pre">calc_loglike</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedEnergyLikelihood2021.calc_loglike" title="Permalink to this definition"></a></dt>
@@ -184,12 +183,21 @@ Precompute likelihood distributions</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedIntegratedEnergyLikelihood.integrated_power_law">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">integrated_power_law</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loge_high</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loge_low</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedIntegratedEnergyLikelihood.integrated_power_law" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Integrates power law
+:param loge_high: float or np.ndarray of upper integration bound(s)
+:param loge_low: float or np.ndarray of lower integration bound(s)
+:param index: spectral index
+:return: Integrated power law, float or np.ndarray</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedIntegratedEnergyLikelihood.power_law_loge">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">power_law_loge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loge</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedIntegratedEnergyLikelihood.power_law_loge" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Evaluated power law
+:param loge: Logarithmic energy, base 10
+:param index: Spectral index
+:return: Evaluated power law</p>
+</dd></dl>
 
 </dd></dl>
 

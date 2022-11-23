@@ -22,7 +22,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="icecube_tools.utils.vMF module" href="icecube_tools.utils.vMF.html" />
-    <link rel="prev" title="icecube_tools.utils package" href="icecube_tools.utils.html" /> 
+    <link rel="prev" title="icecube_tools.utils.coordinate_transforms module" href="icecube_tools.utils.coordinate_transforms.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -50,6 +50,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html">Point source likelihood</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html#Time-dependent-point-source-analysis">Time dependent point source analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/events.html">Event classes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html#icecube-tools">icecube_tools</a></li>
 </ul>
@@ -67,11 +68,11 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="api.html">API</a> &raquo;</li>
-          <li><a href="icecube_tools.html">icecube_tools package</a> &raquo;</li>
-          <li><a href="icecube_tools.utils.html">icecube_tools.utils package</a> &raquo;</li>
-      <li>icecube_tools.utils.data module</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="api.html">API</a></li>
+          <li class="breadcrumb-item"><a href="icecube_tools.html">icecube_tools package</a></li>
+          <li class="breadcrumb-item"><a href="icecube_tools.utils.html">icecube_tools.utils package</a></li>
+      <li class="breadcrumb-item active">icecube_tools.utils.data module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/api/icecube_tools.utils.data.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -107,6 +108,54 @@
 </style>
 <section id="module-icecube_tools.utils.data">
 <span id="icecube-tools-utils-data-module"></span><h1>icecube_tools.utils.data module<a class="headerlink" href="#module-icecube_tools.utils.data" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Events">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.utils.data.</span></span><span class="sig-name descname"><span class="pre">Events</span></span><a class="headerlink" href="#icecube_tools.utils.data.Events" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Abstract bass class for event classes
+For single period event files, the properties return not a dictionary but a single array of data.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Events.ang_err">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ang_err</span></span><a class="headerlink" href="#icecube_tools.utils.data.Events.ang_err" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Events.dec">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dec</span></span><a class="headerlink" href="#icecube_tools.utils.data.Events.dec" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Events.load_from_h5">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_from_h5</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Events.load_from_h5" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Events.period">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">period</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Events.period" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Events.periods">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">periods</span></span><a class="headerlink" href="#icecube_tools.utils.data.Events.periods" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Events.ra">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ra</span></span><a class="headerlink" href="#icecube_tools.utils.data.Events.ra" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Events.reco_energy">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">reco_energy</span></span><a class="headerlink" href="#icecube_tools.utils.data.Events.reco_energy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Events.write_to_h5">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">write_to_h5</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Events.write_to_h5" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="icecube_tools.utils.data.IceCubeData">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.utils.data.</span></span><span class="sig-name descname"><span class="pre">IceCubeData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'https://icecube.wisc.edu/data-releases'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/home/runner/.icecube_data'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.cache'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.IceCubeData" title="Permalink to this definition"></a></dt>
@@ -163,9 +212,124 @@ releases hosted on their website.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.RealEvents">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.utils.data.</span></span><span class="sig-name descname"><span class="pre">RealEvents</span></span><a class="headerlink" href="#icecube_tools.utils.data.RealEvents" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#icecube_tools.utils.data.Events" title="icecube_tools.utils.data.Events"><code class="xref py py-class docutils literal notranslate"><span class="pre">Events</span></code></a></p>
+<p>Class to handle reading real event files of 2021 release.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.RealEvents.ang_err_">
+<span class="sig-name descname"><span class="pre">ang_err_</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#icecube_tools.utils.data.RealEvents.ang_err_" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.RealEvents.dec_">
+<span class="sig-name descname"><span class="pre">dec_</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#icecube_tools.utils.data.RealEvents.dec_" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.RealEvents.from_event_files">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_event_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">periods</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.RealEvents.from_event_files" title="Permalink to this definition"></a></dt>
+<dd><p>Load from files provided by data release,
+if belonging to IC86_II or later, add to IC86_II keyword
+because the same IRF is used
+:param periods: Arbitrary number of period identifiers</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.RealEvents.keys">
+<span class="sig-name descname"><span class="pre">keys</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['reco_energy',</span> <span class="pre">'ra',</span> <span class="pre">'dec',</span> <span class="pre">'ang_err',</span> <span class="pre">'mjd']</span></em><a class="headerlink" href="#icecube_tools.utils.data.RealEvents.keys" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.RealEvents.load_from_h5">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_from_h5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.RealEvents.load_from_h5" title="Permalink to this definition"></a></dt>
+<dd><p>Load events from hdf5 file
+:param path: Path to file</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.RealEvents.mjd">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mjd</span></span><a class="headerlink" href="#icecube_tools.utils.data.RealEvents.mjd" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.RealEvents.mjd_">
+<span class="sig-name descname"><span class="pre">mjd_</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#icecube_tools.utils.data.RealEvents.mjd_" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.RealEvents.period">
+<span class="sig-name descname"><span class="pre">period</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.RealEvents.period" title="Permalink to this definition"></a></dt>
+<dd><p>Returns dictionary of events belonging to a specified data season
+:param p: Period identifier</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.RealEvents.ra_">
+<span class="sig-name descname"><span class="pre">ra_</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#icecube_tools.utils.data.RealEvents.ra_" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.RealEvents.reco_energy_">
+<span class="sig-name descname"><span class="pre">reco_energy_</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#icecube_tools.utils.data.RealEvents.reco_energy_" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.RealEvents.write_to_h5">
+<span class="sig-name descname"><span class="pre">write_to_h5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.RealEvents.write_to_h5" title="Permalink to this definition"></a></dt>
+<dd><p>Write selected events to hdf5 file.
+:param path: Path to hdf5 file</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="icecube_tools.utils.data.SimEvents">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.utils.data.</span></span><span class="sig-name descname"><span class="pre">SimEvents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.SimEvents" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.utils.data.</span></span><span class="sig-name descname"><span class="pre">SimEvents</span></span><a class="headerlink" href="#icecube_tools.utils.data.SimEvents" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#icecube_tools.utils.data.Events" title="icecube_tools.utils.data.Events"><code class="xref py py-class docutils literal notranslate"><span class="pre">Events</span></code></a></p>
+<p>Class to store simulated events.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.SimEvents.arrival_energy">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">arrival_energy</span></span><a class="headerlink" href="#icecube_tools.utils.data.SimEvents.arrival_energy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.SimEvents.keys">
+<span class="sig-name descname"><span class="pre">keys</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['true_energy',</span> <span class="pre">'arrival_energy',</span> <span class="pre">'reco_energy',</span> <span class="pre">'ra',</span> <span class="pre">'dec',</span> <span class="pre">'ang_err',</span> <span class="pre">'source_label']</span></em><a class="headerlink" href="#icecube_tools.utils.data.SimEvents.keys" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.SimEvents.load_from_h5">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_from_h5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.SimEvents.load_from_h5" title="Permalink to this definition"></a></dt>
+<dd><p>Load events from hdf5 file.
+:param path: Path to file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.SimEvents.period">
+<span class="sig-name descname"><span class="pre">period</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.SimEvents.period" title="Permalink to this definition"></a></dt>
+<dd><p>Returns dictionary of events belonging to a specified data season
+:param p: Period identifier</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.SimEvents.source_label">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">source_label</span></span><a class="headerlink" href="#icecube_tools.utils.data.SimEvents.source_label" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.SimEvents.true_energy">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">true_energy</span></span><a class="headerlink" href="#icecube_tools.utils.data.SimEvents.true_energy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.SimEvents.write_to_h5">
+<span class="sig-name descname"><span class="pre">write_to_h5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sources</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="icecube_tools.source.source_model.html#icecube_tools.source.source_model.Source" title="icecube_tools.source.source_model.Source"><span class="pre">Source</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.SimEvents.write_to_h5" title="Permalink to this definition"></a></dt>
+<dd><p>Write events to hdf5 file.
+:param path: Path to file
+:sources: List of sources used to generate events</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -173,26 +337,6 @@ releases hosted on their website.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.utils.data.</span></span><span class="sig-name descname"><span class="pre">Uptime</span></span><a class="headerlink" href="#icecube_tools.utils.data.Uptime" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Class to handle calculations of detector live time.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime.data">
-<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.data" title="Permalink to this definition"></a></dt>
-<dd><p>self.times = ddict()
-for c, p in enumerate(available_periods):</p>
-<blockquote>
-<div><dl class="simple">
-<dt>self.data[p] = np.loadtxt(os.path.join(</dt><dd><p>data_directory,
-“20210126_PS-IC40-IC86_VII”, 
-“icecube_10year_ps”,
-“uptime”,
-f”{p}_exp.csv”)</p>
-</dd>
-</dl>
-<p>)
-self.times.add(self.data[p][0, 0], p, “start”)
-self.times.add(self.data[p][-1, -1], p, “end”)</p>
-</div></blockquote>
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime.find_obs_time">
 <span class="sig-name descname"><span class="pre">find_obs_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.find_obs_time" title="Permalink to this definition"></a></dt>
@@ -209,7 +353,7 @@ self.times.add(self.data[p][-1, -1], p, “end”)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime.time_obs">
-<span class="sig-name descname"><span class="pre">time_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">period</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.time_obs" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">time_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.time_obs" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>period</strong> – String of data period.</p>
@@ -222,7 +366,7 @@ self.times.add(self.data[p][-1, -1], p, “end”)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime.time_span">
-<span class="sig-name descname"><span class="pre">time_span</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">period</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.time_span" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">time_span</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.time_span" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>period</strong> – String of data period.</p>
@@ -278,7 +422,7 @@ contain a keyword.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="icecube_tools.utils.html" class="btn btn-neutral float-left" title="icecube_tools.utils package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="icecube_tools.utils.coordinate_transforms.html" class="btn btn-neutral float-left" title="icecube_tools.utils.coordinate_transforms module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="icecube_tools.utils.vMF.html" class="btn btn-neutral float-right" title="icecube_tools.utils.vMF module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

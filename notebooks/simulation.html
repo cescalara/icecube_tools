@@ -57,6 +57,7 @@
 <li class="toctree-l1"><a class="reference internal" href="#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="point_source_likelihood.html">Point source likelihood</a></li>
 <li class="toctree-l1"><a class="reference internal" href="point_source_likelihood.html#Time-dependent-point-source-analysis">Time dependent point source analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="events.html">Event classes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/api.html#icecube-tools">icecube_tools</a></li>
 </ul>
@@ -74,8 +75,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Simulation</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">Simulation</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/notebooks/simulation.ipynb.txt" rel="nofollow"> View page source</a>
       </li>
@@ -195,10 +196,11 @@ div.nboutput.container div.prompt > div {
     }
 }
 
-/* disable scrollbars on prompts */
+/* disable scrollbars and line breaks on prompts */
 div.nbinput.container div.prompt pre,
 div.nboutput.container div.prompt pre {
     overflow: hidden;
+    white-space: pre;
 }
 
 /* input/output area */
@@ -391,6 +393,7 @@ div.rendered_html tbody tr:hover {
 <span class="kn">from</span> <span class="nn">icecube_tools.source.flux_model</span> <span class="kn">import</span> <span class="n">PowerLawFlux</span>
 <span class="kn">from</span> <span class="nn">icecube_tools.source.source_model</span> <span class="kn">import</span> <span class="n">DiffuseSource</span><span class="p">,</span> <span class="n">PointSource</span>
 <span class="kn">from</span> <span class="nn">icecube_tools.detector.r2021</span> <span class="kn">import</span> <span class="n">R2021IRF</span>
+<span class="kn">from</span> <span class="nn">icecube_tools.utils.data</span> <span class="kn">import</span> <span class="n">SimEvents</span>
 </pre></div>
 </div>
 </div>
@@ -464,7 +467,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[185.18577999563084, 24.514085562926446]
+[185.18577999563075, 24.514085562926446]
 </pre></div></div>
 </div>
 <p>The calculator returns a list of expected neutrino event numbers, one for each source.</p>
@@ -480,16 +483,6 @@ div.rendered_html tbody tr:hover {
 <span class="n">phi_norm</span>  <span class="c1"># GeV^-1 cm^-2 s^-1</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/scipy/optimize/_minpack_py.py:175: RuntimeWarning: The iteration is not making good progress, as measured by the
-  improvement from the last ten iterations.
-  warnings.warn(msg, RuntimeWarning)
-</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
@@ -516,7 +509,7 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set up simulation</span>
-<span class="n">simulator</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">detector</span><span class="p">)</span>
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
 <span class="n">simulator</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># year</span>
 
 <span class="c1"># Run simulation</span>
@@ -529,7 +522,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Sampling: 100%|██████████| 204/204 [01:06&lt;00:00,  3.07it/s]
+Sampling: 100%|██████████| 204/204 [00:46&lt;00:00,  4.41it/s]
 </pre></div></div>
 </div>
 <p>This way, the simulator calculates the expected number of neutrinos from these sources given the observation period, effective area and relevant source properties. We note that we could also run a simulation for a fixed number of neutrinos if we want, simply by passing the optional argument <code class="docutils literal notranslate"><span class="pre">N</span></code> to <code class="docutils literal notranslate"><span class="pre">simulator.run()</span></code>.</p>
@@ -537,47 +530,121 @@ Sampling: 100%|██████████| 204/204 [01:06&lt;00:00,  3.07it/
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># simulator.run(N=10, show_progress=True, seed=42)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Save to file</span>
-<span class="n">simulator</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;data/sim_output_86_II.h5&quot;</span><span class="p">)</span>
-
-<span class="c1"># Load</span>
-<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;data/sim_output_86_II.h5&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">true_energy</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;true_energy&quot;</span><span class="p">][()]</span>
-    <span class="n">reco_energy</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;reco_energy&quot;</span><span class="p">][()]</span>
-    <span class="n">ra</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;ra&quot;</span><span class="p">][()]</span>
-    <span class="n">dec</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;dec&quot;</span><span class="p">][()]</span>
-    <span class="n">ang_err</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;ang_err&quot;</span><span class="p">][()]</span>
-    <span class="n">source_label</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;source_label&quot;</span><span class="p">][()]</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">simulator</span><span class="o">.</span><span class="n">write_to_h5</span><span class="p">(</span><span class="s2">&quot;h5_test.hdf5&quot;</span><span class="p">,</span> <span class="n">sources</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">true_energy</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">simulator</span><span class="o">.</span><span class="n">arrival_energy</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2.2043911768722015
+{&#39;IC86_II&#39;: array([  480.95738377,   228.85345354,  1087.77123942,   817.85502576,
+          342.75825606,   175.15870498,   336.45872773,   201.67476737,
+          637.52040508,   289.25228292,   354.29880556,   715.90490367,
+          207.60886524,   495.26860543,  4248.01436126,   285.36333701,
+          237.91950295,   376.1201415 ,   625.7008883 ,   174.16313345,
+          604.58702846,  5514.89267777,  1294.93810362,   663.88474079,
+         5096.2181178 ,  2691.33789923,  2319.70097794,   508.94157546,
+          435.32447984,   339.00166778,   710.77585602,   190.44931155,
+          177.86364936,   403.21353457,   297.76385645,   262.53085991,
+          246.0401006 ,   265.2571947 ,   440.77111091,   796.87835652,
+          532.83184081,   485.50971265,   272.58217221,   456.26487533,
+          172.20527883,   578.53450918,   699.93961056,   313.26748537,
+          338.31740614,   252.98291049,   182.08941038,   812.11959006,
+          940.96998127,   538.02532027,   203.53356391,   666.8927991 ,
+          641.49931493,   713.4540281 ,   160.09994284,   276.50562384,
+          311.13035641,  1066.922838  ,   178.96214275,   402.28308329,
+          662.32273053,  1198.90832093,   233.75518271,   360.87934428,
+          351.29420338,   399.53551179,   701.28912936,   277.38368504,
+          867.21840518,   736.94114   ,   574.04401528,   631.01683748,
+          687.51565963,   353.21754869,   312.92500859,   253.66121082,
+          870.85119521,   786.22399628,   164.95645329,   234.76893779,
+          278.27687533,   262.01490132,   730.25518293,   331.26316593,
+          298.90001086,   299.41614066, 24122.76581328,   308.63168921,
+          412.26055561,  1254.40142222,   267.3517165 ,   204.53722166,
+         1858.18200765,   368.95798992,   536.61316545,   381.98604718,
+          414.50426775,   323.78643454,   697.65125884,   304.35449186,
+         2206.79838172,   555.29966713,   354.8069441 ,   204.11626222,
+          432.15065715,  1341.44762   ,  1018.08654147,   337.98363171,
+          168.05955637,   321.17876122,  2755.58603393,   269.41325928,
+          523.97243107,  1472.38750859,  1105.97100714,   277.1415558 ,
+         3056.20443896,   166.50784642,   317.49655053,  1238.23529163,
+          544.87574627,   368.93337697,   664.79581631,   481.12268864,
+          259.70155133,   299.29654812,   700.22471305,   821.45373712,
+          250.93818093,  2430.17244983,   416.40362048,  1102.00928247,
+        10558.21245665,   571.20479241,   248.34007158,   240.01756562,
+         1027.19006851,   259.26928243,   646.70559063,   263.15196747,
+          244.588375  ,   442.45897372,   188.73988036,   405.14325524,
+          160.70722449,   288.22448267,   184.46303036,   299.16669551,
+         1090.63322314,   216.694528  ,   298.2725422 ,  1206.87964695,
+          608.22581967,  1308.749762  ,   718.60887615,   295.45647734,
+          419.15153987,   176.80412529,   317.61110927,   255.66670056,
+          520.60950523,   219.5935612 ,   177.16953673,  1817.65497255,
+          344.42719126, 15026.82303615,   697.5897652 ,  6909.44398693,
+          424.50150178,   588.67082653,   659.85692509,   517.41484799,
+          167.88141742,   260.74735638,  1054.62764551,  1196.9066874 ,
+         3022.32450764, 27185.70191514,  1373.92779299,  3233.63863195,
+         2781.21819332,  4147.34643571,   291.31020531, 74835.36682781,
+          633.94852582,  1883.34541742,   359.49441009,  1264.00822245,
+         1610.88929732,  1714.31137453, 18483.52289039,  1068.02065641,
+         1255.56935074,   515.71405694, 10673.67234727, 10005.49483929,
+        40844.18762769,  2093.52381071, 10611.03902894,  4156.11990353])}
 </pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span> <span class="o">=</span> <span class="n">SimEvents</span><span class="o">.</span><span class="n">load_from_h5</span><span class="p">(</span><span class="s2">&quot;h5_test.hdf5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span><span class="o">.</span><span class="n">period</span><span class="p">(</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+dict_keys([&#39;true_energy&#39;, &#39;reco_energy&#39;, &#39;arrival_energy&#39;, &#39;ang_err&#39;, &#39;ra&#39;, &#39;dec&#39;, &#39;source_label&#39;])
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+1
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
@@ -606,7 +673,7 @@ Sampling: 100%|██████████| 204/204 [01:06&lt;00:00,  3.07it/
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -615,14 +682,14 @@ Sampling: 100%|██████████| 204/204 [01:06&lt;00:00,  3.07it/
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Plot energies</span>
 <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">geomspace</span><span class="p">(</span><span class="mf">1e2</span><span class="p">,</span> <span class="n">max_energy</span><span class="p">)</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">true_energy</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;E_true&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">reco_energy</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;E_reco&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">true_energy</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;E_true&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">reco_energy</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;E_reco&quot;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;E [GeV]&quot;</span><span class="p">)</span>
@@ -631,39 +698,47 @@ Sampling: 100%|██████████| 204/204 [01:06&lt;00:00,  3.07it/
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7f5dfd0d13a0&gt;
+&lt;matplotlib.legend.Legend at 0x7f0b83f38d00&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_simulation_19_1.png" src="../_images/notebooks_simulation_19_1.png" />
+<img alt="../_images/notebooks_simulation_21_1.png" src="../_images/notebooks_simulation_21_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Plot directions</span>
-<span class="n">ps_sel</span> <span class="o">=</span> <span class="n">source_label</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="n">ps_sel</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">source_label</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
 
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">subplot_kw</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;projection&quot;</span><span class="p">:</span> <span class="s2">&quot;aitoff&quot;</span><span class="p">})</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
 
 <span class="n">circles</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ra</span><span class="p">[</span><span class="o">~</span><span class="n">ps_sel</span><span class="p">],</span> <span class="n">dec</span><span class="p">[</span><span class="o">~</span><span class="n">ps_sel</span><span class="p">],</span> <span class="n">ang_err</span><span class="p">[</span><span class="o">~</span><span class="n">ps_sel</span><span class="p">]):</span>
+<span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+    <span class="n">events</span><span class="o">.</span><span class="n">ra</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">][</span><span class="o">~</span><span class="n">ps_sel</span><span class="p">],</span>
+    <span class="n">events</span><span class="o">.</span><span class="n">dec</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">][</span><span class="o">~</span><span class="n">ps_sel</span><span class="p">],</span>
+    <span class="n">events</span><span class="o">.</span><span class="n">ang_err</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">][</span><span class="o">~</span><span class="n">ps_sel</span><span class="p">],</span>
+<span class="p">):</span>
     <span class="n">circle</span> <span class="o">=</span> <span class="n">Circle</span><span class="p">((</span><span class="n">r</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">d</span><span class="p">),</span> <span class="n">radius</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
     <span class="n">circles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">circle</span><span class="p">)</span>
 <span class="n">df_nu</span> <span class="o">=</span> <span class="n">PatchCollection</span><span class="p">(</span><span class="n">circles</span><span class="p">)</span>
 
 <span class="n">circles</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ra</span><span class="p">[</span><span class="n">ps_sel</span><span class="p">],</span> <span class="n">dec</span><span class="p">[</span><span class="n">ps_sel</span><span class="p">],</span> <span class="n">ang_err</span><span class="p">[</span><span class="n">ps_sel</span><span class="p">]):</span>
+<span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+    <span class="n">events</span><span class="o">.</span><span class="n">ra</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">][</span><span class="n">ps_sel</span><span class="p">],</span>
+    <span class="n">events</span><span class="o">.</span><span class="n">dec</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">][</span><span class="n">ps_sel</span><span class="p">],</span>
+    <span class="n">events</span><span class="o">.</span><span class="n">ang_err</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">][</span><span class="n">ps_sel</span><span class="p">],</span>
+<span class="p">):</span>
     <span class="n">circle</span> <span class="o">=</span> <span class="n">Circle</span><span class="p">((</span><span class="n">r</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">d</span><span class="p">),</span> <span class="n">radius</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
     <span class="n">circles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">circle</span><span class="p">)</span>
 <span class="n">ps_nu</span> <span class="o">=</span> <span class="n">PatchCollection</span><span class="p">(</span><span class="n">circles</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
@@ -679,7 +754,7 @@ Sampling: 100%|██████████| 204/204 [01:06&lt;00:00,  3.07it/
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_simulation_20_0.png" src="../_images/notebooks_simulation_20_0.png" />
+<img alt="../_images/notebooks_simulation_22_0.png" src="../_images/notebooks_simulation_22_0.png" />
 </div>
 </div>
 </section>
@@ -688,7 +763,7 @@ Sampling: 100%|██████████| 204/204 [01:06&lt;00:00,  3.07it/
 <h1>Time dependent simulation<a class="headerlink" href="#Time-dependent-simulation" title="Permalink to this heading"></a></h1>
 <p>We can simulate an observation campaign spanning multiple data periods of IceCube through a “meta class” <code class="docutils literal notranslate"><span class="pre">TimeDependentSimulator</span></code>:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span> <span class="o">=</span> <span class="n">TimeDependentSimulator</span><span class="p">([</span><span class="s2">&quot;IC86_I&quot;</span><span class="p">,</span> <span class="s2">&quot;IC86_II&quot;</span><span class="p">],</span> <span class="n">sources</span><span class="p">)</span>
@@ -708,7 +783,7 @@ Need to set simulation times, defaults to 1 year each.
 </div>
 <p>We need to set simulation times for all periods. Since for past periods the simulation time shouldn’t be larger than the actual observation time (that is time span - down time of the detector) we need to take care, or rather, we let the class <code class="docutils literal notranslate"><span class="pre">Uptime</span></code> take care:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.utils.data</span> <span class="kn">import</span> <span class="n">Uptime</span>
@@ -717,7 +792,7 @@ Need to set simulation times, defaults to 1 year each.
 </div>
 <p>It lets us calculate the actual observation time through, e.g. IC86_II, vs the time covered:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">uptime</span> <span class="o">=</span> <span class="n">Uptime</span><span class="p">()</span>
@@ -726,7 +801,7 @@ Need to set simulation times, defaults to 1 year each.
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -739,7 +814,7 @@ Need to set simulation times, defaults to 1 year each.
 <p>If the end time is past the last period (IC86_II), then we get an according message and simulate into the future.</p>
 <p>We can of course bypass this time setting and operate directly on the instances of Simulator, for example if we’d want to build up large statistics for subsequent likelihood analysis.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">times</span> <span class="o">=</span> <span class="n">uptime</span><span class="o">.</span><span class="n">find_obs_time</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">55569</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
@@ -748,7 +823,7 @@ Need to set simulation times, defaults to 1 year each.
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -757,57 +832,515 @@ Need to set simulation times, defaults to 1 year each.
 </pre></div></div>
 </div>
 <p>The returned dictionary can be used to set the simulation times for an instance of <code class="docutils literal notranslate"><span class="pre">TimeDependentSimulator</span></code>:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span> <span class="o">=</span> <span class="n">TimeDependentSimulator</span><span class="p">([</span><span class="s2">&quot;IC86_I&quot;</span><span class="p">,</span> <span class="s2">&quot;IC86_II&quot;</span><span class="p">],</span> <span class="n">sources</span><span class="p">)</span>
-<span class="n">tsim</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">times</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">times</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/icecube_tools/detector/r2021.py:67: RuntimeWarning: divide by zero encountered in log10
-  self.dataset[:, 6:-1] = np.log10(self.dataset[:, 6:-1])
-Empty true energy bins at: [(0, 0), (1, 0)]
-Need to set simulation times, defaults to 1 year each.
-</pre></div></div>
 </div>
 <p>The simulation is started by calling <code class="docutils literal notranslate"><span class="pre">run()</span></code>, results can be saved by <code class="docutils literal notranslate"><span class="pre">save(file_prefix)</span></code>, with the filename being <code class="docutils literal notranslate"><span class="pre">{file_prefix}_{p}.h5</span></code> with period <code class="docutils literal notranslate"><span class="pre">p</span></code>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">show_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">tsim</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;test_sim&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
+<div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Sampling: 100%|██████████| 249/249 [01:55&lt;00:00,  2.15it/s]
-Sampling: 100%|██████████| 301/301 [01:52&lt;00:00,  2.69it/s]
+Sampling: 100%|██████████| 249/249 [01:20&lt;00:00,  3.09it/s]
+Sampling: 100%|██████████| 301/301 [01:19&lt;00:00,  3.77it/s]
 </pre></div></div>
 </div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span><span class="o">.</span><span class="n">_true_energy</span>
+</pre></div>
+</div>
+</div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{&#39;IC86_I&#39;: &#39;data/p_IC86_I_test_sim.h5&#39;,
- &#39;IC86_II&#39;: &#39;data/p_IC86_II_test_sim.h5&#39;}
+{&#39;IC86_I&#39;: array([1.00502439e+03, 6.04866378e+03, 6.17732508e+02, 2.36194608e+02,
+        2.64131982e+02, 6.16405773e+02, 5.95501053e+02, 1.63240677e+02,
+        7.40230349e+02, 4.67211939e+02, 4.89576679e+02, 5.02226487e+02,
+        1.44064903e+03, 2.61657086e+02, 1.36152529e+03, 6.73379598e+02,
+        1.03280095e+04, 4.20732081e+02, 4.99994444e+02, 3.10444671e+02,
+        2.97448962e+02, 1.61048174e+02, 2.08439605e+03, 8.49946599e+02,
+        1.38678668e+03, 1.61054888e+03, 3.24731011e+02, 4.78780919e+02,
+        2.62915720e+02, 5.02364915e+02, 1.50952618e+03, 1.03438867e+04,
+        5.87273828e+02, 1.77252559e+03, 4.39526944e+02, 3.71701379e+02,
+        6.93180094e+02, 2.68421340e+02, 4.54459418e+03, 3.43848866e+02,
+        1.69830855e+02, 4.51228021e+02, 4.41173620e+02, 3.44476757e+03,
+        2.12378562e+03, 7.90776480e+02, 2.71423414e+02, 6.22713049e+02,
+        5.47065247e+02, 4.50876625e+03, 3.71928073e+02, 2.67025960e+02,
+        1.64443394e+03, 2.52036205e+02, 4.32889766e+02, 8.17376571e+02,
+        3.21498494e+02, 5.44864539e+03, 2.65989277e+02, 5.09878031e+03,
+        3.17589339e+02, 2.99577077e+02, 4.17016332e+02, 3.06722611e+02,
+        2.70163275e+02, 2.04234723e+03, 6.71957556e+02, 2.57781043e+03,
+        1.72234937e+03, 1.93052627e+03, 5.50154812e+02, 1.39905216e+03,
+        1.87359973e+02, 4.67427098e+02, 2.80292742e+02, 4.01627461e+02,
+        3.98197974e+02, 4.41022182e+02, 4.01501670e+02, 4.01767805e+02,
+        1.71050240e+03, 3.13767773e+03, 3.15114925e+02, 1.23140793e+03,
+        1.99339465e+03, 4.62370928e+02, 4.53559682e+02, 2.57400221e+02,
+        9.04234015e+02, 2.16020694e+03, 2.50331411e+03, 7.21911675e+02,
+        3.23878291e+02, 2.84831824e+02, 7.43660102e+02, 1.62619506e+03,
+        3.92834545e+02, 3.16877061e+02, 5.34572788e+03, 1.73762502e+03,
+        4.14500328e+02, 2.01784386e+03, 3.49239554e+02, 4.48516769e+02,
+        2.01584025e+04, 4.17603784e+02, 4.87113266e+02, 6.31342646e+02,
+        1.92123030e+03, 1.00290945e+03, 3.92452611e+02, 5.77408374e+03,
+        1.12628334e+03, 1.26321177e+03, 3.58626710e+02, 7.74761673e+02,
+        6.91088976e+02, 8.14520273e+02, 3.00283819e+02, 1.68007018e+02,
+        3.11584389e+02, 5.90807431e+03, 1.50131375e+03, 5.97258055e+02,
+        4.42717848e+02, 5.42901366e+02, 6.05931588e+02, 4.20343936e+02,
+        2.61853922e+02, 2.52624028e+02, 2.30345629e+02, 4.84952819e+02,
+        1.21391124e+03, 2.56708500e+02, 5.30970142e+02, 1.62782554e+02,
+        5.88065356e+02, 2.68018572e+02, 6.39408785e+02, 3.14616631e+02,
+        4.15186598e+02, 6.67748844e+02, 2.69129618e+02, 1.11085901e+03,
+        4.19280469e+02, 1.22006105e+03, 7.54748348e+02, 2.53056126e+02,
+        4.76152227e+02, 2.10590628e+02, 1.59971770e+02, 2.70617424e+02,
+        4.82822466e+02, 6.58415184e+02, 3.27438175e+02, 4.23828439e+03,
+        3.17639789e+03, 2.73403113e+02, 4.99939115e+02, 2.89886988e+02,
+        2.05384689e+03, 6.71183403e+02, 1.00672468e+03, 1.63821799e+02,
+        2.66029503e+02, 2.20275039e+02, 8.54175194e+02, 5.66807445e+02,
+        2.64937100e+02, 3.97962703e+03, 5.62137645e+02, 3.00062825e+03,
+        4.14489525e+02, 1.67857776e+02, 1.68922216e+02, 2.78948546e+02,
+        2.00266468e+03, 2.56510965e+03, 3.56254092e+02, 3.35821708e+02,
+        2.68467670e+02, 9.15188095e+02, 3.19119119e+04, 2.90146844e+02,
+        4.95278605e+02, 2.63489428e+02, 3.95004797e+02, 8.36874881e+02,
+        2.95360889e+02, 1.97641311e+03, 2.66979410e+02, 2.87730161e+02,
+        7.14585483e+02, 4.47271190e+02, 2.01259199e+02, 4.64939070e+02,
+        4.71496494e+02, 7.52688850e+02, 1.09316468e+03, 3.58376673e+02,
+        4.22741658e+02, 1.99835383e+02, 4.36902539e+02, 7.01589887e+02,
+        2.87116918e+02, 1.60601790e+03, 6.79306682e+02, 1.11659221e+03,
+        1.96922273e+03, 2.85116449e+03, 4.38518587e+02, 1.61611583e+02,
+        4.04746420e+02, 1.15758247e+04, 3.27534308e+04, 5.82618195e+03,
+        6.75368333e+02, 2.39734939e+02, 1.59830296e+05, 2.94934821e+02,
+        1.81015485e+04, 1.44796041e+03, 7.04528067e+02, 7.29084829e+03,
+        2.18987652e+04, 7.23654808e+03, 1.07962631e+03, 4.98581568e+03,
+        2.00786004e+05, 9.59316242e+02, 1.24440915e+03, 2.63946574e+04,
+        5.75537814e+03, 1.02415249e+04, 2.63733308e+03, 3.31597108e+03,
+        1.14778862e+04, 1.65526824e+03, 4.62257885e+02, 5.72321203e+05,
+        8.43848961e+02, 4.98651406e+03, 8.41621971e+04, 1.97325432e+03,
+        4.17133367e+04, 5.19342632e+04, 6.37527117e+03, 4.61153964e+03,
+        3.27434786e+02]),
+ &#39;IC86_II&#39;: array([ 1439.12584269,  1070.33816209,   376.15053375,   778.16951869,
+         2723.77380309,   793.34531265,   283.21723606,   489.51087374,
+         1026.20739   ,  1789.70207532,   366.14814975,   976.96041942,
+          429.79856526,   633.41087191,   387.35588377,   275.984806  ,
+         1011.6261498 ,   263.32938263,   506.86068212,   640.85710746,
+         1430.61413912,  1794.70205796,   301.74400674,   223.32750394,
+         1069.16408756,   336.97681994,   229.94324195,   370.37858482,
+          662.57680269,   344.46434889,   261.36270283,   665.81225436,
+          170.35035376,   260.83008867,   422.31946299,   507.51004708,
+          276.57346304,  6336.60548902,  1749.97312342,   431.41349249,
+          596.84647821,   281.59553397,   714.37277932,  1206.56168799,
+          575.11948698,   737.80526473,   472.54574202,   393.3845505 ,
+          665.89778262,   299.00046143,  4099.90685221,   667.76889172,
+          258.26685535,   578.46346148,   240.48310705,  1391.00424212,
+          238.55648739,  3785.21104063,  3753.66080622,   167.97787619,
+         1033.81285036,   724.38194363,   236.92124421,   375.39909155,
+          440.85079671,   505.50486311,   470.40806552,   590.22053866,
+          192.7845899 ,   786.54276069,   258.27216264,   443.90460577,
+          852.97403779,   251.97473913,   258.04936352,   641.71084567,
+         2716.89696819,   494.97073321,   362.65101219,   282.08215318,
+          834.49012328,   178.16432009,   255.20167087,   275.60821166,
+         1769.09966914,  1329.09739864,   230.06352063,   319.92661276,
+          347.09854078,  1545.57092938,   726.72184933,   173.1534375 ,
+          305.88640294,   758.51191969,   452.41265905,  1751.73678331,
+          628.24996032,   271.20116592,   357.68744888,  1984.30341232,
+          474.0017663 ,   535.60359465,   584.51588911,   327.26176475,
+          271.43540937,   216.03879171,  1283.7113103 ,  1709.01158832,
+          407.54507785,   201.86359676,  1212.25959234, 21593.35400656,
+          220.44011627,  2028.61644551,  1031.9943572 ,   262.80357365,
+          664.55004026,   426.60572356,   450.97357174,   179.03909289,
+          296.78707099,   338.56998958,   164.84001292,  1116.35338183,
+          737.239672  ,  1945.48794902,  3164.2421508 ,   473.52706294,
+          258.02174755,   560.77489998,   280.49261091,   710.77817302,
+        19165.53414831,  2565.82813309,   324.61950207,   202.85329846,
+          457.53009093,   440.19818632,   207.05567268,   389.43109172,
+          324.88515886,  1040.32889469,   161.4573835 ,  3980.16685423,
+         1278.42998196,   461.26670252,   390.44453282,   704.28407816,
+          419.57926357,   352.86120367,   212.09394777,   589.85603117,
+         2237.88415093,   672.78658013,   253.48763284,  1225.71372114,
+          373.11041861,  2680.10837178,   662.13646582,   283.26404329,
+          359.71403859,   438.78661427,  1404.60660778,   254.03657018,
+          321.77342337,   444.35407627,  1221.73382257,  5065.9499816 ,
+          451.20754558,   454.91862583,   182.63664382,  1228.06124023,
+          739.29554861,   851.37296897,   252.11195368,   683.31532683,
+          398.25329416,   260.30558359,  3380.62756303,   531.30615087,
+          749.65800672,   498.28217125,   978.60194957,   263.85881855,
+          452.10684035,  1658.25128841,  2056.17512944,   323.37674521,
+          215.39144704,   675.66029609,   261.49803693,   262.34557449,
+          302.6190493 ,   355.13459677,   261.0428991 ,   432.38773125,
+          690.75807007,   982.95670729,   288.40008271,  4337.73303627,
+          309.32343347,  1530.03563383,   284.4873606 ,  1242.42392434,
+          514.42207644,   317.68661557,  1759.74943059,   772.11106918,
+          482.3777585 , 11656.51474783,  1258.93277031,   426.67602015,
+          714.01745319,   338.92180909,   529.55521962,  1244.69333421,
+          479.51070736,   522.62626175,  2044.38225515,   191.08921677,
+         1001.06067727,  1599.2271368 ,   312.5939775 ,  1637.09738122,
+          431.78045462,   380.73265465,   511.91093246,   364.2215234 ,
+          691.25914856,   950.73188353,   279.51442505,   164.8803657 ,
+          256.31098018,   423.79123318,  1072.38294679,   165.01341191,
+         4765.88820344,   335.61847861,   301.65223747,  6900.73339999,
+          266.76778896,   280.19848842,   522.53292511,  1347.07969056,
+          304.36391116,   492.01320361,   208.81925689,  4149.36700795,
+          329.63416324,   162.22722098,   172.15928001,  6292.71469416,
+          949.28144244,   294.86671525,   265.47609013,   330.36975706,
+          163.48284823,   285.31089808,   407.38641525,   264.31490956,
+          569.70427979,   255.03193777,   944.41432538,  6386.18503111,
+         2749.26041682,   745.32182651,   631.82224881,  1458.58841085,
+        61305.74878982, 40338.67493776, 13199.03160056,  3039.09340088,
+        23188.48501932,   264.99846014,  1993.17133744,   541.25557972,
+          896.59035685,  1053.11729773,   693.15947315,  2269.67360791,
+        16123.05667155,  4859.8907438 , 38066.38098232,  3059.17882567,
+         4089.01654088, 14053.95167478,  4767.88324267,  2668.94959947,
+         2884.07268202,  2148.947365  ,   192.18671437,   374.25874134,
+          758.17944371,   695.80738038,  7375.90467107, 14584.29756878,
+          846.41061811,  2780.91397689,   451.66173952,  2550.58362084,
+         1850.37199546])}
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span><span class="o">.</span><span class="n">write_to_h5</span><span class="p">(</span><span class="s2">&quot;multi_test.hdf5&quot;</span><span class="p">,</span> <span class="n">sources</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span><span class="o">.</span><span class="n">arrival_energy</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;IC86_I&#39;: array([1.00502439e+03, 6.04866378e+03, 6.17732508e+02, 2.36194608e+02,
+        2.64131982e+02, 6.16405773e+02, 5.95501053e+02, 1.63240677e+02,
+        7.40230349e+02, 4.67211939e+02, 4.89576679e+02, 5.02226487e+02,
+        1.44064903e+03, 2.61657086e+02, 1.36152529e+03, 6.73379598e+02,
+        1.03280095e+04, 4.20732081e+02, 4.99994444e+02, 3.10444671e+02,
+        2.97448962e+02, 1.61048174e+02, 2.08439605e+03, 8.49946599e+02,
+        1.38678668e+03, 1.61054888e+03, 3.24731011e+02, 4.78780919e+02,
+        2.62915720e+02, 5.02364915e+02, 1.50952618e+03, 1.03438867e+04,
+        5.87273828e+02, 1.77252559e+03, 4.39526944e+02, 3.71701379e+02,
+        6.93180094e+02, 2.68421340e+02, 4.54459418e+03, 3.43848866e+02,
+        1.69830855e+02, 4.51228021e+02, 4.41173620e+02, 3.44476757e+03,
+        2.12378562e+03, 7.90776480e+02, 2.71423414e+02, 6.22713049e+02,
+        5.47065247e+02, 4.50876625e+03, 3.71928073e+02, 2.67025960e+02,
+        1.64443394e+03, 2.52036205e+02, 4.32889766e+02, 8.17376571e+02,
+        3.21498494e+02, 5.44864539e+03, 2.65989277e+02, 5.09878031e+03,
+        3.17589339e+02, 2.99577077e+02, 4.17016332e+02, 3.06722611e+02,
+        2.70163275e+02, 2.04234723e+03, 6.71957556e+02, 2.57781043e+03,
+        1.72234937e+03, 1.93052627e+03, 5.50154812e+02, 1.39905216e+03,
+        1.87359973e+02, 4.67427098e+02, 2.80292742e+02, 4.01627461e+02,
+        3.98197974e+02, 4.41022182e+02, 4.01501670e+02, 4.01767805e+02,
+        1.71050240e+03, 3.13767773e+03, 3.15114925e+02, 1.23140793e+03,
+        1.99339465e+03, 4.62370928e+02, 4.53559682e+02, 2.57400221e+02,
+        9.04234015e+02, 2.16020694e+03, 2.50331411e+03, 7.21911675e+02,
+        3.23878291e+02, 2.84831824e+02, 7.43660102e+02, 1.62619506e+03,
+        3.92834545e+02, 3.16877061e+02, 5.34572788e+03, 1.73762502e+03,
+        4.14500328e+02, 2.01784386e+03, 3.49239554e+02, 4.48516769e+02,
+        2.01584025e+04, 4.17603784e+02, 4.87113266e+02, 6.31342646e+02,
+        1.92123030e+03, 1.00290945e+03, 3.92452611e+02, 5.77408374e+03,
+        1.12628334e+03, 1.26321177e+03, 3.58626710e+02, 7.74761673e+02,
+        6.91088976e+02, 8.14520273e+02, 3.00283819e+02, 1.68007018e+02,
+        3.11584389e+02, 5.90807431e+03, 1.50131375e+03, 5.97258055e+02,
+        4.42717848e+02, 5.42901366e+02, 6.05931588e+02, 4.20343936e+02,
+        2.61853922e+02, 2.52624028e+02, 2.30345629e+02, 4.84952819e+02,
+        1.21391124e+03, 2.56708500e+02, 5.30970142e+02, 1.62782554e+02,
+        5.88065356e+02, 2.68018572e+02, 6.39408785e+02, 3.14616631e+02,
+        4.15186598e+02, 6.67748844e+02, 2.69129618e+02, 1.11085901e+03,
+        4.19280469e+02, 1.22006105e+03, 7.54748348e+02, 2.53056126e+02,
+        4.76152227e+02, 2.10590628e+02, 1.59971770e+02, 2.70617424e+02,
+        4.82822466e+02, 6.58415184e+02, 3.27438175e+02, 4.23828439e+03,
+        3.17639789e+03, 2.73403113e+02, 4.99939115e+02, 2.89886988e+02,
+        2.05384689e+03, 6.71183403e+02, 1.00672468e+03, 1.63821799e+02,
+        2.66029503e+02, 2.20275039e+02, 8.54175194e+02, 5.66807445e+02,
+        2.64937100e+02, 3.97962703e+03, 5.62137645e+02, 3.00062825e+03,
+        4.14489525e+02, 1.67857776e+02, 1.68922216e+02, 2.78948546e+02,
+        2.00266468e+03, 2.56510965e+03, 3.56254092e+02, 3.35821708e+02,
+        2.68467670e+02, 9.15188095e+02, 3.19119119e+04, 2.90146844e+02,
+        4.95278605e+02, 2.63489428e+02, 3.95004797e+02, 8.36874881e+02,
+        2.95360889e+02, 1.97641311e+03, 2.66979410e+02, 2.87730161e+02,
+        7.14585483e+02, 4.47271190e+02, 2.01259199e+02, 4.64939070e+02,
+        4.71496494e+02, 7.52688850e+02, 1.09316468e+03, 3.58376673e+02,
+        4.22741658e+02, 1.99835383e+02, 4.36902539e+02, 7.01589887e+02,
+        2.87116918e+02, 1.60601790e+03, 6.79306682e+02, 1.11659221e+03,
+        1.96922273e+03, 2.85116449e+03, 4.38518587e+02, 1.61611583e+02,
+        4.04746420e+02, 1.15758247e+04, 3.27534308e+04, 5.82618195e+03,
+        6.75368333e+02, 2.39734939e+02, 1.59830296e+05, 2.94934821e+02,
+        1.81015485e+04, 1.44796041e+03, 7.04528067e+02, 7.29084829e+03,
+        2.18987652e+04, 7.23654808e+03, 1.07962631e+03, 4.98581568e+03,
+        2.00786004e+05, 9.59316242e+02, 1.24440915e+03, 2.63946574e+04,
+        5.75537814e+03, 1.02415249e+04, 2.63733308e+03, 3.31597108e+03,
+        1.14778862e+04, 1.65526824e+03, 4.62257885e+02, 5.72321203e+05,
+        8.43848961e+02, 4.98651406e+03, 8.41621971e+04, 1.97325432e+03,
+        4.17133367e+04, 5.19342632e+04, 6.37527117e+03, 4.61153964e+03,
+        3.27434786e+02]),
+ &#39;IC86_II&#39;: array([ 1439.12584269,  1070.33816209,   376.15053375,   778.16951869,
+         2723.77380309,   793.34531265,   283.21723606,   489.51087374,
+         1026.20739   ,  1789.70207532,   366.14814975,   976.96041942,
+          429.79856526,   633.41087191,   387.35588377,   275.984806  ,
+         1011.6261498 ,   263.32938263,   506.86068212,   640.85710746,
+         1430.61413912,  1794.70205796,   301.74400674,   223.32750394,
+         1069.16408756,   336.97681994,   229.94324195,   370.37858482,
+          662.57680269,   344.46434889,   261.36270283,   665.81225436,
+          170.35035376,   260.83008867,   422.31946299,   507.51004708,
+          276.57346304,  6336.60548902,  1749.97312342,   431.41349249,
+          596.84647821,   281.59553397,   714.37277932,  1206.56168799,
+          575.11948698,   737.80526473,   472.54574202,   393.3845505 ,
+          665.89778262,   299.00046143,  4099.90685221,   667.76889172,
+          258.26685535,   578.46346148,   240.48310705,  1391.00424212,
+          238.55648739,  3785.21104063,  3753.66080622,   167.97787619,
+         1033.81285036,   724.38194363,   236.92124421,   375.39909155,
+          440.85079671,   505.50486311,   470.40806552,   590.22053866,
+          192.7845899 ,   786.54276069,   258.27216264,   443.90460577,
+          852.97403779,   251.97473913,   258.04936352,   641.71084567,
+         2716.89696819,   494.97073321,   362.65101219,   282.08215318,
+          834.49012328,   178.16432009,   255.20167087,   275.60821166,
+         1769.09966914,  1329.09739864,   230.06352063,   319.92661276,
+          347.09854078,  1545.57092938,   726.72184933,   173.1534375 ,
+          305.88640294,   758.51191969,   452.41265905,  1751.73678331,
+          628.24996032,   271.20116592,   357.68744888,  1984.30341232,
+          474.0017663 ,   535.60359465,   584.51588911,   327.26176475,
+          271.43540937,   216.03879171,  1283.7113103 ,  1709.01158832,
+          407.54507785,   201.86359676,  1212.25959234, 21593.35400656,
+          220.44011627,  2028.61644551,  1031.9943572 ,   262.80357365,
+          664.55004026,   426.60572356,   450.97357174,   179.03909289,
+          296.78707099,   338.56998958,   164.84001292,  1116.35338183,
+          737.239672  ,  1945.48794902,  3164.2421508 ,   473.52706294,
+          258.02174755,   560.77489998,   280.49261091,   710.77817302,
+        19165.53414831,  2565.82813309,   324.61950207,   202.85329846,
+          457.53009093,   440.19818632,   207.05567268,   389.43109172,
+          324.88515886,  1040.32889469,   161.4573835 ,  3980.16685423,
+         1278.42998196,   461.26670252,   390.44453282,   704.28407816,
+          419.57926357,   352.86120367,   212.09394777,   589.85603117,
+         2237.88415093,   672.78658013,   253.48763284,  1225.71372114,
+          373.11041861,  2680.10837178,   662.13646582,   283.26404329,
+          359.71403859,   438.78661427,  1404.60660778,   254.03657018,
+          321.77342337,   444.35407627,  1221.73382257,  5065.9499816 ,
+          451.20754558,   454.91862583,   182.63664382,  1228.06124023,
+          739.29554861,   851.37296897,   252.11195368,   683.31532683,
+          398.25329416,   260.30558359,  3380.62756303,   531.30615087,
+          749.65800672,   498.28217125,   978.60194957,   263.85881855,
+          452.10684035,  1658.25128841,  2056.17512944,   323.37674521,
+          215.39144704,   675.66029609,   261.49803693,   262.34557449,
+          302.6190493 ,   355.13459677,   261.0428991 ,   432.38773125,
+          690.75807007,   982.95670729,   288.40008271,  4337.73303627,
+          309.32343347,  1530.03563383,   284.4873606 ,  1242.42392434,
+          514.42207644,   317.68661557,  1759.74943059,   772.11106918,
+          482.3777585 , 11656.51474783,  1258.93277031,   426.67602015,
+          714.01745319,   338.92180909,   529.55521962,  1244.69333421,
+          479.51070736,   522.62626175,  2044.38225515,   191.08921677,
+         1001.06067727,  1599.2271368 ,   312.5939775 ,  1637.09738122,
+          431.78045462,   380.73265465,   511.91093246,   364.2215234 ,
+          691.25914856,   950.73188353,   279.51442505,   164.8803657 ,
+          256.31098018,   423.79123318,  1072.38294679,   165.01341191,
+         4765.88820344,   335.61847861,   301.65223747,  6900.73339999,
+          266.76778896,   280.19848842,   522.53292511,  1347.07969056,
+          304.36391116,   492.01320361,   208.81925689,  4149.36700795,
+          329.63416324,   162.22722098,   172.15928001,  6292.71469416,
+          949.28144244,   294.86671525,   265.47609013,   330.36975706,
+          163.48284823,   285.31089808,   407.38641525,   264.31490956,
+          569.70427979,   255.03193777,   944.41432538,  6386.18503111,
+         2749.26041682,   745.32182651,   631.82224881,  1458.58841085,
+        61305.74878982, 40338.67493776, 13199.03160056,  3039.09340088,
+        23188.48501932,   264.99846014,  1993.17133744,   541.25557972,
+          896.59035685,  1053.11729773,   693.15947315,  2269.67360791,
+        16123.05667155,  4859.8907438 , 38066.38098232,  3059.17882567,
+         4089.01654088, 14053.95167478,  4767.88324267,  2668.94959947,
+         2884.07268202,  2148.947365  ,   192.18671437,   374.25874134,
+          758.17944371,   695.80738038,  7375.90467107, 14584.29756878,
+          846.41061811,  2780.91397689,   451.66173952,  2550.58362084,
+         1850.37199546])}
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span> <span class="o">=</span> <span class="n">SimEvents</span><span class="o">.</span><span class="n">load_from_h5</span><span class="p">(</span><span class="s2">&quot;multi_test.hdf5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span><span class="o">.</span><span class="n">arrival_energy</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;IC86_I&#39;: array([1.00502439e+03, 6.04866378e+03, 6.17732508e+02, 2.36194608e+02,
+        2.64131982e+02, 6.16405773e+02, 5.95501053e+02, 1.63240677e+02,
+        7.40230349e+02, 4.67211939e+02, 4.89576679e+02, 5.02226487e+02,
+        1.44064903e+03, 2.61657086e+02, 1.36152529e+03, 6.73379598e+02,
+        1.03280095e+04, 4.20732081e+02, 4.99994444e+02, 3.10444671e+02,
+        2.97448962e+02, 1.61048174e+02, 2.08439605e+03, 8.49946599e+02,
+        1.38678668e+03, 1.61054888e+03, 3.24731011e+02, 4.78780919e+02,
+        2.62915720e+02, 5.02364915e+02, 1.50952618e+03, 1.03438867e+04,
+        5.87273828e+02, 1.77252559e+03, 4.39526944e+02, 3.71701379e+02,
+        6.93180094e+02, 2.68421340e+02, 4.54459418e+03, 3.43848866e+02,
+        1.69830855e+02, 4.51228021e+02, 4.41173620e+02, 3.44476757e+03,
+        2.12378562e+03, 7.90776480e+02, 2.71423414e+02, 6.22713049e+02,
+        5.47065247e+02, 4.50876625e+03, 3.71928073e+02, 2.67025960e+02,
+        1.64443394e+03, 2.52036205e+02, 4.32889766e+02, 8.17376571e+02,
+        3.21498494e+02, 5.44864539e+03, 2.65989277e+02, 5.09878031e+03,
+        3.17589339e+02, 2.99577077e+02, 4.17016332e+02, 3.06722611e+02,
+        2.70163275e+02, 2.04234723e+03, 6.71957556e+02, 2.57781043e+03,
+        1.72234937e+03, 1.93052627e+03, 5.50154812e+02, 1.39905216e+03,
+        1.87359973e+02, 4.67427098e+02, 2.80292742e+02, 4.01627461e+02,
+        3.98197974e+02, 4.41022182e+02, 4.01501670e+02, 4.01767805e+02,
+        1.71050240e+03, 3.13767773e+03, 3.15114925e+02, 1.23140793e+03,
+        1.99339465e+03, 4.62370928e+02, 4.53559682e+02, 2.57400221e+02,
+        9.04234015e+02, 2.16020694e+03, 2.50331411e+03, 7.21911675e+02,
+        3.23878291e+02, 2.84831824e+02, 7.43660102e+02, 1.62619506e+03,
+        3.92834545e+02, 3.16877061e+02, 5.34572788e+03, 1.73762502e+03,
+        4.14500328e+02, 2.01784386e+03, 3.49239554e+02, 4.48516769e+02,
+        2.01584025e+04, 4.17603784e+02, 4.87113266e+02, 6.31342646e+02,
+        1.92123030e+03, 1.00290945e+03, 3.92452611e+02, 5.77408374e+03,
+        1.12628334e+03, 1.26321177e+03, 3.58626710e+02, 7.74761673e+02,
+        6.91088976e+02, 8.14520273e+02, 3.00283819e+02, 1.68007018e+02,
+        3.11584389e+02, 5.90807431e+03, 1.50131375e+03, 5.97258055e+02,
+        4.42717848e+02, 5.42901366e+02, 6.05931588e+02, 4.20343936e+02,
+        2.61853922e+02, 2.52624028e+02, 2.30345629e+02, 4.84952819e+02,
+        1.21391124e+03, 2.56708500e+02, 5.30970142e+02, 1.62782554e+02,
+        5.88065356e+02, 2.68018572e+02, 6.39408785e+02, 3.14616631e+02,
+        4.15186598e+02, 6.67748844e+02, 2.69129618e+02, 1.11085901e+03,
+        4.19280469e+02, 1.22006105e+03, 7.54748348e+02, 2.53056126e+02,
+        4.76152227e+02, 2.10590628e+02, 1.59971770e+02, 2.70617424e+02,
+        4.82822466e+02, 6.58415184e+02, 3.27438175e+02, 4.23828439e+03,
+        3.17639789e+03, 2.73403113e+02, 4.99939115e+02, 2.89886988e+02,
+        2.05384689e+03, 6.71183403e+02, 1.00672468e+03, 1.63821799e+02,
+        2.66029503e+02, 2.20275039e+02, 8.54175194e+02, 5.66807445e+02,
+        2.64937100e+02, 3.97962703e+03, 5.62137645e+02, 3.00062825e+03,
+        4.14489525e+02, 1.67857776e+02, 1.68922216e+02, 2.78948546e+02,
+        2.00266468e+03, 2.56510965e+03, 3.56254092e+02, 3.35821708e+02,
+        2.68467670e+02, 9.15188095e+02, 3.19119119e+04, 2.90146844e+02,
+        4.95278605e+02, 2.63489428e+02, 3.95004797e+02, 8.36874881e+02,
+        2.95360889e+02, 1.97641311e+03, 2.66979410e+02, 2.87730161e+02,
+        7.14585483e+02, 4.47271190e+02, 2.01259199e+02, 4.64939070e+02,
+        4.71496494e+02, 7.52688850e+02, 1.09316468e+03, 3.58376673e+02,
+        4.22741658e+02, 1.99835383e+02, 4.36902539e+02, 7.01589887e+02,
+        2.87116918e+02, 1.60601790e+03, 6.79306682e+02, 1.11659221e+03,
+        1.96922273e+03, 2.85116449e+03, 4.38518587e+02, 1.61611583e+02,
+        4.04746420e+02, 1.15758247e+04, 3.27534308e+04, 5.82618195e+03,
+        6.75368333e+02, 2.39734939e+02, 1.59830296e+05, 2.94934821e+02,
+        1.81015485e+04, 1.44796041e+03, 7.04528067e+02, 7.29084829e+03,
+        2.18987652e+04, 7.23654808e+03, 1.07962631e+03, 4.98581568e+03,
+        2.00786004e+05, 9.59316242e+02, 1.24440915e+03, 2.63946574e+04,
+        5.75537814e+03, 1.02415249e+04, 2.63733308e+03, 3.31597108e+03,
+        1.14778862e+04, 1.65526824e+03, 4.62257885e+02, 5.72321203e+05,
+        8.43848961e+02, 4.98651406e+03, 8.41621971e+04, 1.97325432e+03,
+        4.17133367e+04, 5.19342632e+04, 6.37527117e+03, 4.61153964e+03,
+        3.27434786e+02]),
+ &#39;IC86_II&#39;: array([ 1439.12584269,  1070.33816209,   376.15053375,   778.16951869,
+         2723.77380309,   793.34531265,   283.21723606,   489.51087374,
+         1026.20739   ,  1789.70207532,   366.14814975,   976.96041942,
+          429.79856526,   633.41087191,   387.35588377,   275.984806  ,
+         1011.6261498 ,   263.32938263,   506.86068212,   640.85710746,
+         1430.61413912,  1794.70205796,   301.74400674,   223.32750394,
+         1069.16408756,   336.97681994,   229.94324195,   370.37858482,
+          662.57680269,   344.46434889,   261.36270283,   665.81225436,
+          170.35035376,   260.83008867,   422.31946299,   507.51004708,
+          276.57346304,  6336.60548902,  1749.97312342,   431.41349249,
+          596.84647821,   281.59553397,   714.37277932,  1206.56168799,
+          575.11948698,   737.80526473,   472.54574202,   393.3845505 ,
+          665.89778262,   299.00046143,  4099.90685221,   667.76889172,
+          258.26685535,   578.46346148,   240.48310705,  1391.00424212,
+          238.55648739,  3785.21104063,  3753.66080622,   167.97787619,
+         1033.81285036,   724.38194363,   236.92124421,   375.39909155,
+          440.85079671,   505.50486311,   470.40806552,   590.22053866,
+          192.7845899 ,   786.54276069,   258.27216264,   443.90460577,
+          852.97403779,   251.97473913,   258.04936352,   641.71084567,
+         2716.89696819,   494.97073321,   362.65101219,   282.08215318,
+          834.49012328,   178.16432009,   255.20167087,   275.60821166,
+         1769.09966914,  1329.09739864,   230.06352063,   319.92661276,
+          347.09854078,  1545.57092938,   726.72184933,   173.1534375 ,
+          305.88640294,   758.51191969,   452.41265905,  1751.73678331,
+          628.24996032,   271.20116592,   357.68744888,  1984.30341232,
+          474.0017663 ,   535.60359465,   584.51588911,   327.26176475,
+          271.43540937,   216.03879171,  1283.7113103 ,  1709.01158832,
+          407.54507785,   201.86359676,  1212.25959234, 21593.35400656,
+          220.44011627,  2028.61644551,  1031.9943572 ,   262.80357365,
+          664.55004026,   426.60572356,   450.97357174,   179.03909289,
+          296.78707099,   338.56998958,   164.84001292,  1116.35338183,
+          737.239672  ,  1945.48794902,  3164.2421508 ,   473.52706294,
+          258.02174755,   560.77489998,   280.49261091,   710.77817302,
+        19165.53414831,  2565.82813309,   324.61950207,   202.85329846,
+          457.53009093,   440.19818632,   207.05567268,   389.43109172,
+          324.88515886,  1040.32889469,   161.4573835 ,  3980.16685423,
+         1278.42998196,   461.26670252,   390.44453282,   704.28407816,
+          419.57926357,   352.86120367,   212.09394777,   589.85603117,
+         2237.88415093,   672.78658013,   253.48763284,  1225.71372114,
+          373.11041861,  2680.10837178,   662.13646582,   283.26404329,
+          359.71403859,   438.78661427,  1404.60660778,   254.03657018,
+          321.77342337,   444.35407627,  1221.73382257,  5065.9499816 ,
+          451.20754558,   454.91862583,   182.63664382,  1228.06124023,
+          739.29554861,   851.37296897,   252.11195368,   683.31532683,
+          398.25329416,   260.30558359,  3380.62756303,   531.30615087,
+          749.65800672,   498.28217125,   978.60194957,   263.85881855,
+          452.10684035,  1658.25128841,  2056.17512944,   323.37674521,
+          215.39144704,   675.66029609,   261.49803693,   262.34557449,
+          302.6190493 ,   355.13459677,   261.0428991 ,   432.38773125,
+          690.75807007,   982.95670729,   288.40008271,  4337.73303627,
+          309.32343347,  1530.03563383,   284.4873606 ,  1242.42392434,
+          514.42207644,   317.68661557,  1759.74943059,   772.11106918,
+          482.3777585 , 11656.51474783,  1258.93277031,   426.67602015,
+          714.01745319,   338.92180909,   529.55521962,  1244.69333421,
+          479.51070736,   522.62626175,  2044.38225515,   191.08921677,
+         1001.06067727,  1599.2271368 ,   312.5939775 ,  1637.09738122,
+          431.78045462,   380.73265465,   511.91093246,   364.2215234 ,
+          691.25914856,   950.73188353,   279.51442505,   164.8803657 ,
+          256.31098018,   423.79123318,  1072.38294679,   165.01341191,
+         4765.88820344,   335.61847861,   301.65223747,  6900.73339999,
+          266.76778896,   280.19848842,   522.53292511,  1347.07969056,
+          304.36391116,   492.01320361,   208.81925689,  4149.36700795,
+          329.63416324,   162.22722098,   172.15928001,  6292.71469416,
+          949.28144244,   294.86671525,   265.47609013,   330.36975706,
+          163.48284823,   285.31089808,   407.38641525,   264.31490956,
+          569.70427979,   255.03193777,   944.41432538,  6386.18503111,
+         2749.26041682,   745.32182651,   631.82224881,  1458.58841085,
+        61305.74878982, 40338.67493776, 13199.03160056,  3039.09340088,
+        23188.48501932,   264.99846014,  1993.17133744,   541.25557972,
+          896.59035685,  1053.11729773,   693.15947315,  2269.67360791,
+        16123.05667155,  4859.8907438 , 38066.38098232,  3059.17882567,
+         4089.01654088, 14053.95167478,  4767.88324267,  2668.94959947,
+         2884.07268202,  2148.947365  ,   192.18671437,   374.25874134,
+          758.17944371,   695.80738038,  7375.90467107, 14584.29756878,
+          846.41061811,  2780.91397689,   451.66173952,  2550.58362084,
+         1850.37199546])}
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
@@ -835,13 +1368,21 @@ Sampling: 100%|██████████| 301/301 [01:52&lt;00:00,  2.69it/
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 &#39;\nfor i in [3.9]:\n    norm_energy = 1e5 # Energy of normalisation in units of GeV\n    min_energy = 1e2 # GeV\n    max_energy = 1e8 # GeV\n    phi_solver = PhiSolver(aeff, norm_energy, min_energy, max_energy, \n                           time=1, min_cosz=-1, max_cosz=1)\n    phi_norm = phi_solver(Nnu=2000, \n                          dec=30, # degrees\n                          index=i) # spectral index\n    phi_norm # GeV^-1 cm^-2 s^-1\n    point_power_law = PowerLawFlux(phi_norm, norm_energy, i, \n                                   min_energy, max_energy)\n    point_source = PointSource(point_power_law, z=0., coord=(np.pi, np.deg2rad(30)))\n    sources = [point_source]\n    tsim = TimeDependentSimulator([&#34;IC86_I&#34;, &#34;IC86_II&#34;], sources)\n    for sim in tsim.simulators.values():\n        sim.time = 1\n    tsim.run(show_progress=True)\n    tsim.save(f&#34;index_{i}&#34;)\n&#39;
 </pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
 </div>
 </section>
 
