@@ -95,7 +95,7 @@ class Simulator(SimEvents):
 
         nu_calc = NeutrinoCalculator(self.sources, self.detector.effective_area)
 
-        self._Nex = nu_calc(time=self.time, max_cosz=self.max_cosz)
+        self._Nex = nu_calc(time=self.time, min_cosz=self.min_cosz, max_cosz=self.max_cosz)
 
         self._source_weights = np.array(self._Nex) / sum(self._Nex)
 
