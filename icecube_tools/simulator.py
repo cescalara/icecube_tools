@@ -21,7 +21,7 @@ from .source.flux_model import PowerLawFlux, BrokenPowerLawFlux
 from .neutrino_calculator import NeutrinoCalculator
 from .detector.angular_resolution import FixedAngularResolution, AngularResolution
 from .detector.r2021 import R2021IRF
-from .utils.data import Uptime, data_directory, SimEvents
+from .utils.data import Uptime, data_directory, SimEvents, available_irf_periods
 
 """
 Module for running neutrino production 
@@ -29,7 +29,7 @@ and detection simulations.
 """
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.DEBUG)
 
 
 class Simulator(SimEvents):
@@ -332,7 +332,6 @@ class Simulator(SimEvents):
                 samples = uniform.rvs(size=num, random_state=seed)
                 accepted_ = samples <= detection_prob
                 idx = np.nonzero(accepted_)
-                
                 if idx[0].size == 0:
                     continue
                 else:
@@ -449,13 +448,13 @@ class Simulator(SimEvents):
             progress.close()
         logger.info("Created array of simulation data")
 
-        self._ra = {self._period: self._ra}
-        self._dec = {self._period: self._dec}
+        self._ra = {self._period: np.array(self._ra)}
+        self._dec = {self._period: np.array(self._dec)}
         self._true_energy = {self._period: self._true_energy}
-        self._reco_energy = {self._period: self._reco_energy}
+        self._reco_energy = {self._period: np.array(self._reco_energy)}
         self._arrival_energy = {self._period: self._arrival_energy}
         self._source_label = {self._period: self._source_label}
-        self._ang_err = {self._period: self._ang_err}
+        self._ang_err = {self._period: np.array(self._ang_err)}
         
  
 
@@ -660,8 +659,6 @@ class TimeDependentSimulator(SimEvents):
     Simulator-class for simulations spanning multiple data taking periods.
     """
 
-    _available_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
-
     _time_limits = {}
 
     # need to find time limits of data taking periods
@@ -678,13 +675,13 @@ class TimeDependentSimulator(SimEvents):
         """
         super().__init__()
         self.simulators = {}
-        if not all(_ in self._available_periods for _ in periods):
+        if not all(_ in available_irf_periods for _ in periods):
             raise ValueError("Some periods not supported.")
 
         #Get time dependent detector.
-        time_dependent_detector = TimeDependentIceCube.from_periods(*periods)
+        tirf = TimeDependentIceCube.from_periods(*periods)
         self.simulators = {
-            p: Simulator(sources, sim, p) for p, sim in time_dependent_detector.yield_detectors()
+            p: Simulator(sources, tirf[p], p) for p in periods
         }
         self.sources = sources
         self._periods = periods
@@ -694,10 +691,10 @@ class TimeDependentSimulator(SimEvents):
         else:
             logger.warning("Need to set simulation times, defaults to 1 year each.")
 
-    def run(self, N: List=None, seed=1234, show_progress=False):
+    def run(self, N: Dict=None, seed=1234, show_progress=False):
         """
         Runs simulation for each period.
-        :param N: List of Ns to be set as expected number of neutrinos in sample.
+        :param N: Dict of Ns to be set as expected number of neutrinos in sample.
         :param seed: Random seed.
         :param show_progress: Bool, True if debugging information on simulation is to be shown.
         Currently not implemented.
@@ -705,7 +702,10 @@ class TimeDependentSimulator(SimEvents):
 
         for p, sim in self.simulators.items():
             logger.info(f"Simulating period {p}.")
-            sim.run(N=None, seed=1234, show_progress=show_progress)
+            if N:
+                sim.run(N=N[p], seed=seed, show_progress=show_progress)
+            else:
+                sim.run(N=None, seed=seed, show_progress=show_progress)
             self._true_energy[sim._period] = sim.true_energy[p]
             self._arrival_energy[sim._period] = sim.arrival_energy[p]
             self._reco_energy[sim._period] = sim.reco_energy[p]

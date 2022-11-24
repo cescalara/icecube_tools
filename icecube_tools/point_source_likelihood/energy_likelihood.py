@@ -3,8 +3,7 @@ from abc import ABC, abstractmethod
 import h5py
 from os.path import join
 
-from icecube_tools.detector.r2021 import R2021IRF
-from icecube_tools.detector.effective_area import EffectiveArea
+from ..detector.detector import Detector
 
 """
 Module to compute the IceCube energy likelihood
@@ -43,8 +42,7 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
     #@profile
     def __init__(
         self,
-        irf: R2021IRF,
-        aeff: EffectiveArea, 
+        detector: Detector,
         reco_bins: np.ndarray,
         min_index: float=1.5,
         max_index: float=4.0,
@@ -60,9 +58,12 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
 
         # TODO change reco_bins to cover the range provided by all the pdfs
         # and have the coarsest binning of all pdfs
+        aeff = detector._effective_area
+        irf = detector._angular_resolution
         self._irf = irf
         self._aeff = aeff
         self.reco_bins = reco_bins
+        #print(self.reco_bins)
         self.true_bins_irf = irf.true_energy_bins
         self.true_bins_aeff = np.log10(aeff.true_energy_bins)
         self.true_energy_bins = np.array(sorted(list(set(self.true_bins_irf).union(self.true_bins_aeff))))
@@ -111,16 +112,27 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
             raise ValueError("Index too low")
 
         log_ereco = np.log10(ereco)
+        #print(log_ereco)
         reco_ind = np.digitize(log_ereco, self.reco_bins) - 1    # is np.ndarray
+        #print(reco_ind)
+        ok_ind = np.nonzero(((reco_ind >= 0) & (reco_ind < self.reco_bins.size -1)))
+        #print(ok_ind)
+        reco_ind = reco_ind[ok_ind]   # reduce to those inside the provided energies
+        #print(reco_ind)
+        dec = dec[ok_ind]      # apply mask to declination as well
         dec_ind = np.digitize(dec, self.declination_bins_aeff) - 1 # is np.ndarray
         dec_ind_set = set(dec_ind)
-        output = np.zeros_like(log_ereco)
+
+        # output array, one entry for each queried ereco
+        output = np.zeros_like(log_ereco)   # not-ok energies have zero probability returned, log is someone else's problem
         # loop over set(sec_ind):
         for dec_idx in dec_ind_set:
+            # get declination of index
             single_dec = self.declination_bins_aeff[dec_idx]
             if dec_idx == 0:
                 single_dec += 0.01     # necessary bc of np.digitize's left/right,
                                        # would lead to evaluation of upper bound in flipped array -> forbidden
+            # for the queried dec index, calculate the likelihood
             self._values[dec_idx] = self._calc_likelihood(index, single_dec)
             needed = np.nonzero((dec_ind == dec_idx))
             output[needed] = self._values[dec_idx][reco_ind[needed]]
@@ -140,36 +152,44 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         irf_dec_ind = np.digitize(dec, self.declination_bins_irf) - 1     
 
         #pre-calculate power law and aeff part, is not dependent on reco energy
-        pl = np.zeros(self.true_energy_bins.size - 1)
-        for c, (etruel, etrueh) in enumerate(zip(
-                self.true_energy_bins[:-1], self.true_energy_bins[1:])
-            ):
-            
-            pl[c] = self.integrated_power_law(etrueh, etruel, index)
+        #pl = np.zeros(self.true_energy_bins.size - 1)
+        #for c, (etruel, etrueh) in enumerate(zip(
+        #        self.true_energy_bins[:-1], self.true_energy_bins[1:])
+        #    ):
+        ##   
+        #    pl[c] = self.integrated_power_law(etrueh, etruel, index)
+        pl = self.integrated_power_law(self.true_energy_bins[:-1], self.true_energy_bins[1:], index)
 
         aeff = self._aeff.detection_probability(
-            np.power(10, self.true_bins_c), -np.sin(dec), 1e8
+            np.power(10, self.true_bins_c), -np.sin(dec), 1e9
         )
-        
+        # one output value for each reco_bin (provided by some array at instantiation)
         values = np.zeros(self.reco_bins.size - 1)
         for c_reco, (erecol, erecoh) in enumerate(
             zip(self.reco_bins[:-1], self.reco_bins[1:])
         ):
 
             # Can this be done in without the loop?
+            # integrate over true energy
+            #print("pl", pl)
             sum_this = pl * self._cdf[:, irf_dec_ind, c_reco]
+            #print("cdf", self._cdf[:, irf_dec_ind, c_reco])
+            #print("pl*cdf", sum_this)
             values[c_reco] = np.dot(sum_this, aeff)
-            
-        values = values / np.sum(values * np.diff(self.reco_bins))
+            #print("aeff*(pl*cdf)", values[c_reco])
+        #print("values", values)
+        norm = np.sum(values * np.diff(self.reco_bins))
+        #print("norm", norm)
+        values = values / norm
         return values
 
 
     @staticmethod
-    def integrated_power_law(loge_high, loge_low, index):
+    def integrated_power_law(loge_low, loge_high, index):
         """
         Integrates power law
-        :param loge_high: float or np.ndarray of upper integration bound(s)
-        :param loge_low: float or np.ndarray of lower integration bound(s)
+        :param loge_low: float or np.ndarray of upper integration bound(s)
+        :param loge_high: float or np.ndarray of lower integration bound(s)
         :param index: spectral index
         :return: Integrated power law, float or np.ndarray
         """
