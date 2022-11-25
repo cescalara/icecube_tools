@@ -898,8 +898,10 @@ class TimeDependentPointSourceLikelihood:
         emin: float=1e1,
         emax: float=1e9,
         min_index: float=1.5,
-        max_index: float=4.0,
-        new_reco_bins: np.ndarray=np.linspace(1, 9, num=25)
+        max_index: float=5.0,
+        new_reco_bins: np.ndarray=np.linspace(1, 9, num=25),
+        sigma: float=5.,
+        band_width_factor: float=3.0
     ):
         """
         Create likelihood covering multiple data taking periods.
@@ -919,6 +921,8 @@ class TimeDependentPointSourceLikelihood:
         :param min_index: Minimum spectral index
         :param max_index: Maximum spectral index
         :param new_reco_bins: Reco energy bins at which energy likelihood is evaluated
+        :param sigma: Worst angular resolution considered for spatial likelihood, defaults to 5 degrees
+        :param band_width_factor: Factor multiplied with sigma for event selection, defaults to 3
         """
 
         if which not in ["both", "energy", "spatial"]:
@@ -932,7 +936,7 @@ class TimeDependentPointSourceLikelihood:
         self._max_index = max_index
         self.likelihoods = OrderedDict()
         # Can use one spatial llh for all periods, 'tis but a Gaussian
-        spatial_llh = EventDependentSpatialGaussianLikelihood()
+        spatial_llh = EventDependentSpatialGaussianLikelihood(sigma=sigma)
         self.times = times
         self.tirf = TimeDependentIceCube.from_periods(*self.periods)
         self.nu_calcs = {}
@@ -966,7 +970,8 @@ class TimeDependentPointSourceLikelihood:
                 reco_energy[p],
                 ang_err[p],
                 self.source_coords,
-                which=self.which
+                which=self.which,
+                band_width_factor=band_width_factor
             )
 
 
