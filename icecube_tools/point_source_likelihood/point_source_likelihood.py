@@ -1161,11 +1161,28 @@ class TimeDependentPointSourceLikelihood:
 
 
     @property
+    def N_dict(self):
+        n = {}
+        for c, v in self.likelihoods.items():
+            n[c] = v.N
+        return n
+
+
+    @property
     def Nprime(self):
         n = 0
         for l in self.likelihoods.values():
             n += l.Nprime
         return n
+
+
+    @property
+    def Nprime_dict(self):
+        n = {}
+        for c, v in self.likelihoods.items():
+            n[c] = v.Nprime
+        return n
+
 
 
 class EnergyDependentSpatialPointSourceLikelihood:
