@@ -5,9 +5,9 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.13.8
+      jupytext_version: 1.14.0
   kernelspec:
-    display_name: Python 3 (ipykernel)
+    display_name: Python 3.9.13 ('icecube_dev')
     language: python
     name: python3
 ---
@@ -43,6 +43,7 @@ from icecube_tools.point_source_likelihood.point_source_likelihood import (
 
 from icecube_tools.detector.effective_area import EffectiveArea
 from icecube_tools.detector.r2021 import R2021IRF
+from icecube_tools.detector.detector import IceCube
 from icecube_tools.utils.data import Events, SimEvents, RealEvents
 ```
 
@@ -84,8 +85,9 @@ Doing this properly requires a knowledge of the relationship between the true an
 aeff = EffectiveArea.from_dataset("20210126", period="IC86_II")
 irf = R2021IRF.from_period("IC86_II")
 #new_reco_bins = irf.reco_energy_bins[12, 2]
-new_reco_bins = np.linspace(2, 9, num=25)
-energy_likelihood = MarginalisedIntegratedEnergyLikelihood(irf, aeff, new_reco_bins)
+new_reco_bins = np.linspace(1, 9, num=25)
+detector = IceCube.from_period("IC86_II")
+energy_likelihood = MarginalisedIntegratedEnergyLikelihood(detector, new_reco_bins, max_index=4.5)
 #energy_likelihood = MarginalisedEnergyLikelihood2021([1.5, 2.0, 2.5, 3.0, 3.5, 3.7, 4.0], 'data', 'sim_output', np.pi/4,)
 # the likelihood class is backwardscompatible with the "older" simulation-based energy likelihood
 ```
@@ -126,24 +128,14 @@ likelihood = PointSourceLikelihood(spatial_likelihood, energy_likelihood,
                                    events.reco_energy[events.periods[0]],
                                    events.ang_err[events.periods[0]],
                                    source_coord,
-                                   which='both'
+                                   which='both',
 )
 ```
 
-The likelihood will automatically select a declination band around the proposed source location. Because of the Gaussian spatial likelihood, neutrinos far from the source will have negligible contribution. We can control the width of this band with the optional argument `band_width_factor`. Let's see how many events ended up in the band, compared to the total number:
+The likelihood will automatically select a declination band around the proposed source location. Because of the Gaussian spatial likelihood, neutrinos far from the source will have negligible contribution. We can control the width of this band with the optional argument `band_width_factor`. Let's see how many events are there in total, in the selected declination band and in vicinity of the proposed source:
 
 ```python
-events.ang_err
-```
-
-```python
-likelihood.Ntot
-```
-
-```python
-energy_likelihood._min_index = 1.4
-energy_likelihood._max_index = 4.0
-likelihood._bg_energy_likelihood = None
+likelihood.Ntot, likelihood.N, likelihood.Nprime
 ```
 
 We also note that the background likelihood is implemented automatically, for more information on the options here, check out the API docs. This is just a function of energy, with a constant factor to account for the isotropic directional likelihood.
@@ -155,7 +147,7 @@ ax.step(energy, energy_likelihood(energy, 3.7, np.full(energy.shape, np.deg2rad(
         label=f"index 3.7")
 ax.set_xscale("log")
 ax.set_yscale("log")
-ax.set_xlabel("$log_{10}(E_\mathrm{reco} / \mathrm{GeV})}$")
+ax.set_xlabel(r'$\log_{10}{(E_\mathrm{reco} / \mathrm{GeV})}$')
 ax.set_ylabel("Background likelihood")
 ```
 
@@ -174,26 +166,10 @@ likelihood._selected_energies.size
 ```
 
 ```python
-likelihood.m.values
+likelihood.m.values, likelihood.m.errors
 ```
 
 To understand the significance of this results, we would have to calculate the test statistic for a large number of background-only simulations. These could then be used to calculate a p-value. Given there is a strong point source in the simulation we used, we can expect the test stastic to be lower if we remove the source events. Let's try this:
-
-```python
-likelihood.m
-```
-
-```python
-likelihood.N
-```
-
-```python
-events.arrival_energy
-```
-
-```python
-events.periods
-```
 
 ```python
 # Get all point source events
@@ -317,12 +293,14 @@ _ = m.draw_profile("ns")
 ```python
 #Do this because for this interpolated function minuit can't compute reliable errors
 index, llh =  m.draw_profile("index", bound=(likelihood._energy_likelihood._min_index, likelihood._energy_likelihood._max_index))
+
 lower_lim = np.interp(llh.min() + 0.5, np.flip(llh[:np.nonzero(llh == llh.min())[0][0]]), np.flip(index[:np.nonzero(llh == llh.min())[0][0]]))
 upper_lim = np.interp(llh.min() + 0.5, llh[np.nonzero(llh == llh.min())[0][0]:], index[np.nonzero(llh == llh.min())[0][0]:])
 lims = plt.ylim()
 plt.fill_betweenx([lims[0]-1, lims[1]+1], lower_lim, upper_lim, alpha=0.4, color='grey')
 plt.ylim(lims)
 plt.title(f"index = {m.values['index']:.1f} - {m.values['index']-lower_lim:.1f} + {abs(m.values['index']-upper_lim):.1f}")
+
 ```
 
 # Time dependent point source analysis
@@ -332,7 +310,7 @@ Encompassing multiple data seasons, although shown only for one (the same as abo
 ```python
 events = SimEvents.load_from_h5("h5_test.hdf5")
 source_coords = (np.pi, np.deg2rad(30))
-energy_likelihood = MarginalisedIntegratedEnergyLikelihood(irf, aeff, new_reco_bins)
+#energy_likelihood = MarginalisedIntegratedEnergyLikelihood(irf, aeff, new_reco_bins)
 #index_list = list(np.arange(1.5, 4.25, 0.25))
 tllh = TimeDependentPointSourceLikelihood(
     source_coords,
@@ -341,9 +319,12 @@ tllh = TimeDependentPointSourceLikelihood(
     events.dec,
     events.reco_energy,
     events.ang_err,
-    {"IC86_II": energy_likelihood},
     which="both",
-    times={"IC86_II": 1}
+    times={"IC86_II": 1},
+    sigma=5,
+    band_width_factor=3,
+    
+    
 )
 
 m = tllh._minimize()
@@ -357,6 +338,16 @@ _ = m.draw_profile("index")
 
 ```python
 _ = m.draw_profile("ns")
+```
+
+There is also a method to use only the events within the selected declination band and their energy to fit the background index. Default setting is one background index (`index_atmo`), using two at once does not lead to a converging fit right now.
+
+```python
+tllh._minimize_bg()
+```
+
+```python
+_ = tllh.m.draw_profile("index_atmo", bound=(1.6, 3.9))
 ```
 
 ```python

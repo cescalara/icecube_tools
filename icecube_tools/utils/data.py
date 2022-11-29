@@ -346,7 +346,7 @@ class Uptime():
 
 
 
-    def find_obs_time(self, **kwargs):
+    def find_obs_time(self, IRF: bool=True, **kwargs):
         """
         Calculate the amounts of time in each period covered for either:
          - given start and end time (should be MJD)
@@ -420,7 +420,19 @@ class Uptime():
             t_obs_end = fraction * self._time_obs(available_data_periods[p_end])
             obs_times[available_data_periods[p_end]] = t_obs_end.value
 
-        return obs_times
+        if IRF:
+            new_obs_times = {}
+            for p, t in obs_times.items():
+                if p in available_data_periods and p not in available_irf_periods:
+                    try:
+                        new_obs_times["IC86_II"] += t
+                    except KeyError:
+                        new_obs_times["IC86_II"] = t
+                else:
+                    new_obs_times[p] = t
+            return new_obs_times
+        else:
+            return obs_times
 
 
 
