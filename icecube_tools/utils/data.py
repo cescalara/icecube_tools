@@ -295,21 +295,32 @@ class Uptime():
 
             
 
-    def time_span(self, *periods: str):
+    def time_span(self, *periods: str, IRF: bool=True):
         """
-        :param periods: Strings of data periods.
+        :param periods: Strings of data/irf periods.
         :return: Dict of total times in years (without unit) between start and end of each queried data period.
         """
 
         output = {}
         for p in periods:
-            time = self.data[p][-1, -1] - self.data[p][0, 0]
-            time = time * u.d
-            output[p] = time.to("year").value
+            time = self._time_span(p)
+            if IRF and p in available_data_periods and not p in available_irf_periods:
+                try:
+                    output["IC86_II"] += time
+                except KeyError:
+                    output["IC86_II"] = time
+            else:
+                output[p] = time
         return output
 
 
-    def time_obs(self, *periods: str):
+    def _time_span(self, period: str):
+        time = self.data[period][-1, -1] - self.data[period][0, 0]
+        time = time * u.d
+        return time.to("year").value
+
+
+    def time_obs(self, *periods: str, IRF: bool=True):
         """
         :param periods: Strings of data periods.
         :return: Return total observation time of each queried data period in years (without unit)
@@ -317,17 +328,22 @@ class Uptime():
 
         output = {}
         for p in periods:
-            intervals = self.data[p][:, 1] - self.data[p][:, 0]
-            time = np.sum(intervals) * u.d
-            if p in available_data_periods and p not in available_irf_periods:
-                # this is not safe for other than chronological ordering of periods in argument list
+            time = self._time_obs(p)
+            if IRF and p in available_data_periods and p not in available_irf_periods:
                 try:
-                    output["IC86_II"] += time.to("year").value
+                    output["IC86_II"] += time
                 except KeyError:
-                    output["IC86_II"] = time.to("year").value
+                    output["IC86_II"] = time
             else:
-                output[p] = time.to("year").value
+                output[p] = time
         return output
+
+
+    def _time_obs(self, period: str):
+        intervals = self.data[period][:, 1] - self.data[period][:, 0]
+        time = np.sum(intervals) * u.d
+        return time.to("year").value
+
 
 
     def find_obs_time(self, **kwargs):
@@ -384,24 +400,24 @@ class Uptime():
 
         obs_times = {}
         if p_start == p_end and not future:
-            fraction = duration / self.time_span(available_data_periods[p_start])
-            t_obs = fraction * self.time_obs(available_data_periods[p_start])
+            fraction = duration / self._time_span(available_data_periods[p_start])
+            t_obs = fraction * self._time_obs(available_data_periods[p_start])
             obs_times[available_data_periods[p_start]] = t_obs.value
         else:
             # find duration in start period:
             duration = ((self.times[p_start, 1] - start) * u.day).to("year")
-            fraction = duration / self.time_span(available_data_periods[p_start])
-            t_obs_start = fraction * self.time_obs(available_data_periods[p_start])
+            fraction = duration / self._time_span(available_data_periods[p_start])
+            t_obs_start = fraction * self._time_obs(available_data_periods[p_start])
             obs_times[available_data_periods[p_start]] = t_obs_start.value
                         
             # now for the middle periods:
             for c_p in range(p_start+1, p_end):
-                obs_times[available_data_periods[c_p]] = self.time_obs(available_data_periods[c_p]).value
+                obs_times[available_data_periods[c_p]] = self._time_obs(available_data_periods[c_p])
             
             # end
             duration = ((end - self.times[p_end, 0]) * u.day).to("year")
-            fraction = duration / self.time_span(available_data_periods[p_end])
-            t_obs_end = fraction * self.time_obs(available_data_periods[p_end])
+            fraction = duration / self._time_span(available_data_periods[p_end])
+            t_obs_end = fraction * self._time_obs(available_data_periods[p_end])
             obs_times[available_data_periods[p_end]] = t_obs_end.value
 
         return obs_times

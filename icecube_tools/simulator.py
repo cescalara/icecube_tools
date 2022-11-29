@@ -2,7 +2,7 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 import h5py
-from scipy.stats import uniform
+from scipy.stats import uniform, bernoulli
 import logging
 import sys
 from os.path import join
@@ -22,6 +22,7 @@ from .neutrino_calculator import NeutrinoCalculator
 from .detector.angular_resolution import FixedAngularResolution, AngularResolution
 from .detector.r2021 import R2021IRF
 from .utils.data import Uptime, data_directory, SimEvents, available_irf_periods
+from .utils.bpl_sampling import bpl, sample_bpl, integrate_pl
 
 """
 Module for running neutrino production 
@@ -30,6 +31,16 @@ and detection simulations.
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+
+
+# Quantities for rejection sampling
+EMIN = 1e2
+EMAX = 1e9
+EBREAK = 1e4
+INDEX1 = 0.
+INDEX2 = -1.1
+K = 5e-5
 
 
 class Simulator(SimEvents):
@@ -283,7 +294,7 @@ class Simulator(SimEvents):
         #the accepted ones.
 
         #TODO maybe change the factor to something spectral index dependent
-        num = self.N * 5000
+        num = self.N * 10
         label = np.random.choice(range(len(self.sources)), self.N, p=self._source_weights)
         l_set = set(label)
         l_num = {i: np.argwhere(i == label).shape[0] for i in l_set}
@@ -311,7 +322,10 @@ class Simulator(SimEvents):
                     logger.debug("no more empty slots, done")
                     break
                 
-                Etrue_ = self.sources[i].flux_model.sample(num)
+                # Etrue_ = self.sources[i].flux_model.sample(num)
+                # Should be the other way: Sample Earr, then calculate Etrue.
+                # Cuts on energy are applied at the detector, not at the source.
+                # Actually necessary for the bpl rejection sampling to work
                 if self.sources[i].source_type == DIFFUSE:
 
                     ra_, dec_ = sphere_sample(v_min=v_min, v_max=v_max, N=num)
@@ -323,20 +337,34 @@ class Simulator(SimEvents):
                 cosz = -np.sin(dec_)
 
 
-                Earr_ = Etrue_ / (1 + self.sources[i].z)
-                detection_prob = self.detector.effective_area.detection_probability(
+                # Earr_ = Etrue_ / (1 + self.sources[i].z)
+                u = uniform.rvs(size=num)
+                Earr_ = sample_bpl(u, EMIN, EBREAK, max_energy[i], INDEX1, INDEX2)
+                detection_prob = self.sources[i].flux_model.spectrum(Earr_) * self.detector.effective_area.detection_probability(
                         Earr_, cosz, max_energy[i]
                 ).astype(float)
-                #detection_prob = 1.0
+                # print("Eprelim:", Eprelim)
+                # print("unscaled detection prob:", detection_prob)
+                bpl_values = bpl(Earr_, EMIN, EBREAK, max_energy[i], INDEX1, INDEX2)
+                # print("bpl_values:", bpl_values)
+                prob = detection_prob / bpl_values
+                # print("relative prob max:", prob.max())
+                prob /= prob.max()
+                # print("prob:", prob, prob.max())
 
-                samples = uniform.rvs(size=num, random_state=seed)
-                accepted_ = samples <= detection_prob
+                accepted_ = bernoulli.rvs(prob).astype(bool)
+
+                # Earr_ = Eprelim[accepted_]
+                Etrue_ = Earr_ * (1 + self.sources[i].z)
+                #samples = uniform.rvs(size=num, random_state=seed)
+                #accepted_ = samples <= detection_prob
                 idx = np.nonzero(accepted_)
                 if idx[0].size == 0:
                     continue
                 else:
                     start = np.min(where_zero)
                     end = start + idx[0].size
+                    # print("start:end", start, end)
                     try:
                         Etrue_d[i][start:end] = Etrue_[idx]
                         Earr_d[i][start:end] = Earr_[idx]
@@ -348,6 +376,10 @@ class Simulator(SimEvents):
                     except (IndexError, ValueError):
                         logger.debug("Not enough slots, cutting short.")
                         remaining = np.argwhere(Etrue_d[i] == 0.).size
+                        # print("start:end", start, end)
+                        # print("remaining:", remaining)
+                        # print(Etrue_[idx][0:remaining])
+                        # print(Etrue_d[i])
                         Etrue_d[i][start:] = Etrue_[idx][0:remaining]
                         Earr_d[i][start:] = Earr_[idx][0:remaining]
                         ra_d[i][start:] = ra_[idx][0:remaining]

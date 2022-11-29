@@ -69,20 +69,29 @@ class PowerLawFlux(FluxModel):
             self._index, self._lower_energy, self._upper_energy
         )
 
+
     def spectrum(self, energy):
         """
         dN/dEdAdt or dN/dEdAdtdO depending on flux_type.
         """
 
-        if (energy < self._lower_energy) or (energy > self._upper_energy):
-
-            return np.nan
+        if isinstance(energy, np.ndarray):
+            nans = np.nonzero(((energy < self._lower_energy) | (energy > self._upper_energy)))
+            output = self._normalisation * np.power(
+            energy / self._normalisation_energy, -self._index
+            )
+            output[nans] = 0.
+            return output
 
         else:
+            if (energy < self._lower_energy) or (energy > self._upper_energy):
 
-            return self._normalisation * np.power(
-                energy / self._normalisation_energy, -self._index
-            )
+                return 0.
+            else:
+                return self._normalisation * np.power(
+                    energy / self._normalisation_energy, -self._index
+                )
+
 
     def integrated_spectrum(self, lower_energy_bound, upper_energy_bound):
         """
@@ -219,27 +228,47 @@ class BrokenPowerLawFlux(FluxModel):
         dN/dEdAdt or dN/dEdAdtdO depending on flux_type.
         """
 
-        if (energy < self._lower_energy) or (energy > self._upper_energy):
-
-            return np.nan
-
-        else:
-
+        if isinstance(energy, np.ndarray):
             norm = self._normalisation
+            nans = np.nonzero(((energy < self._lower_energy) | (energy > self._upper_energy)))
 
-            if energy < self._break_energy:
+            output = norm = self._normalisation
 
-                output = norm * np.power(energy / self._break_energy, self._index1)
+            below = np.nonzero((energy < self._break_energy))
+            output[below] = norm * np.power(energy[below] / self._break_energy, self._index1)
 
-            elif energy == self._break_energy:
+            above = np.nonzero((energy > self._break_energy))
+            output[above] = norm * np.power(energy[above] / self._break_energy, self._index2)
 
-                output = norm
+            middle = np.nonzero((energy == self._break_energy))
+            output[middle] = norm
 
-            elif energy > self._break_energy:
-
-                output = norm * np.power(energy / self._break_energy, self._index2)
+            output[nans] = 0
 
             return output
+
+        else:
+            if (energy < self._lower_energy) or (energy > self._upper_energy):
+
+                return 0
+
+            else:
+
+                norm = self._normalisation
+
+                if energy < self._break_energy:
+
+                    output = norm * np.power(energy / self._break_energy, self._index1)
+
+                elif energy == self._break_energy:
+
+                    output = norm
+
+                elif energy > self._break_energy:
+
+                    output = norm * np.power(energy / self._break_energy, self._index2)
+
+                return output
 
     def integrated_spectrum(self, lower_energy_bound, upper_energy_bound):
         """

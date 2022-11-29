@@ -30,7 +30,7 @@ import pytest
 
 aeff = EffectiveArea.from_dataset("20210126", "IC86_II")
 irf = R2021IRF.from_period("IC86_II")
-detector = IceCube(aeff, irf, irf, "IC86_II")
+detector = IceCube.from_period("IC86_II")
 
 
 @pytest.fixture
@@ -76,7 +76,7 @@ def test_fit_from_single(source_coords, output_directory, single_file_sim):
 
     new_reco_bins = np.linspace(2, 9, num=25)
 
-    energy_likelihood = {"IC86_II": MarginalisedIntegratedEnergyLikelihood(irf, aeff, new_reco_bins)}
+    energy_likelihood = {"IC86_II": MarginalisedIntegratedEnergyLikelihood(IceCube.from_period("IC86_II"), new_reco_bins)}
     spatial_likelihood = EventDependentSpatialGaussianLikelihood()
 
     source_coord=(np.pi, np.deg2rad(30))
