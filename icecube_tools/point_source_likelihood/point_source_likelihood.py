@@ -532,14 +532,17 @@ class PointSourceLikelihood:
         return m
 
 
-    def _minimize_bg(self):
+    def _minimize_bg(self, astro: bool=False):
         """
         Minimize the background negative log-ikelihood only.
         """
 
         init_astro = 2.5
         init_atmo = 3.3
-        init_weight = 0.
+        if astro:
+            init_weight = 0.2
+        else:
+            init_weight = 0.
         
         m = Minuit(
             self._func_to_minimize_bg,
@@ -553,8 +556,9 @@ class PointSourceLikelihood:
         m.limits["index_astro"] = (self._min_index, self._max_index)
         m.limits["index_atmo"] = (self._min_index, self._max_index)
         m.limits["weight"] = (0, 1)
-        m.fixed["index_astro"] = True
-        m.fixed["weight"] = True
+        if not astro:
+            m.fixed["index_astro"] = True
+            m.fixed["weight"] = True
 
         m.migrad()
 
@@ -1097,14 +1101,17 @@ class TimeDependentPointSourceLikelihood:
         return self.m
 
 
-    def _minimize_bg(self):
+    def _minimize_bg(self, astro: bool=False):
         """
         Minimize the background negative log-ikelihood only.
         """
 
         init_astro = 2.5
         init_atmo = 3.3
-        init_weight = 0.
+        if astro:
+            init_weight = 0.2
+        else:
+            init_weight = 0.
         
         m = Minuit(
             self._func_to_minimize_bg,
@@ -1118,8 +1125,9 @@ class TimeDependentPointSourceLikelihood:
         m.limits["index_astro"] = (self._min_index, self._max_index)
         m.limits["index_atmo"] = (self._min_index, self._max_index)
         m.limits["weight"] = (0, 1)
-        m.fixed["index_astro"] = True
-        m.fixed["weight"] = True
+        if not astro:
+            m.fixed["index_astro"] = True
+            m.fixed["weight"] = True
 
         m.migrad()
 
