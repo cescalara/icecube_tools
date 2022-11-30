@@ -16,7 +16,6 @@ def integrate_pl(x0, x1, x2, a1, a2):
     :param a1: Lower index
     :param a2: Upper index
     :return: relative weights of each part (below and above the break) and total integral
-    
     """
     
     # compute the integral of each piece analytically

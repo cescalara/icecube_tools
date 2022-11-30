@@ -5,9 +5,9 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.13.8
+      jupytext_version: 1.14.0
   kernelspec:
-    display_name: Python 3 (ipykernel)
+    display_name: Python 3.9.13 ('icecube_dev')
     language: python
     name: python3
 ---
@@ -16,53 +16,57 @@ jupyter:
 from icecube_tools.utils.data import RealEvents, SimEvents
 from icecube_tools.point_source_analysis.point_source_analysis import MapScan
 import numpy as np
-import healpy as hp
 import matplotlib.pyplot as plt
 ```
 
-```python
-events = RealEvents.from_event_files("IC86_I", "IC86_II")
-```
+## MapScan
+
+We can perform a scan over the sky for point sources. At each proposed source location a likelihood fit is performed. First we have to provide some events, here we use the simulated ones from the example notebook.
 
 ```python
-events.ra
+events = SimEvents.load_from_h5("h5_test.hdf5")
 ```
+
+Then we create a MapScan() object with some configuration `config.yaml` in which source lists, data cuts, etc. can be stored, the events, and a path for the output of the scan `test_output.hdf5`.
 
 ```python
 scan = MapScan(
-    "example.yaml",
-    events
+    "config.yaml",
+    events,
+    "test_output.hdf5"
 )
 ```
 
+Let's create a small grid around the source location of the simulation: (ra, dec) = (180°, 30°)
+
 ```python
+dec = np.linspace(np.deg2rad(25), np.deg2rad(35), 11)
+ra = np.linspace(np.pi - np.deg2rad(5), np.pi + np.deg2rad(5), 11)
+rr, dd = np.meshgrid(ra, dec)
+```
+
+The source coordinates need to be handed over the the MapScan, then `generate_sources()` is called. Although the sources are already generated, it is able to create source lists from healpy keywords npix and nside for entire sky searches. Furthermore, output arrays of appropriate sizes are created. Afterwards the fits are started.
+
+```python
+scan.ra_test = rr.flatten()
+scan.dec_test = dd.flatten()
 scan.generate_sources()
+scan.perform_scan(show_progress=True)
 ```
 
-```python
-scan.perform_scan()
-```
+We can have a look at the results:
 
 ```python
-l = ["n0", "n1", "index"]
+fig, ax = plt.subplots(3, 1, figsize=(5, 15))
 
-d = {"n0": 1, "n1":2, "index":3}
+pcol = ax[0].pcolormesh(ra, dec, scan.ts.reshape((11, 11)), shading="nearest")
+fig.colorbar(pcol, ax=ax[0], label="TS")
 
-a = [d[i] for i in l if i != "index"]
-print(a)
-```
+pcol = ax[1].pcolormesh(ra, dec, scan.index.reshape((11, 11)), shading="nearest")
+fig.colorbar(pcol, ax=ax[1], label="index")
 
-```python
-for i in d.values():
-    print(i)
-```
-
-```python
-scan.write_config("written_config.yaml")
-```
-
-```python
-scan.periods
+pcol = ax[2].pcolormesh(ra, dec, scan.ns.reshape((11, 11)), shading="nearest")
+fig.colorbar(pcol, ax=ax[2], label="ns")
 ```
 
 ```python

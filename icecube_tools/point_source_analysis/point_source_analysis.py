@@ -5,9 +5,8 @@ from ..point_source_likelihood.energy_likelihood import (
     MarginalisedIntegratedEnergyLikelihood, MarginalisedEnergyLikelihood
 )
 
-from ..detector.r2021 import R2021IRF
-from ..detector.effective_area import EffectiveArea
-from ..utils.data import data_directory, available_periods, ddict, Events, Uptime
+from ..detector.detector import IceCube
+from ..utils.data import data_directory, ddict, Events, Uptime
 from ..utils.coordinate_transforms import *
 
 import yaml
@@ -89,35 +88,20 @@ class MapScan(PointSourceAnalysis):
 
     def __init__(self, path: str, events: Events, output_path: str):
         """
-        Instantiate analysis object.
+        Instantiate analysis object. Parameters of the search have to be specified in a .yaml config file.
+        Afterwards, source lists etc. can still be changed. A list of periods is not necessary;
+        it is inferred from the provided events.
         :param path: Path to config
         :param events: object inheriting from :class:`icecube_tools.utils.data.Events`
         """
 
         self.events = events
-        self.num_of_irf_periods = 0
-        is_86 = False
-        for p in events.periods:
-            #if "86" in p and and not is_86:
-            if p in ["IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII"] and not is_86:
-                self.num_of_irf_periods += 1
-                is_86 = True
-            else:
-                self.num_of_irf_periods += 1
         self.uptime = Uptime()
-        self.times = {p: self.uptime.time_obs(p).value for p in self.events.periods}
+        self.times = self.uptime.time_obs(*events.periods)
        
         self.load_config(path)
         self.apply_cuts()
-        self.energy_likelihood = {}
-        for p in self.events.periods:
-            aeff = EffectiveArea.from_dataset("20210126", p)
-            irf = R2021IRF.from_period(p)
-            self.energy_likelihood[p] = MarginalisedIntegratedEnergyLikelihood(
-                irf,
-                aeff,
-                np.linspace(2, 9, num=25)    # should be made variable
-            )
+
         self.output_path = output_path
 
 
@@ -148,8 +132,6 @@ class MapScan(PointSourceAnalysis):
         self.write_output(self.output_path, source_list=True)
                 
 
-
-
     def _test_source(
         self,
         source_coord: Tuple[float, float],
@@ -179,12 +161,11 @@ class MapScan(PointSourceAnalysis):
                 dec,
                 reco_energy,
                 ang_err,
-                self.energy_likelihood,
                 which=self.which,
                 times=self.times
             )
             if likelihood.Nprime > 0:    # else somewhere division by zero
-                logging.info("Nearby events: {}".format(likelihood.Nprime))
+                logging.debug("Nearby events: {}".format(likelihood.Nprime))
                 self.ts[num] = likelihood.get_test_statistic()
                 self.index[num] = likelihood._best_fit_index
                 self.ns[num] = likelihood._best_fit_ns
@@ -226,7 +207,7 @@ class MapScan(PointSourceAnalysis):
                 self.dec_test = np.array(self.dec_test)
 
         data_config = config.get("data")
-        self.periods = data_config.get("periods")
+        self.periods = data_config.get("periods", self.events.periods)
         cuts = data_config.get("cuts", False)
         if cuts:
             self.northern_emin = float(data_config.get("cuts").get("northern").get("emin", 1e1))
@@ -330,10 +311,10 @@ class MapScan(PointSourceAnalysis):
             assert len(self.ra_test) == len(self.dec_test)
             logger.info("Using provided ra and dec")
             reload = False
-        elif self.nside is not None and nside:
+        elif self.nside and nside:
             self.npix = hp.nside2npix(self.nside)
             logger.warning("Overwriting npix with nside = {}".format(self.nside))
-        elif self.npix is not None and not nside:
+        elif self.npix and not nside:
             logger.info("Using npix = {}".format(self.npix))
         
 
@@ -357,8 +338,6 @@ class MapScan(PointSourceAnalysis):
 
         if self.ra_test is not None and self.dec_test is not None:
             num = len(self.ra_test)
-        elif self.npix is not None:
-            num = self.npix
         else:
             raise ValueError("Can't create output arrays, no well-defined source list supplied.")
 
