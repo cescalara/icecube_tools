@@ -5,7 +5,6 @@ import logging
 from .energy_likelihood import *
 from .spatial_likelihood import *
 
-from ..utils.data import Events, Uptime
 from ..source.source_model import PointSource
 from ..source.flux_model import PowerLawFlux
 from ..neutrino_calculator import NeutrinoCalculator
@@ -154,8 +153,6 @@ class PointSourceLikelihood:
         Select events used in analysis nearby the source.
         """
 
-        source_ra, source_dec = self._source_coord
-        dec_fac = np.deg2rad(self._band_width)
         selected = np.nonzero((
                     (self._decs >= self._dec_low)
                     & (self._decs <= self._dec_high)
@@ -190,7 +187,7 @@ class PointSourceLikelihood:
 
         self.N = len(selected_dec_band[0])
 
-    # @profile
+
     def _signal_likelihood(
         self,
         ra: np.ndarray,
@@ -250,7 +247,7 @@ class PointSourceLikelihood:
 
         return output
 
-    # @profile
+
     def _background_likelihood(
         self,
         energy: np.ndarray,
@@ -299,12 +296,10 @@ class PointSourceLikelihood:
                     output = ((1 - weight) * en(energy, index_atmo, dec) + weight * en(energy, index_astro, dec)) * spatial()
 
         output[np.nonzero(output==0)] = 1e-10
-        #if output == 0.0:
-        #    output = 1e-10
 
         return output
 
-    # @profile
+
     def _func_to_minimize(
         self,
         ns: float,
@@ -1158,6 +1153,22 @@ class TimeDependentPointSourceLikelihood:
         self.likelihood_ratio = np.exp(neg_log_lik)
         self.test_statistic = -2 * neg_log_lik
         return self.test_statistic
+
+
+    @property
+    def Ntot(self):
+        n = 0
+        for l in self.likelihoods.values():
+            n += l.Ntot
+        return n
+
+
+    @property
+    def Ntot_dict(self):
+        n = {}
+        for c, v in self.likelihoods.items():
+            n[c] = v.Ntot
+        return n
 
 
     @property

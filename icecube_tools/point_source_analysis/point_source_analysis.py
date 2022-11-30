@@ -1,12 +1,9 @@
 from ..point_source_likelihood.point_source_likelihood import (
-    PointSourceLikelihood, TimeDependentPointSourceLikelihood
-)
-from ..point_source_likelihood.energy_likelihood import (
-    MarginalisedIntegratedEnergyLikelihood, MarginalisedEnergyLikelihood
+    TimeDependentPointSourceLikelihood
 )
 
 from ..detector.detector import IceCube
-from ..utils.data import data_directory, ddict, Events, Uptime
+from ..utils.data import ddict, Events, Uptime
 from ..utils.coordinate_transforms import *
 
 import yaml
@@ -21,8 +18,6 @@ from os.path import join
 import os.path
 import logging
 from typing import Tuple, Dict
-import sched
-import time
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
