@@ -5,9 +5,9 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.14.0
+      jupytext_version: 1.14.1
   kernelspec:
-    display_name: Python 3.9.13 ('icecube_dev')
+    display_name: Python 3 (ipykernel)
     language: python
     name: python3
 ---
@@ -57,7 +57,7 @@ scan.perform_scan(show_progress=True)
 We can have a look at the results:
 
 ```python
-fig, ax = plt.subplots(3, 1, figsize=(5, 15))
+fig, ax = plt.subplots(1, 3, figsize=(15, 4))
 
 pcol = ax[0].pcolormesh(ra, dec, scan.ts.reshape((11, 11)), shading="nearest")
 fig.colorbar(pcol, ax=ax[0], label="TS")
@@ -67,6 +67,7 @@ fig.colorbar(pcol, ax=ax[1], label="index")
 
 pcol = ax[2].pcolormesh(ra, dec, scan.ns.reshape((11, 11)), shading="nearest")
 fig.colorbar(pcol, ax=ax[2], label="ns")
+fig.savefig("example_sky_skan.png", dpi=150)
 ```
 
 ```python
