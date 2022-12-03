@@ -2,7 +2,6 @@ from ..point_source_likelihood.point_source_likelihood import (
     TimeDependentPointSourceLikelihood
 )
 
-from ..detector.detector import IceCube
 from ..utils.data import ddict, Events, Uptime
 from ..utils.coordinate_transforms import *
 
@@ -14,7 +13,6 @@ from tqdm import tqdm as progress_bar
 
 from abc import ABC, abstractmethod
 
-from os.path import join
 import os.path
 import logging
 from typing import Tuple, Dict
@@ -152,8 +150,6 @@ class MapScan(PointSourceAnalysis):
         try:
             self.likelihood.source_coord = source_coord
         except AttributeError as e:
-            print(e)
-            print("Reloading likelihood object")
             self.likelihood = TimeDependentPointSourceLikelihood(
                 source_coord,
                 self.events.periods,
@@ -275,7 +271,7 @@ class MapScan(PointSourceAnalysis):
 
         try:
             self.ts
-            assert np.any(self.ts)
+            # assert np.any(self.ts)
         except (AttributeError, AssertionError):
             logging.error("Call perform_scan() first")
             return
