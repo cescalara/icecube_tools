@@ -99,23 +99,6 @@ class PointSourceLikelihood:
                 band_width_factor * self._direction_likelihood._sigma
             )  # degrees
 
-        self._dec_low = source_coord[1] - np.deg2rad(self._band_width)
-
-        self._dec_high = source_coord[1] + np.deg2rad(self._band_width)
-
-        if self._dec_low < np.arcsin(-1.0) or np.isnan(self._dec_low):
-            self._dec_low = np.arcsin(-1.0)
-
-        if self._dec_high > np.arcsin(1.0) or np.isnan(self._dec_high):
-            self._dec_high = np.arcsin(1.0)
-
-        self._band_solid_angle = (
-            2 * np.pi * (np.sin(self._dec_high) - np.sin(self._dec_low))
-        )
-
-        self._ra_low = source_coord[0] - np.deg2rad(self._band_width)
-
-        self._ra_high = source_coord[0] + np.deg2rad(self._band_width)
 
         self._ras = ras
 
@@ -123,11 +106,11 @@ class PointSourceLikelihood:
 
         self._energies = energies
 
-        self._source_coord = source_coord
-
         self._index_prior = index_prior
 
         self._ang_errs = ang_errs
+
+        self.source_coord = source_coord    # moved select_nearby_events into setter
 
         # Sensible values based on Braun+2008
         # and Aartsen+2018 analyses
@@ -140,12 +123,43 @@ class PointSourceLikelihood:
         except AttributeError:
             self._max_index = 3.95
 
-        self._select_nearby_events()
-
         # Can't have more source events than actual events...
         self._ns_max = self.N
 
         self.Ntot = len(self._energies)
+
+
+    @property
+    def source_coord(self):
+        return self._source_coord
+
+    
+    @source_coord.setter
+    def source_coord(self, new_coord):
+        """
+        Sets new source coordinates (ra, dec) and updates event selection.
+        :param new_coord: New coordinate tuple
+        """
+
+        self._source_coord = new_coord
+        self._dec_low = self._source_coord[1] - np.deg2rad(self._band_width)
+
+        self._dec_high = self._source_coord[1] + np.deg2rad(self._band_width)
+
+        if self._dec_low < np.arcsin(-1.0) or np.isnan(self._dec_low):
+            self._dec_low = np.arcsin(-1.0)
+
+        if self._dec_high > np.arcsin(1.0) or np.isnan(self._dec_high):
+            self._dec_high = np.arcsin(1.0)
+
+        self._band_solid_angle = (
+            2 * np.pi * (np.sin(self._dec_high) - np.sin(self._dec_low))
+        )
+
+        self._ra_low = self.source_coord[0] - np.deg2rad(self._band_width)
+        self._ra_high = self.source_coord[0] + np.deg2rad(self._band_width)
+
+        self._select_nearby_events()
 
 
     def _select_nearby_events(self):
@@ -883,7 +897,7 @@ class SpatialOnlyPointSourceLikelihood:
 class TimeDependentPointSourceLikelihood:
     def __init__(
         self,
-        source_coords: Tuple[float, float],
+        source_coord: Tuple[float, float],
         periods: List[str],
         ra: Dict,
         dec: Dict,
@@ -904,7 +918,7 @@ class TimeDependentPointSourceLikelihood:
     ):
         """
         Create likelihood covering multiple data taking periods.
-        :param source_coords: Tuple of ra, dec, in rad
+        :param source_coord: Tuple of ra, dec, in rad
         :param periods: List of str of period names, eg. `IC40`. Only periods with IRF, e.g. no IC86_III !!! 
         :param ra: Dict of RAs
         :param dec: Dict of DECs
@@ -928,7 +942,8 @@ class TimeDependentPointSourceLikelihood:
             raise ValueError("Provided likelihood type not provided")
         
         self.which = which
-        self.source_coords = source_coords
+        # do not call setter here, needed attributes do not exist yet
+        self._source_coord = source_coord
         self.periods = periods
         self.index_list = index_list
         self._min_index = min_index
@@ -939,8 +954,8 @@ class TimeDependentPointSourceLikelihood:
         self.times = times
         self.tirf = TimeDependentIceCube.from_periods(*self.periods)
         self.nu_calcs = {}
-        flux = PowerLawFlux(1e-20, 1e6, 2.5, lower_energy=emin, upper_energy=emax)
-        self.source = PointSource(flux_model=flux, z=0., coord=self.source_coords)
+        self.flux = PowerLawFlux(1e-20, 1e5, 2.5, lower_energy=emin, upper_energy=emax)
+        self.source = PointSource(flux_model=self.flux, z=0., coord=self.source_coord)
         
         if energy_llh is None:
             energy_llh = {}
@@ -949,8 +964,8 @@ class TimeDependentPointSourceLikelihood:
             create_e_llh = False
 
         for p in self.periods:
-            self.nu_calcs[p] = NeutrinoCalculator([
-                self.source],
+            self.nu_calcs[p] = NeutrinoCalculator(
+                [self.source],
                 self.tirf[p]._effective_area
             )
             #create likelihood objects
@@ -968,10 +983,27 @@ class TimeDependentPointSourceLikelihood:
                 dec[p],
                 reco_energy[p],
                 ang_err[p],
-                self.source_coords,
+                self.source_coord,
                 which=self.which,
                 band_width_factor=band_width_factor
             )
+
+    @property
+    def source_coord(self):
+        return self._source_coord
+
+
+    @source_coord.setter
+    def source_coord(self, new_coord):
+        self._source_coord = new_coord
+        #update nutrino calculators:
+        self.source = PointSource(flux_model=self.flux, z=0., coord=new_coord)
+        for p in self.periods:
+            self.nu_calcs[p]._sources = [self.source]
+        #update likelihoods
+        for p in self.periods:
+            self.likelihoods[p].source_coord = new_coord   # calls setter for single-seasons's likelihood
+
 
 
     def __call__(self, ns: float, index: float):

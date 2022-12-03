@@ -91,6 +91,7 @@ class MapScan(PointSourceAnalysis):
         """
 
         self.events = events
+        self.periods = events.periods
         self.uptime = Uptime()
         self.times = self.uptime.time_obs(*events.periods)
        
@@ -148,8 +149,12 @@ class MapScan(PointSourceAnalysis):
         :param minos: True if `Minuit.minos()` should be called for calculating errors
         """
 
-        if source_coord[1] <= np.deg2rad(90):    #delete this...
-            likelihood = TimeDependentPointSourceLikelihood(
+        try:
+            self.likelihood.source_coord = source_coord
+        except AttributeError as e:
+            print(e)
+            print("Reloading likelihood object")
+            self.likelihood = TimeDependentPointSourceLikelihood(
                 source_coord,
                 self.events.periods,
                 ra,
@@ -159,20 +164,21 @@ class MapScan(PointSourceAnalysis):
                 which=self.which,
                 times=self.times
             )
-            if likelihood.Nprime > 0:    # else somewhere division by zero
-                logging.debug("Nearby events: {}".format(likelihood.Nprime))
-                self.ts[num] = likelihood.get_test_statistic()
-                self.index[num] = likelihood._best_fit_index
-                self.ns[num] = likelihood._best_fit_ns
-                self.index_error[num] = likelihood.m.errors["index"]
+        finally:
+            if self.likelihood.Nprime > 0:    # else somewhere division by zero
+                logging.debug("Nearby events: {}".format(self.likelihood.Nprime))
+                self.ts[num] = self.likelihood.get_test_statistic()
+                self.index[num] = self.likelihood._best_fit_index
+                self.ns[num] = self.likelihood._best_fit_ns
+                self.index_error[num] = self.likelihood.m.errors["index"]
                 self.ns_error[num] = np.array(
-                    [likelihood.m.errors[n] for n in likelihood.m.parameters if n != "index"]
+                    [self.likelihood.m.errors[n] for n in self.likelihood.m.parameters if n != "index"]
                 )
-                self.fit_ok[num] = likelihood.m.fmin.is_valid
+                self.fit_ok[num] = self.likelihood.m.fmin.is_valid
                 
                 # is computationally too expensive for the entire grid, only use at certain points!
                 if self.fit_ok[num] and minos:
-                    minos = likelihood.m.minos()
+                    minos = self.likelihood.m.minos()
                     if minos.valid:
                         self.index_merror[num, 0] = minos.merrors["index"].lower
                         self.index_merror[num, 1] = minos.merrors["index"].upper
@@ -202,7 +208,7 @@ class MapScan(PointSourceAnalysis):
                 self.dec_test = np.array(self.dec_test)
 
         data_config = config.get("data")
-        self.periods = data_config.get("periods", self.events.periods)
+        #self.periods = data_config.get("periods", self.events.periods)
         cuts = data_config.get("cuts", False)
         if cuts:
             self.northern_emin = float(data_config.get("cuts").get("northern").get("emin", 1e1))
