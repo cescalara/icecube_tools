@@ -639,8 +639,12 @@ class SimEvents(Events):
         """
         Srcambles RA of all events, no distinction between source and background is made.
         """
+        num_of_events = 0
         for p in self.periods:
+            num_of_events += self._ra[p].size
             self._ra[p] = np.random.choice(self._ra[p], self._ra[p].size, replace=False)
+        if num_of_events < 1000:
+            logger.warning(f"Shuffling RA with low ({num_of_events} events) statistics. Proceed with caution.")
 
 
     @property

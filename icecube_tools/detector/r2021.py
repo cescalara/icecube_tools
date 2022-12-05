@@ -20,6 +20,16 @@ R2021_IRF_FILENAME = "smearing.csv"
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+
+# Quantities for rejection sampling
+EMIN = 1e2
+EMAX = 1e9
+EBREAK = 1e4
+INDEX1 = 0.
+INDEX2 = -1.1
+K = 5e-5
+
+
 class DummyPDF():
     def __init__(self):
         pass

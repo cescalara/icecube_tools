@@ -20,9 +20,10 @@ from .source.source_model import Source, DIFFUSE, POINT
 from .source.flux_model import PowerLawFlux, BrokenPowerLawFlux
 from .neutrino_calculator import NeutrinoCalculator
 from .detector.angular_resolution import FixedAngularResolution, AngularResolution
-from .detector.r2021 import R2021IRF
-from .utils.data import Uptime, data_directory, SimEvents, available_irf_periods
-from .utils.bpl_sampling import bpl, sample_bpl, integrate_pl
+# Change the imports when using a different detector model with different broken power law
+from .detector.r2021 import R2021IRF, K, EMIN, EBREAK, EMAX, INDEX1, INDEX2
+from .utils.data import SimEvents, available_irf_periods
+from .utils.bpl_sampling import bpl, sample_bpl
 
 """
 Module for running neutrino production 
@@ -32,15 +33,6 @@ and detection simulations.
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-
-
-# Quantities for rejection sampling
-EMIN = 1e2
-EMAX = 1e9
-EBREAK = 1e4
-INDEX1 = 0.
-INDEX2 = -1.1
-K = 5e-5
 
 
 class Simulator(SimEvents):
