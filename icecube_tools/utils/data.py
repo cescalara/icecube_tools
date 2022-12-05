@@ -442,10 +442,11 @@ class Events(ABC):
     For single period event files, the properties return not a dictionary but a single array of data.
     """
 
-    def __init__(self):
+    def __init__(self, seed: int=1234):
         self._create_dicts()
         self._periods = []
         self.mask = None
+        self.rng = np.random.default_rng(seed=seed)
 
 
     def _create_dicts(self):
@@ -530,21 +531,22 @@ class SimEvents(Events):
     keys = ["true_energy", "arrival_energy", "reco_energy",
         "ra", "dec", "ang_err", "source_label"]
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, seed: int=1234):
+        super().__init__(seed=seed)
         self._true_energy = {}
         self._arrival_energy = {}
         self._source_label = {}
         
     
     @classmethod
-    def load_from_h5(cls, path: str):
+    def load_from_h5(cls, path: str, seed: int=1234):
         """
         Load events from hdf5 file.
         :param path: Path to file
+        :param seed: Random seed for RA scrambling
         """
 
-        inst = cls()
+        inst = cls(seed=seed)
         inst._periods = []
         inst.path = path
         inst.sources = {}
@@ -642,8 +644,8 @@ class SimEvents(Events):
         num_of_events = 0
         for p in self.periods:
             num_of_events += self._ra[p].size
-            self._ra[p] = np.random.choice(self._ra[p], self._ra[p].size, replace=False)
-        if num_of_events < 1000:
+            self._ra[p] = self.rng.choice(self._ra[p], self._ra[p].size, replace=False)
+        if num_of_events < 10000:
             logger.warning(f"Shuffling RA with low ({num_of_events} events) statistics. Proceed with caution.")
 
 
@@ -685,8 +687,8 @@ class RealEvents(Events):
 
     keys = ["reco_energy", "ra", "dec", "ang_err", "mjd"]
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, seed=1234):
+        super().__init__(seed=seed)
         self._mjd = {}
 
 
@@ -740,7 +742,7 @@ class RealEvents(Events):
 
 
     @classmethod
-    def from_event_files(cls, *periods: str):
+    def from_event_files(cls, *periods: str, seed: int=1234):
         """
         Load from files provided by data release,
         if belonging to IC86_II or later, add to IC86_II keyword
@@ -753,7 +755,7 @@ class RealEvents(Events):
         else:
             #use all periods if none are specified
             periods = ("IC40", "IC59", "IC79", "IC86_I", "IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII")
-        inst = cls()
+        inst = cls(seed=seed)
         inst.events = {}
         add = []
         for p in periods:
