@@ -76,6 +76,7 @@ class MapScan(PointSourceAnalysis):
             },
             "likelihood": str
         },
+        "ts": {"seed": int, "ntrials": int}
     }
 
 
@@ -180,7 +181,9 @@ class MapScan(PointSourceAnalysis):
                         self.index_merror[num, 1] = minos.merrors["index"].upper
                         self.ns_merror[num, 0] = minos.merrors["ns"].lower
                         self.ns_merror[num, 1] = minos.merrors["ns"].upper
-                
+
+            else:
+                self.fit_ok[num] = True
 
 
     def load_config(self, path: str):
@@ -200,8 +203,18 @@ class MapScan(PointSourceAnalysis):
             self.ra_test = source_config.get("ra")
             self.dec_test = source_config.get("dec")
             if self.ra_test and self.dec_test:
+                if not isinstance(self.dec_test, list):
+                    self.dec_test = [self.dec_test]
+                if not isinstance(self.ra_test, list):
+                    self.ra_test = [self.ra_test]
                 self.ra_test = np.array(self.ra_test)
                 self.dec_test = np.array(self.dec_test)
+                assert self.ra_test.shape == self.dec_test.shape
+    
+        ts_config = config.get("ts")
+        if ts_config:
+            self.ntrials = ts_config["ntrials"]
+            self.seed = ts_config["seed"]
 
         data_config = config.get("data")
         #self.periods = data_config.get("periods", self.events.periods)
@@ -257,6 +270,15 @@ class MapScan(PointSourceAnalysis):
         except AttributeError:
             config.add(90, "data", "cuts", "min_dec")
         config.add(self.which, "data", "likelihood")
+
+        try:
+            config.add(self.ntrials, "ts", "ntrials")
+        except AttributeError:
+            pass
+        try:
+            config.add(self.seed, "ts", "seed")
+        except AttributeError:
+            pass
 
         with open(path, "w") as f:
             yaml.dump(config, f)
@@ -370,4 +392,61 @@ class MapScan(PointSourceAnalysis):
             self.events.mask = mask
         except AttributeError:
             pass
-        
+
+
+
+class MapScanTSDistribution(MapScan):
+    """
+    Class to create TS distributions (and subsequently local p-values.
+    Inherhits from the 'normal' MapScan.
+    """
+    
+    def __init__(self, path: str, events: Events, output_path: str):
+        """
+        Instantiate object to create a TS distribution at a given declination
+        """
+        super().__init__(path, events, output_path)
+
+
+    def perform_scan(self, show_progress: bool=False, minos: bool=False):
+        """
+        Perform multiple (`ntrials`) fits of the same declination
+        """
+
+        logger.info("Performing scan for periods: {}".format(self.events.periods))
+        self.events.seed = self.seed
+        dec = self.events.dec
+        reco_energy = self.events.reco_energy
+        ang_err = self.events.ang_err
+        if show_progress:
+            for c in progress_bar(range(self.ntrials)):
+                self.events.scramble_ra()
+                ra = self.events.ra
+                self._test_source((self.ra_test[0], self.dec_test[0]), c, ra, dec, reco_energy, ang_err, minos)
+                if c % 60 == 59:
+                    #refresh output file
+                    self.write_output(self.output_path, source_list=True)
+        else:
+            for c, (ra_t, dec_t) in enumerate(zip(self.ra_test, self.dec_test)):
+                self.events.scramble_ra()
+                ra = self.events.ra
+                self._test_source((ra_t, dec_t), c, ra, dec, reco_energy, ang_err, minos)
+                if c % 60 == 59:
+                    # refresh output file
+                    self.write_output(self.output_path, source_list=True)
+        self.write_output(self.output_path, source_list=True)
+
+
+    def _make_output_arrays(self):
+        """
+        Creates output arrays based on ntrials
+        """
+
+        shape = self.ntrials
+        self.ts = np.zeros(shape)
+        self.index = np.zeros(shape)
+        self.ns_error = np.zeros(shape)
+        self.index_error = np.zeros(shape)
+        self.fit_ok = np.zeros(shape)
+        self.index_merror = np.zeros((shape, 2))
+        self.ns_merror = np.zeros((shape, 2))

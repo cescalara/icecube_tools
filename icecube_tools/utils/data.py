@@ -446,6 +446,7 @@ class Events(ABC):
         self._create_dicts()
         self._periods = []
         self.mask = None
+        self._seed = seed
         self.rng = np.random.default_rng(seed=seed)
 
 
@@ -516,6 +517,17 @@ class Events(ABC):
             return {p: self._ang_err[p][self.mask[p]] for p in self.periods}
         else:
             return self._ang_err
+
+
+    @property
+    def seed(self):
+        return self._seed
+
+    
+    @seed.setter
+    def seed(self, s: int):
+        self._seed = s
+        self.rng = np.random.default_rng(seed=s)
 
 
     def _return_single_period(self, data):
