@@ -21,7 +21,7 @@ from ..utils.vMF import get_kappa, get_theta_p
 from typing import List, Dict
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
 icecube_data_base_url = "https://icecube.wisc.edu/data-releases"
 data_directory = os.path.abspath(os.path.join(os.path.expanduser("~"), ".icecube_data"))
@@ -446,8 +446,7 @@ class Events(ABC):
         self._create_dicts()
         self._periods = []
         self.mask = None
-        self._seed = seed
-        self.rng = np.random.default_rng(seed=seed)
+        self.seed = seed
 
 
     def _create_dicts(self):
@@ -526,6 +525,7 @@ class Events(ABC):
     
     @seed.setter
     def seed(self, s: int):
+        logger.warning("Resetting rng")
         self._seed = s
         self.rng = np.random.default_rng(seed=s)
 
@@ -654,9 +654,10 @@ class SimEvents(Events):
         Srcambles RA of all events, no distinction between source and background is made.
         """
         num_of_events = 0
+        logger.info("Scrambling RAs.")
         for p in self.periods:
             num_of_events += self._ra[p].size
-            self._ra[p] = self.rng.choice(self._ra[p], self._ra[p].size, replace=False)
+            self._ra[p] = self.rng.uniform(low=0., high=2*np.pi, size=self._ra[p].size)
         if num_of_events < 10000:
             logger.warning(f"Shuffling RA with low ({num_of_events} events) statistics. Proceed with caution.")
 
@@ -851,13 +852,16 @@ class RealEvents(Events):
         which is not provided for fake data.
         Fake data is excluded s.t. inserted point sources are not accidentally washed out.
         """
-
+        num_of_events = 0
+        logger.info("Scrambling RAs.")
         for p in self.periods:
             self._ra[p] = np.hstack((
-                np.random.choice(a=self._ra[p][:self._mjd[p].size], size=self._mjd[p].size, replace=False),
+                self.rng.uniform(low=0., high=2*np.pi, size=self._mjd[p].size),
                 self._ra[p][self._mjd[p].size:]
                 ))
-
+            num_of_events += self._mjd[p].size
+        if num_of_events < 10000:
+            logger.warning(f"Shuffling RA with low ({num_of_events} events) statistics. Proceed with caution.")
 
     
 

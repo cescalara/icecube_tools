@@ -27,7 +27,7 @@ Northern sky muon neutrinos.
 """
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
 
 class PointSourceLikelihood:
@@ -142,9 +142,27 @@ class PointSourceLikelihood:
         """
 
         self._source_coord = new_coord
-        self._dec_low = self._source_coord[1] - np.deg2rad(self._band_width)
+        #dec_low = self._source_coord[1] - np.deg2rad(self._band_width)
+        #dec_high = self._source_coord[1] + np.deg2rad(self._band_width)
+        
 
-        self._dec_high = self._source_coord[1] + np.deg2rad(self._band_width)
+        if isinstance(self._energy_likelihood, MarginalisedIntegratedEnergyLikelihood):   #TODO change this to something general, attach effective area to point source likelihood object
+            dec_bins = np.arcsin(-self._energy_likelihood._aeff.cos_zenith_bins) # ascending
+            dec_bins.sort()
+            dec = new_coord[1]
+            # Includes a symmetric number of bins below and above the declination in the source selection
+            dec_idx = np.digitize(dec, dec_bins) - 1
+            dec_idx_low = dec_idx - 7
+            dec_idx_high = dec_idx + 8
+
+
+            if dec_idx_high >= dec_bins.size:
+                #catch exceptions for sources close to the North pole or South pole
+                dec_idx_high = dec_bins.size - 1
+            if dec_idx_low < 0:
+                dec_idx_low = 0
+            self._dec_low = dec_bins[dec_idx_low]
+            self._dec_high = dec_bins[dec_idx_high]
 
         if self._dec_low < np.arcsin(-1.0) or np.isnan(self._dec_low):
             self._dec_low = np.arcsin(-1.0)
@@ -1005,6 +1023,16 @@ class TimeDependentPointSourceLikelihood:
             self.likelihoods[p].source_coord = new_coord   # calls setter for single-seasons's likelihood
 
 
+    def reset_events(self, ra: Dict, dec: Dict, reco_energy: Dict, ang_err: Dict):
+        logger.info("Resetting events.")
+        for p in self.periods:
+            self.likelihoods[p]._ras = ra[p]
+            self.likelihoods[p]._decs = dec[p]
+            self.likelihoods[p]._energies = reco_energy[p]
+            self.likelihoods[p]._ang_errs = ang_err[p]
+            self.likelihoods[p]._select_nearby_events()
+
+
 
     def __call__(self, ns: float, index: float):
         """
@@ -1089,7 +1117,11 @@ class TimeDependentPointSourceLikelihood:
             ns_max.append(llh._ns_max)
         init_ns = min(ns_max) * 0.01
         init = [init_ns, init_index]
-        limits = [(0, 0.6*self.N), limit_index]
+
+        #for limit ns:
+        # find all products of weight * ns and see where it will crash first
+        smallest_N = min([llh.N for llh in self.likelihoods.values()])
+        limits = [(0, smallest_N), limit_index]
 
         # Get errors to start with
         errors = [1, 0.1]  

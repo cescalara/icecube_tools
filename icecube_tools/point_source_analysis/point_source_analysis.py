@@ -18,7 +18,7 @@ import logging
 from typing import Tuple, Dict
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
 
 """
@@ -114,7 +114,7 @@ class MapScan(PointSourceAnalysis):
         reco_energy = self.events.reco_energy
         if show_progress:
             for c in progress_bar(range(len(self.ra_test))):
-                self._test_source((self.ra_test[c], self.dec_test[c]), c, ra, dec, reco_energy, ang_err)
+                self._test_source((self.ra_test[c], self.dec_test[c]), c, ra, dec, reco_energy, ang_err, minos)
                 if c % 60 == 59:
                     #refresh output file
                     self.write_output(self.output_path, source_list=True)
@@ -150,6 +150,9 @@ class MapScan(PointSourceAnalysis):
 
         try:
             self.likelihood.source_coord = source_coord
+            if isinstance(self, MapScanTSDistribution):
+                # Insert scrambled events if `self` is supposed to
+                self.likelihood.reset_events(ra, dec, reco_energy, ang_err)
         except AttributeError as e:
             self.likelihood = TimeDependentPointSourceLikelihood(
                 source_coord,
@@ -318,6 +321,28 @@ class MapScan(PointSourceAnalysis):
             data.create_dataset("fit_ok", shape=self.fit_ok.shape, data=self.fit_ok)
 
 
+    @classmethod
+    def load_output(cls, path: str, events: Events):
+        """
+        Load previously saved hdf5 file
+        :param path: Path to hdf5 file
+        """
+        with h5py.File(path, "r") as f:
+            config_path = f["meta"].attrs["config_path"]
+            obj = cls(config_path, events, path)
+            obj.ts = f["output/ts"][()]
+            obj.index = f["output/index"][()]
+            obj.ns = f["output/ns"][()]
+            obj.index_error = f["output/index_error"][()]
+            obj.ns_error = f["output/ns_error"][()]
+            obj.ns_merror = f["output/ns_merror"][()]
+            obj.index_merror = f["output/index_merror"][()]
+            obj.fit_ok = f["output/fit_ok"][()]
+            obj.ra_test = f["meta/ra"][()]
+            obj.dec_test = f["meta/dec"][()]
+        return obj
+
+
     def generate_sources(self, nside: bool=True):
         """
         Generate sources from config-specified specifics.
@@ -414,7 +439,7 @@ class MapScanTSDistribution(MapScan):
         """
 
         logger.info("Performing scan for periods: {}".format(self.events.periods))
-        self.events.seed = self.seed
+        #self.events.seed = self.seed
         dec = self.events.dec
         reco_energy = self.events.reco_energy
         ang_err = self.events.ang_err
@@ -427,10 +452,10 @@ class MapScanTSDistribution(MapScan):
                     #refresh output file
                     self.write_output(self.output_path, source_list=True)
         else:
-            for c, (ra_t, dec_t) in enumerate(zip(self.ra_test, self.dec_test)):
+            for c in range(self.ntrials):
                 self.events.scramble_ra()
                 ra = self.events.ra
-                self._test_source((ra_t, dec_t), c, ra, dec, reco_energy, ang_err, minos)
+                self._test_source((self.ra_test[0], self.dec_test[0]), c, ra, dec, reco_energy, ang_err, minos)
                 if c % 60 == 59:
                     # refresh output file
                     self.write_output(self.output_path, source_list=True)
@@ -445,6 +470,7 @@ class MapScanTSDistribution(MapScan):
         shape = self.ntrials
         self.ts = np.zeros(shape)
         self.index = np.zeros(shape)
+        self.ns = np.zeros(shape)
         self.ns_error = np.zeros(shape)
         self.index_error = np.zeros(shape)
         self.fit_ok = np.zeros(shape)
