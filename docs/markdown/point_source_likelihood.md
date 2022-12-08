@@ -5,9 +5,9 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.14.1
+      jupytext_version: 1.14.0
   kernelspec:
-    display_name: Python 3 (ipykernel)
+    display_name: Python 3.9.13 ('icecube_dev')
     language: python
     name: python3
 ---
@@ -269,7 +269,8 @@ likelihood = PointSourceLikelihood(spatial_likelihood,
                                    events.dec[events.periods[0]],
                                    events.reco_energy[events.periods[0]],
                                    events.ang_err[events.periods[0]],
-                                   source_coord
+                                   source_coord,
+                                   cosz_bins=np.linspace(-1, 1, num=51)
 )
 likelihood._bg_index = 3.7
 likelihood._bg_energy_likelihood = None
@@ -321,8 +322,8 @@ tllh = TimeDependentPointSourceLikelihood(
     events.ang_err,
     which="both",
     times={"IC86_II": 1},
-    sigma=5,
-    band_width_factor=3,
+    sigma=2,
+    band_width_factor=5,
     
     
 )
