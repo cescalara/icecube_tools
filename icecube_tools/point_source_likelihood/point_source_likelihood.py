@@ -51,7 +51,8 @@ class PointSourceLikelihood:
         which: str='both',
         bg_energy_likelihood=None,
         index_prior=None,
-        band_width_factor: float=3.0
+        band_width_factor: float=5.0,
+        cosz_bins: np.ndarray=None
     ):
         """
         Calculate the point source likelihood for a given
@@ -71,6 +72,7 @@ class PointSourceLikelihood:
         :param index_prior: Optional prior on the spectral index, instance of Prior.
         :param band_width_factor: Optional factor for the minimum angular resolution (largest angles)
             to be considered for the event selection nearby the source, defaults to 3.
+        :param cosz_bins: np.ndarray, used to select declination-band-wise events, can be omitted if integrated energylikelihood is used.
         """
 
         if which not in ["both", "energy", "spatial"]:
@@ -80,6 +82,8 @@ class PointSourceLikelihood:
             logger.debug(f"Using {which} likelihoods.")
 
         self._direction_likelihood = direction_likelihood
+
+        self._cosz_bins = cosz_bins
 
         self._energy_likelihood = energy_likelihood
 
@@ -99,7 +103,7 @@ class PointSourceLikelihood:
                 band_width_factor * self._direction_likelihood._sigma
             )  # degrees
 
-
+        
         self._ras = ras
 
         self._decs = decs
@@ -141,28 +145,39 @@ class PointSourceLikelihood:
         :param new_coord: New coordinate tuple
         """
 
-        self._source_coord = new_coord
-        #dec_low = self._source_coord[1] - np.deg2rad(self._band_width)
-        #dec_high = self._source_coord[1] + np.deg2rad(self._band_width)
-        
+        self._source_coord = new_coord        
 
-        if isinstance(self._energy_likelihood, MarginalisedIntegratedEnergyLikelihood):   #TODO change this to something general, attach effective area to point source likelihood object
-            dec_bins = np.arcsin(-self._energy_likelihood._aeff.cos_zenith_bins) # ascending
-            dec_bins.sort()
-            dec = new_coord[1]
-            # Includes a symmetric number of bins below and above the declination in the source selection
-            dec_idx = np.digitize(dec, dec_bins) - 1
-            dec_idx_low = dec_idx - 7
-            dec_idx_high = dec_idx + 8
+        if isinstance(self._energy_likelihood, MarginalisedIntegratedEnergyLikelihood) and not self._cosz_bins:
+            dec_bins = np.arcsin(-self._energy_likelihood._aeff.cos_zenith_bins)
+            
+        elif self._cosz_bins is not None:
+            dec_bins = np.arcsin(-self._cosz_bins)
 
+        else:
+            raise ValueError("No cosz bins provided")
+            
+        dec_bins.sort()
+        zero_dec_idx = np.digitize(0., dec_bins) - 1
 
-            if dec_idx_high >= dec_bins.size:
-                #catch exceptions for sources close to the North pole or South pole
-                dec_idx_high = dec_bins.size - 1
-            if dec_idx_low < 0:
-                dec_idx_low = 0
-            self._dec_low = dec_bins[dec_idx_low]
-            self._dec_high = dec_bins[dec_idx_high]
+        # How many dec bins away is self._band_width at the equator? Take as conservative number of dec bins to consider
+        upper_dec_idx = np.digitize(np.deg2rad(self._band_width), dec_bins) - 1
+        num_of_bins = upper_dec_idx - zero_dec_idx
+
+        dec = new_coord[1]
+        # Includes a symmetric number of bins below and above the declination in the source selection, 
+        # sources ON the bin edge are not considered but treated the way np.digitize handles it.
+        # self._band_width should be large enough anyways
+        dec_idx = np.digitize(dec, dec_bins) - 1
+        dec_idx_low = dec_idx - num_of_bins
+        dec_idx_high = dec_idx + num_of_bins + 1
+
+        # Catch exceptions for sources close to the North pole or South pole
+        if dec_idx_high >= dec_bins.size:
+            dec_idx_high = dec_bins.size - 1
+        if dec_idx_low < 0:
+            dec_idx_low = 0
+        self._dec_low = dec_bins[dec_idx_low]
+        self._dec_high = dec_bins[dec_idx_high]
 
         if self._dec_low < np.arcsin(-1.0) or np.isnan(self._dec_low):
             self._dec_low = np.arcsin(-1.0)
@@ -931,8 +946,8 @@ class TimeDependentPointSourceLikelihood:
         min_index: float=1.5,
         max_index: float=5.0,
         new_reco_bins: np.ndarray=np.linspace(1, 9, num=25),
-        sigma: float=5.,
-        band_width_factor: float=3.0
+        sigma: float=2.,
+        band_width_factor: float=5.0
     ):
         """
         Create likelihood covering multiple data taking periods.
