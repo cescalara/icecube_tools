@@ -22,7 +22,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="icecube_tools.point_source_likelihood.energy_likelihood module" href="icecube_tools.point_source_likelihood.energy_likelihood.html" />
-    <link rel="prev" title="icecube_tools.detector.reco_energy_sampler module" href="icecube_tools.detector.reco_energy_sampler.html" /> 
+    <link rel="prev" title="icecube_tools.point_source_analysis.point_source_analysis module" href="icecube_tools.point_source_analysis.point_source_analysis.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -50,6 +50,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html">Point source likelihood</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html#Time-dependent-point-source-analysis">Time dependent point source analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_analysis.html">MapScan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/events.html">Event classes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html#icecube-tools">icecube_tools</a></li>
@@ -143,6 +144,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.PointSourceLikelihood"><code class="docutils literal notranslate"><span class="pre">PointSourceLikelihood</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.PointSourceLikelihood.get_test_statistic"><code class="docutils literal notranslate"><span class="pre">PointSourceLikelihood.get_test_statistic()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.PointSourceLikelihood.source_coord"><code class="docutils literal notranslate"><span class="pre">PointSourceLikelihood.source_coord</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.SimplePointSourceLikelihood"><code class="docutils literal notranslate"><span class="pre">SimplePointSourceLikelihood</span></code></a></li>
@@ -153,8 +155,14 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood"><code class="docutils literal notranslate"><span class="pre">TimeDependentPointSourceLikelihood</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood.N"><code class="docutils literal notranslate"><span class="pre">TimeDependentPointSourceLikelihood.N</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood.N_dict"><code class="docutils literal notranslate"><span class="pre">TimeDependentPointSourceLikelihood.N_dict</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood.Nprime"><code class="docutils literal notranslate"><span class="pre">TimeDependentPointSourceLikelihood.Nprime</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood.Nprime_dict"><code class="docutils literal notranslate"><span class="pre">TimeDependentPointSourceLikelihood.Nprime_dict</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood.Ntot"><code class="docutils literal notranslate"><span class="pre">TimeDependentPointSourceLikelihood.Ntot</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood.Ntot_dict"><code class="docutils literal notranslate"><span class="pre">TimeDependentPointSourceLikelihood.Ntot_dict</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood.get_test_statistic"><code class="docutils literal notranslate"><span class="pre">TimeDependentPointSourceLikelihood.get_test_statistic()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood.reset_events"><code class="docutils literal notranslate"><span class="pre">TimeDependentPointSourceLikelihood.reset_events()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.TimeDependentPointSourceLikelihood.source_coord"><code class="docutils literal notranslate"><span class="pre">TimeDependentPointSourceLikelihood.source_coord</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -186,7 +194,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="icecube_tools.detector.reco_energy_sampler.html" class="btn btn-neutral float-left" title="icecube_tools.detector.reco_energy_sampler module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="icecube_tools.point_source_analysis.point_source_analysis.html" class="btn btn-neutral float-left" title="icecube_tools.point_source_analysis.point_source_analysis module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="icecube_tools.point_source_likelihood.energy_likelihood.html" class="btn btn-neutral float-right" title="icecube_tools.point_source_likelihood.energy_likelihood module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

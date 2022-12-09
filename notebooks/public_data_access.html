@@ -52,6 +52,7 @@
 <li class="toctree-l1"><a class="reference internal" href="simulation.html#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="point_source_likelihood.html">Point source likelihood</a></li>
 <li class="toctree-l1"><a class="reference internal" href="point_source_likelihood.html#Time-dependent-point-source-analysis">Time dependent point source analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="point_source_analysis.html">MapScan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="events.html">Event classes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/api.html#icecube-tools">icecube_tools</a></li>
@@ -367,7 +368,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.utils.data</span> <span class="kn">import</span> <span class="n">IceCubeData</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from icecube_tools.utils.data import IceCubeData
 </pre></div>
 </div>
 </div>
@@ -376,10 +377,10 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_data</span> <span class="o">=</span> <span class="n">IceCubeData</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>my_data = IceCubeData(update=True)
 
-<span class="c1"># The available datasets</span>
-<span class="n">my_data</span><span class="o">.</span><span class="n">datasets</span>
+# The available datasets
+my_data.datasets
 </pre></div>
 </div>
 </div>
@@ -419,6 +420,7 @@ div.rendered_html tbody tr:hover {
  &#39;20220902_Evidence_for_neutrino_emission_from_the_nearby_active_galaxy_NGC_1068_data.zip&#39;,
  &#39;20220913_Evidence_for_neutrino_emission_from_the_nearby_active_galaxy_NGC_1068_data.zip&#39;,
  &#39;20221028_Observation_of_High-Energy_Neutrinos_from_the_Galactic_Plane.zip&#39;,
+ &#39;20221208_Observation_of_High-Energy_Neutrinos_from_the_Galactic_Plane.zip&#39;,
  &#39;ic22-solar-wimp-histograms.zip&#39;]
 </pre></div></div>
 </div>
@@ -427,8 +429,8 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">found_dataset</span> <span class="o">=</span> <span class="n">my_data</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;20181018&quot;</span><span class="p">)</span>
-<span class="n">found_dataset</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>found_dataset = my_data.find(&quot;20181018&quot;)
+found_dataset
 </pre></div>
 </div>
 </div>
@@ -446,7 +448,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_data</span><span class="o">.</span><span class="n">data_directory</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>my_data.data_directory
 </pre></div>
 </div>
 </div>
@@ -464,7 +466,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_data</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">found_dataset</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>my_data.fetch(found_dataset)
 </pre></div>
 </div>
 </div>
@@ -473,7 +475,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:01&lt;00:00, 8143807.31it/s]
+20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:18&lt;00:00, 626259.96it/s]
 </pre></div></div>
 </div>
 <p>You may not want to use <code class="docutils literal notranslate"><span class="pre">icecube_tools</span></code> for other stuff, so you can also fetch to a specificed location with the keyword <code class="docutils literal notranslate"><span class="pre">write_to</span></code>.</p>
@@ -481,7 +483,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_data</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">found_dataset</span><span class="p">,</span> <span class="n">write_to</span><span class="o">=</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>my_data.fetch(found_dataset, write_to=&quot;data&quot;, overwrite=True)
 </pre></div>
 </div>
 </div>
@@ -490,7 +492,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:01&lt;00:00, 7659557.22it/s]
+20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:33&lt;00:00, 352697.43it/s]
 </pre></div></div>
 </div>
 <p>For convenience, there is also the <code class="docutils literal notranslate"><span class="pre">fetch_all_to</span></code> method to download all the available data to a specified location. We comment this here as it can take a while to execute.</p>
@@ -498,7 +500,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># my_data.fetch_all_to(&quot;data&quot;)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># my_data.fetch_all_to(&quot;data&quot;)
 </pre></div>
 </div>
 </div>

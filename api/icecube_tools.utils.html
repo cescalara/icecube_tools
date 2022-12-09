@@ -21,7 +21,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="icecube_tools.utils.coordinate_transforms module" href="icecube_tools.utils.coordinate_transforms.html" />
+    <link rel="next" title="icecube_tools.utils.bpl_sampling module" href="icecube_tools.utils.bpl_sampling.html" />
     <link rel="prev" title="icecube_tools.source.source_model module" href="icecube_tools.source.source_model.html" /> 
 </head>
 
@@ -50,6 +50,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/simulation.html#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html">Point source likelihood</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_likelihood.html#Time-dependent-point-source-analysis">Time dependent point source analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/point_source_analysis.html">MapScan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/events.html">Event classes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html#icecube-tools">icecube_tools</a></li>
@@ -111,6 +112,12 @@
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="icecube_tools.utils.bpl_sampling.html">icecube_tools.utils.bpl_sampling module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.utils.bpl_sampling.html#icecube_tools.utils.bpl_sampling.bpl"><code class="docutils literal notranslate"><span class="pre">bpl()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.utils.bpl_sampling.html#icecube_tools.utils.bpl_sampling.integrate_pl"><code class="docutils literal notranslate"><span class="pre">integrate_pl()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.utils.bpl_sampling.html#icecube_tools.utils.bpl_sampling.sample_bpl"><code class="docutils literal notranslate"><span class="pre">sample_bpl()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="icecube_tools.utils.coordinate_transforms.html">icecube_tools.utils.coordinate_transforms module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="icecube_tools.utils.coordinate_transforms.html#icecube_tools.utils.coordinate_transforms.icrs_to_spherical"><code class="docutils literal notranslate"><span class="pre">icrs_to_spherical()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="icecube_tools.utils.coordinate_transforms.html#icecube_tools.utils.coordinate_transforms.spherical_to_cart"><code class="docutils literal notranslate"><span class="pre">spherical_to_cart()</span></code></a></li>
@@ -126,6 +133,8 @@
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.periods"><code class="docutils literal notranslate"><span class="pre">Events.periods</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.ra"><code class="docutils literal notranslate"><span class="pre">Events.ra</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.reco_energy"><code class="docutils literal notranslate"><span class="pre">Events.reco_energy</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.scramble_ra"><code class="docutils literal notranslate"><span class="pre">Events.scramble_ra()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.seed"><code class="docutils literal notranslate"><span class="pre">Events.seed</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.write_to_h5"><code class="docutils literal notranslate"><span class="pre">Events.write_to_h5()</span></code></a></li>
 </ul>
 </li>
@@ -141,6 +150,7 @@
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.RealEvents.ang_err_"><code class="docutils literal notranslate"><span class="pre">RealEvents.ang_err_</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.RealEvents.dec_"><code class="docutils literal notranslate"><span class="pre">RealEvents.dec_</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.RealEvents.from_event_files"><code class="docutils literal notranslate"><span class="pre">RealEvents.from_event_files()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.RealEvents.insert_fake_data"><code class="docutils literal notranslate"><span class="pre">RealEvents.insert_fake_data()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.RealEvents.keys"><code class="docutils literal notranslate"><span class="pre">RealEvents.keys</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.RealEvents.load_from_h5"><code class="docutils literal notranslate"><span class="pre">RealEvents.load_from_h5()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.RealEvents.mjd"><code class="docutils literal notranslate"><span class="pre">RealEvents.mjd</span></code></a></li>
@@ -148,6 +158,7 @@
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.RealEvents.period"><code class="docutils literal notranslate"><span class="pre">RealEvents.period()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.RealEvents.ra_"><code class="docutils literal notranslate"><span class="pre">RealEvents.ra_</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.RealEvents.reco_energy_"><code class="docutils literal notranslate"><span class="pre">RealEvents.reco_energy_</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.RealEvents.scramble_ra"><code class="docutils literal notranslate"><span class="pre">RealEvents.scramble_ra()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.RealEvents.write_to_h5"><code class="docutils literal notranslate"><span class="pre">RealEvents.write_to_h5()</span></code></a></li>
 </ul>
 </li>
@@ -156,6 +167,7 @@
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.SimEvents.keys"><code class="docutils literal notranslate"><span class="pre">SimEvents.keys</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.SimEvents.load_from_h5"><code class="docutils literal notranslate"><span class="pre">SimEvents.load_from_h5()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.SimEvents.period"><code class="docutils literal notranslate"><span class="pre">SimEvents.period()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.SimEvents.scramble_ra"><code class="docutils literal notranslate"><span class="pre">SimEvents.scramble_ra()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.SimEvents.source_label"><code class="docutils literal notranslate"><span class="pre">SimEvents.source_label</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.SimEvents.true_energy"><code class="docutils literal notranslate"><span class="pre">SimEvents.true_energy</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.SimEvents.write_to_h5"><code class="docutils literal notranslate"><span class="pre">SimEvents.write_to_h5()</span></code></a></li>
@@ -194,7 +206,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="icecube_tools.source.source_model.html" class="btn btn-neutral float-left" title="icecube_tools.source.source_model module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="icecube_tools.utils.coordinate_transforms.html" class="btn btn-neutral float-right" title="icecube_tools.utils.coordinate_transforms module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="icecube_tools.utils.bpl_sampling.html" class="btn btn-neutral float-right" title="icecube_tools.utils.bpl_sampling module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

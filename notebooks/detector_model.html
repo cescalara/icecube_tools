@@ -66,6 +66,7 @@
 <li class="toctree-l1"><a class="reference internal" href="simulation.html#Time-dependent-simulation">Time dependent simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="point_source_likelihood.html">Point source likelihood</a></li>
 <li class="toctree-l1"><a class="reference internal" href="point_source_likelihood.html#Time-dependent-point-source-analysis">Time dependent point source analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="point_source_analysis.html">MapScan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="events.html">Event classes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/api.html#icecube-tools">icecube_tools</a></li>
@@ -382,12 +383,12 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
-<span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">LogNorm</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib.colors import LogNorm
 
-<span class="kn">from</span> <span class="nn">icecube_tools.utils.data</span> <span class="kn">import</span> <span class="n">IceCubeData</span>
-<span class="kn">from</span> <span class="nn">icecube_tools.detector.detector</span> <span class="kn">import</span> <span class="n">IceCube</span><span class="p">,</span> <span class="n">TimeDependentIceCube</span>
+from icecube_tools.utils.data import IceCubeData
+from icecube_tools.detector.detector import IceCube, TimeDependentIceCube
 </pre></div>
 </div>
 </div>
@@ -396,8 +397,8 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_data</span> <span class="o">=</span> <span class="n">IceCubeData</span><span class="p">()</span>
-<span class="n">my_data</span><span class="o">.</span><span class="n">datasets</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>my_data = IceCubeData()
+my_data.datasets
 </pre></div>
 </div>
 </div>
@@ -437,6 +438,7 @@ div.rendered_html tbody tr:hover {
  &#39;20220902_Evidence_for_neutrino_emission_from_the_nearby_active_galaxy_NGC_1068_data.zip&#39;,
  &#39;20220913_Evidence_for_neutrino_emission_from_the_nearby_active_galaxy_NGC_1068_data.zip&#39;,
  &#39;20221028_Observation_of_High-Energy_Neutrinos_from_the_Galactic_Plane.zip&#39;,
+ &#39;20221208_Observation_of_High-Energy_Neutrinos_from_the_Galactic_Plane.zip&#39;,
  &#39;ic22-solar-wimp-histograms.zip&#39;]
 </pre></div></div>
 </div>
@@ -451,8 +453,8 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.detector.r2021</span> <span class="kn">import</span> <span class="n">R2021IRF</span>
-<span class="kn">from</span> <span class="nn">icecube_tools.detector.effective_area</span> <span class="kn">import</span> <span class="n">EffectiveArea</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from icecube_tools.detector.r2021 import R2021IRF
+from icecube_tools.detector.effective_area import EffectiveArea
 </pre></div>
 </div>
 </div>
@@ -460,7 +462,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_aeff</span> <span class="o">=</span> <span class="n">EffectiveArea</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20210126&quot;</span><span class="p">,</span> <span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>my_aeff = EffectiveArea.from_dataset(&quot;20210126&quot;, &quot;IC86_II&quot;)
 </pre></div>
 </div>
 </div>
@@ -469,23 +471,23 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-20210126_PS-IC40-IC86_VII.zip: 100%|██████████| 39848048/39848048 [00:02&lt;00:00, 16788952.41it/s]
+20210126_PS-IC40-IC86_VII.zip: 100%|██████████| 39848048/39848048 [01:56&lt;00:00, 341805.26it/s]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">h</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolor</span><span class="p">(</span>
-    <span class="n">my_aeff</span><span class="o">.</span><span class="n">true_energy_bins</span><span class="p">,</span> <span class="n">my_aeff</span><span class="o">.</span><span class="n">cos_zenith_bins</span><span class="p">,</span> <span class="n">my_aeff</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">LogNorm</span><span class="p">()</span>
-<span class="p">)</span>
-<span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mf">1e2</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;True energy [GeV]&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;cos(zenith)&quot;</span><span class="p">)</span>
-<span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;Aeff [m^2]&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots()
+h = ax.pcolor(
+    my_aeff.true_energy_bins, my_aeff.cos_zenith_bins, my_aeff.values.T, norm=LogNorm()
+)
+cbar = fig.colorbar(h)
+ax.set_xscale(&quot;log&quot;)
+ax.set_xlim(1e2, 1e9)
+ax.set_xlabel(&quot;True energy [GeV]&quot;)
+ax.set_ylabel(&quot;cos(zenith)&quot;)
+cbar.set_label(&quot;Aeff [m^2]&quot;)
 </pre></div>
 </div>
 </div>
@@ -506,7 +508,7 @@ counts in the bin <span class="math notranslate nohighlight">\((E_\mathrm{reco},
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">irf</span> <span class="o">=</span> <span class="n">R2021IRF</span><span class="o">.</span><span class="n">from_period</span><span class="p">(</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>irf = R2021IRF.from_period(&quot;IC86_II&quot;)
 </pre></div>
 </div>
 </div>
@@ -514,14 +516,14 @@ counts in the bin <span class="math notranslate nohighlight">\((E_\mathrm{reco},
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">idx</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">]</span>
-<span class="c1"># plotting Ereco for different true energy bins, the declination bin here is always from +10 to +90 degrees.</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">:</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots()
+idx = [0, 3, 6, 9, 12]
+# plotting Ereco for different true energy bins, the declination bin here is always from +10 to +90 degrees.
+for i in idx:
 
-    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">*</span><span class="n">irf</span><span class="o">.</span><span class="n">reco_energy</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">support</span><span class="p">(),</span> <span class="n">num</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">irf</span><span class="o">.</span><span class="n">reco_energy</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="n">irf</span><span class="o">.</span><span class="n">true_energy_bins</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    x = np.linspace(*irf.reco_energy[i, 2].support(), num=1000)
+    ax.plot(x, irf.reco_energy[i, 2].pdf(x), label=irf.true_energy_bins[i])
+ax.legend()
 </pre></div>
 </div>
 </div>
@@ -531,7 +533,7 @@ counts in the bin <span class="math notranslate nohighlight">\((E_\mathrm{reco},
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7f4d6009be80&gt;
+&lt;matplotlib.legend.Legend at 0x7fe6972008e0&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -550,8 +552,8 @@ counts in the bin <span class="math notranslate nohighlight">\((E_\mathrm{reco},
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">etrue</span> <span class="o">=</span> <span class="n">irf</span><span class="o">.</span><span class="n">true_energy_bins</span>
-<span class="n">ereco</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>etrue = irf.true_energy_bins
+ereco = np.linspace(1, 8, num=100)
 </pre></div>
 </div>
 </div>
@@ -559,9 +561,9 @@ counts in the bin <span class="math notranslate nohighlight">\((E_\mathrm{reco},
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">etrue</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ereco</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
-<span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">et</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">etrue</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
-    <span class="n">vals</span><span class="p">[</span><span class="n">c</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">irf</span><span class="o">.</span><span class="n">reco_energy</span><span class="p">[</span><span class="n">c</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">ereco</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>vals = np.zeros((etrue.size - 1, ereco.size - 1))
+for c, et in enumerate(etrue[:-1]):
+    vals[c, :] = irf.reco_energy[c, 2].pdf(ereco[:-1])
 </pre></div>
 </div>
 </div>
@@ -569,16 +571,16 @@ counts in the bin <span class="math notranslate nohighlight">\((E_\mathrm{reco},
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">h</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">etrue</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">ereco</span><span class="p">),</span> <span class="n">vals</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">LogNorm</span><span class="p">())</span>
-<span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mf">1e2</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mf">1e1</span><span class="p">,</span> <span class="mf">1e8</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;True energy [GeV]&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Reconstructed energy [GeV]&quot;</span><span class="p">)</span>
-<span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;P(Ereco|Etrue)&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots()
+h = ax.pcolor(np.power(10, etrue), np.power(10, ereco), vals.T, norm=LogNorm())
+cbar = fig.colorbar(h)
+ax.set_xlim(1e2, 1e9)
+ax.set_ylim(1e1, 1e8)
+ax.set_xscale(&quot;log&quot;)
+ax.set_yscale(&quot;log&quot;)
+ax.set_xlabel(&quot;True energy [GeV]&quot;)
+ax.set_ylabel(&quot;Reconstructed energy [GeV]&quot;)
+cbar.set_label(&quot;P(Ereco|Etrue)&quot;)
 </pre></div>
 </div>
 </div>
@@ -599,7 +601,7 @@ counts in the bin <span class="math notranslate nohighlight">\((E_\mathrm{reco},
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">irf</span><span class="o">.</span><span class="n">sample</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>irf.sample((np.full(4, np.pi), np.full(4, np.pi / 4)), np.full(4, 2))
 </pre></div>
 </div>
 </div>
@@ -609,8 +611,8 @@ counts in the bin <span class="math notranslate nohighlight">\((E_\mathrm{reco},
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(array([3.13740154, 3.10125425, 3.15352211, 3.17279123]),
- array([0.7816867 , 0.78225816, 0.78892231, 0.79486609]),
+(array([3.14887446, 3.10001048, 3.14753767, 3.1396351 ]),
+ array([0.78077983, 0.79207787, 0.78351181, 0.76663935]),
  array([1.04255446, 1.51912865, 1.07743616, 2.00200961]),
  array([ 638.4537496 , 1580.39481862,  985.08856794,  837.29002682]))
 </pre></div></div>
@@ -620,11 +622,11 @@ counts in the bin <span class="math notranslate nohighlight">\((E_\mathrm{reco},
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">etrue_bin</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="n">dec_bin</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="n">ereco_bin</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">irf</span><span class="o">.</span><span class="n">marginal_pdf_psf</span><span class="p">(</span><span class="n">etrue_bin</span><span class="p">,</span> <span class="n">dec_bin</span><span class="p">,</span> <span class="n">ereco_bin</span><span class="p">,</span> <span class="s2">&quot;bins&quot;</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">irf</span><span class="o">.</span><span class="n">marginal_pdf_psf</span><span class="p">(</span><span class="n">etrue_bin</span><span class="p">,</span> <span class="n">dec_bin</span><span class="p">,</span> <span class="n">ereco_bin</span><span class="p">,</span> <span class="s2">&quot;pdf&quot;</span><span class="p">))</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>etrue_bin = 0
+dec_bin = 2
+ereco_bin = 10
+print(irf.marginal_pdf_psf(etrue_bin, dec_bin, ereco_bin, &quot;bins&quot;))
+print(irf.marginal_pdf_psf(etrue_bin, dec_bin, ereco_bin, &quot;pdf&quot;))
 </pre></div>
 </div>
 </div>
@@ -637,7 +639,7 @@ counts in the bin <span class="math notranslate nohighlight">\((E_\mathrm{reco},
  -1.54136215 -1.27646224 -1.01153023 -0.74666199 -0.48174935 -0.21688286
   0.04805317  0.31281183  0.57772152  0.84267163  1.10754913  1.37235958
   1.63728955  1.90222053  2.1670218 ]
-&lt;scipy.stats._continuous_distns.rv_histogram object at 0x7f4d600d5f10&gt;
+&lt;scipy.stats._continuous_distns.rv_histogram object at 0x7fe6971b23a0&gt;
 </pre></div></div>
 </div>
 <p>The same works for <code class="docutils literal notranslate"><span class="pre">marginal_pdf_angerr</span></code>. The entries are only created once the <code class="docutils literal notranslate"><span class="pre">sample()</span></code> method needs to. See the class defintion of <code class="docutils literal notranslate"><span class="pre">ddict</span></code> in <code class="docutils literal notranslate"><span class="pre">icecube_tools.utils.data</span></code> for more details.</p>
@@ -649,18 +651,18 @@ counts in the bin <span class="math notranslate nohighlight">\((E_\mathrm{reco},
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">num</span> <span class="o">=</span> <span class="mi">10000</span>
-<span class="n">loge</span> <span class="o">=</span> <span class="n">irf</span><span class="o">.</span><span class="n">true_energy_bins</span>
-<span class="n">mean_uncertainty</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">loge</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">loge</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
-    <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">irf</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
-        <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">mean_uncertainty</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">samples</span><span class="p">)))</span>
-<span class="n">mean_uncertainty</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_uncertainty</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">loge</span><span class="p">,</span> <span class="n">mean_uncertainty</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="s2">&quot;post&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;$\log E_\mathrm</span><span class="si">{true}</span><span class="s2"> / \mathrm</span><span class="si">{GeV}</span><span class="s2">$&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;mean angular uncertainty [degrees]&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>num = 10000
+loge = irf.true_energy_bins
+mean_uncertainty = np.zeros(loge.shape)
+for c, e in enumerate(loge[:-1]):
+    _, _, samples, _ = irf.sample(
+        (np.full(num, np.pi), np.full(num, np.pi / 4)), np.full(num, e)
+    )
+    mean_uncertainty[c] = np.power(10, np.average(np.log10(samples)))
+mean_uncertainty[-1] = mean_uncertainty[-2]
+plt.step(loge, mean_uncertainty, where=&quot;post&quot;)
+plt.xlabel(&quot;$\log E_\mathrm{true} / \mathrm{GeV}$&quot;)
+plt.ylabel(&quot;mean angular uncertainty [degrees]&quot;)
 </pre></div>
 </div>
 </div>
@@ -689,7 +691,7 @@ Text(0, 0.5, &#39;mean angular uncertainty [degrees]&#39;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">detector</span> <span class="o">=</span> <span class="n">IceCube</span><span class="p">(</span><span class="n">my_aeff</span><span class="p">,</span> <span class="n">irf</span><span class="p">,</span> <span class="n">irf</span><span class="p">,</span> <span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>detector = IceCube(my_aeff, irf, irf, &quot;IC86_II&quot;)
 </pre></div>
 </div>
 </div>
@@ -702,8 +704,8 @@ Text(0, 0.5, &#39;mean angular uncertainty [degrees]&#39;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tic</span> <span class="o">=</span> <span class="n">TimeDependentIceCube</span><span class="o">.</span><span class="n">from_periods</span><span class="p">(</span><span class="s2">&quot;IC86_I&quot;</span><span class="p">,</span> <span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
-<span class="n">tic</span><span class="o">.</span><span class="n">detectors</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>tic = TimeDependentIceCube.from_periods(&quot;IC86_I&quot;, &quot;IC86_II&quot;)
+tic.detectors
 </pre></div>
 </div>
 </div>
@@ -712,7 +714,7 @@ Text(0, 0.5, &#39;mean angular uncertainty [degrees]&#39;)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/icecube_tools/detector/r2021.py:67: RuntimeWarning: divide by zero encountered in log10
+/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/icecube_tools/detector/r2021.py:82: RuntimeWarning: divide by zero encountered in log10
   self.dataset[:, 6:-1] = np.log10(self.dataset[:, 6:-1])
 Empty true energy bins at: [(0, 0), (1, 0)]
 </pre></div></div>
@@ -723,8 +725,8 @@ Empty true energy bins at: [(0, 0), (1, 0)]
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{&#39;IC86_I&#39;: &lt;icecube_tools.detector.detector.IceCube at 0x7f4d60190310&gt;,
- &#39;IC86_II&#39;: &lt;icecube_tools.detector.detector.IceCube at 0x7f4d5eaed3d0&gt;}
+{&#39;IC86_I&#39;: &lt;icecube_tools.detector.detector.IceCube at 0x7fe6971bbee0&gt;,
+ &#39;IC86_II&#39;: &lt;icecube_tools.detector.detector.IceCube at 0x7fe693e2bac0&gt;}
 </pre></div></div>
 </div>
 <p>Available periods are</p>
@@ -732,7 +734,7 @@ Empty true energy bins at: [(0, 0), (1, 0)]
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">TimeDependentIceCube</span><span class="o">.</span><span class="n">_available_periods</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>TimeDependentIceCube._available_periods
 </pre></div>
 </div>
 </div>
@@ -754,9 +756,9 @@ Empty true energy bins at: [(0, 0), (1, 0)]
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.detector.effective_area</span> <span class="kn">import</span> <span class="n">EffectiveArea</span>
-<span class="kn">from</span> <span class="nn">icecube_tools.detector.energy_resolution</span> <span class="kn">import</span> <span class="n">EnergyResolution</span>
-<span class="kn">from</span> <span class="nn">icecube_tools.detector.angular_resolution</span> <span class="kn">import</span> <span class="n">AngularResolution</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from icecube_tools.detector.effective_area import EffectiveArea
+from icecube_tools.detector.energy_resolution import EnergyResolution
+from icecube_tools.detector.angular_resolution import AngularResolution
 </pre></div>
 </div>
 </div>
@@ -764,8 +766,8 @@ Empty true energy bins at: [(0, 0), (1, 0)]
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_aeff</span> <span class="o">=</span> <span class="n">EffectiveArea</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20181018&quot;</span><span class="p">)</span>
-<span class="n">my_angres</span> <span class="o">=</span> <span class="n">AngularResolution</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20181018&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>my_aeff = EffectiveArea.from_dataset(&quot;20181018&quot;)
+my_angres = AngularResolution.from_dataset(&quot;20181018&quot;)
 </pre></div>
 </div>
 </div>
@@ -773,15 +775,15 @@ Empty true energy bins at: [(0, 0), (1, 0)]
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">h</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolor</span><span class="p">(</span>
-    <span class="n">my_aeff</span><span class="o">.</span><span class="n">true_energy_bins</span><span class="p">,</span> <span class="n">my_aeff</span><span class="o">.</span><span class="n">cos_zenith_bins</span><span class="p">,</span> <span class="n">my_aeff</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">LogNorm</span><span class="p">()</span>
-<span class="p">)</span>
-<span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;True energy [GeV]&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;cos(zenith)&quot;</span><span class="p">)</span>
-<span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;Aeff [m^2]&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots()
+h = ax.pcolor(
+    my_aeff.true_energy_bins, my_aeff.cos_zenith_bins, my_aeff.values.T, norm=LogNorm()
+)
+cbar = fig.colorbar(h)
+ax.set_xscale(&quot;log&quot;)
+ax.set_xlabel(&quot;True energy [GeV]&quot;)
+ax.set_ylabel(&quot;cos(zenith)&quot;)
+cbar.set_label(&quot;Aeff [m^2]&quot;)
 </pre></div>
 </div>
 </div>
@@ -796,11 +798,11 @@ Empty true energy bins at: [(0, 0), (1, 0)]
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">my_angres</span><span class="o">.</span><span class="n">true_energy_values</span><span class="p">,</span> <span class="n">my_angres</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;True energy [GeV]&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Mean angular error [deg]&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots()
+ax.plot(my_angres.true_energy_values, my_angres.values)
+ax.set_xscale(&quot;log&quot;)
+ax.set_xlabel(&quot;True energy [GeV]&quot;)
+ax.set_ylabel(&quot;Mean angular error [deg]&quot;)
 </pre></div>
 </div>
 </div>
@@ -825,7 +827,7 @@ Text(0, 0.5, &#39;Mean angular error [deg]&#39;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">EffectiveArea</span><span class="o">.</span><span class="n">supported_datasets</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>EffectiveArea.supported_datasets
 </pre></div>
 </div>
 </div>
@@ -842,7 +844,7 @@ Text(0, 0.5, &#39;Mean angular error [deg]&#39;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">AngularResolution</span><span class="o">.</span><span class="n">supported_datasets</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>AngularResolution.supported_datasets
 </pre></div>
 </div>
 </div>
@@ -859,7 +861,7 @@ Text(0, 0.5, &#39;Mean angular error [deg]&#39;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">EnergyResolution</span><span class="o">.</span><span class="n">supported_datasets</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>EnergyResolution.supported_datasets
 </pre></div>
 </div>
 </div>
@@ -878,8 +880,8 @@ Text(0, 0.5, &#39;Mean angular error [deg]&#39;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_aeff</span> <span class="o">=</span> <span class="n">EffectiveArea</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20150820&quot;</span><span class="p">)</span>
-<span class="n">my_eres</span> <span class="o">=</span> <span class="n">EnergyResolution</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20150820&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>my_aeff = EffectiveArea.from_dataset(&quot;20150820&quot;)
+my_eres = EnergyResolution.from_dataset(&quot;20150820&quot;)
 </pre></div>
 </div>
 </div>
@@ -888,22 +890,22 @@ Text(0, 0.5, &#39;Mean angular error [deg]&#39;)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-20150820_Astrophysical_muon_neutrino_flu...: 100%|██████████| 43711022/43711022 [00:02&lt;00:00, 19367095.76it/s]
+20150820_Astrophysical_muon_neutrino_flu...: 100%|██████████| 43711022/43711022 [02:10&lt;00:00, 335334.37it/s]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">h</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolor</span><span class="p">(</span>
-    <span class="n">my_aeff</span><span class="o">.</span><span class="n">true_energy_bins</span><span class="p">,</span> <span class="n">my_aeff</span><span class="o">.</span><span class="n">cos_zenith_bins</span><span class="p">,</span> <span class="n">my_aeff</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">LogNorm</span><span class="p">()</span>
-<span class="p">)</span>
-<span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;True energy [GeV]&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;cos(zenith)&quot;</span><span class="p">)</span>
-<span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;Aeff [m^2]&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots()
+h = ax.pcolor(
+    my_aeff.true_energy_bins, my_aeff.cos_zenith_bins, my_aeff.values.T, norm=LogNorm()
+)
+cbar = fig.colorbar(h)
+ax.set_xscale(&quot;log&quot;)
+ax.set_xlabel(&quot;True energy [GeV]&quot;)
+ax.set_ylabel(&quot;cos(zenith)&quot;)
+cbar.set_label(&quot;Aeff [m^2]&quot;)
 </pre></div>
 </div>
 </div>
@@ -918,16 +920,16 @@ Text(0, 0.5, &#39;Mean angular error [deg]&#39;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">h</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolor</span><span class="p">(</span>
-    <span class="n">my_eres</span><span class="o">.</span><span class="n">true_energy_bins</span><span class="p">,</span> <span class="n">my_eres</span><span class="o">.</span><span class="n">reco_energy_bins</span><span class="p">,</span> <span class="n">my_eres</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">LogNorm</span><span class="p">()</span>
-<span class="p">)</span>
-<span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;True energy [GeV]&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Reconstructed energy [GeV]&quot;</span><span class="p">)</span>
-<span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;P(Ereco|Etrue)&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots()
+h = ax.pcolor(
+    my_eres.true_energy_bins, my_eres.reco_energy_bins, my_eres.values.T, norm=LogNorm()
+)
+cbar = fig.colorbar(h)
+ax.set_xscale(&quot;log&quot;)
+ax.set_yscale(&quot;log&quot;)
+ax.set_xlabel(&quot;True energy [GeV]&quot;)
+ax.set_ylabel(&quot;Reconstructed energy [GeV]&quot;)
+cbar.set_label(&quot;P(Ereco|Etrue)&quot;)
 </pre></div>
 </div>
 </div>
@@ -945,7 +947,7 @@ Text(0, 0.5, &#39;Mean angular error [deg]&#39;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.detector.detector</span> <span class="kn">import</span> <span class="n">IceCube</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from icecube_tools.detector.detector import IceCube
 </pre></div>
 </div>
 </div>
@@ -953,7 +955,7 @@ Text(0, 0.5, &#39;Mean angular error [deg]&#39;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_detector</span> <span class="o">=</span> <span class="n">IceCube</span><span class="p">(</span><span class="n">my_aeff</span><span class="p">,</span> <span class="n">my_eres</span><span class="p">,</span> <span class="n">my_angres</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>my_detector = IceCube(my_aeff, my_eres, my_angres)
 </pre></div>
 </div>
 </div>
