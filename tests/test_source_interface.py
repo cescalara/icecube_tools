@@ -18,11 +18,11 @@ def test_flux_models():
         flux = flux_model(*params)
 
         # Check boundary
-        assert np.isnan(flux.spectrum(1e3))
+        assert flux.spectrum(1e3) == 0.
 
-        assert not np.isnan(flux.spectrum(1e5))
+        assert flux.spectrum(1e5) != 0.
 
-        assert np.isnan(flux.spectrum(1e9))
+        assert flux.spectrum(1e9) == 0.
 
         # Check integration
         int_low = flux.integrated_spectrum(1e4, 1e5)

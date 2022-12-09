@@ -94,6 +94,18 @@ class IceCube(Detector):
 
         super().__init__()
 
+    
+    @classmethod
+    def from_period(cls, period: str):
+        """
+        Generate a detector from a period string of 2021 data release
+        """
+
+        aeff = EffectiveArea.from_dataset("20210126", period)
+        irf = R2021IRF.from_period(period)
+
+        return cls(aeff, irf, irf)
+
 
 class TimeDependentDetector(ABC):
 
@@ -101,13 +113,20 @@ class TimeDependentDetector(ABC):
     def available_periods(self):
         return self._available_periods
 
+
     @property
     def detectors(self):
         return self._detectors
     
+
     @property
     def periods(self):
         return list(self._detectors.keys())
+
+
+    def __getitem__(self, key):
+        return self._detectors[key]
+
 
 
 class TimeDependentIceCube(TimeDependentDetector):

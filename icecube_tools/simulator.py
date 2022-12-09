@@ -2,7 +2,7 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 import h5py
-from scipy.stats import uniform
+from scipy.stats import uniform, bernoulli
 import logging
 import sys
 from os.path import join
@@ -20,8 +20,10 @@ from .source.source_model import Source, DIFFUSE, POINT
 from .source.flux_model import PowerLawFlux, BrokenPowerLawFlux
 from .neutrino_calculator import NeutrinoCalculator
 from .detector.angular_resolution import FixedAngularResolution, AngularResolution
-from .detector.r2021 import R2021IRF
-from .utils.data import Uptime, data_directory, SimEvents
+# Change the imports when using a different detector model with different broken power law
+from .detector.r2021 import R2021IRF, K, EMIN, EBREAK, EMAX, INDEX1, INDEX2
+from .utils.data import SimEvents, available_irf_periods
+from .utils.bpl_sampling import bpl, sample_bpl
 
 """
 Module for running neutrino production 
@@ -29,7 +31,8 @@ and detection simulations.
 """
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.DEBUG)
+
 
 
 class Simulator(SimEvents):
@@ -50,6 +53,7 @@ class Simulator(SimEvents):
         self._detector = detector
 
         self.max_cosz = 1
+        self.min_cosz = -1
 
         self.time = 1  # year
 
@@ -94,7 +98,7 @@ class Simulator(SimEvents):
 
         nu_calc = NeutrinoCalculator(self.sources, self.detector.effective_area)
 
-        self._Nex = nu_calc(time=self.time, max_cosz=self.max_cosz)
+        self._Nex = nu_calc(time=self.time, min_cosz=self.min_cosz, max_cosz=self.max_cosz)
 
         self._source_weights = np.array(self._Nex) / sum(self._Nex)
 
@@ -123,7 +127,8 @@ class Simulator(SimEvents):
 
             self.N = int(N)
 
-        v_lim = (np.cos(np.pi - np.arccos(self.max_cosz)) + 1) / 2
+        v_min = - self.max_cosz
+        v_max = - self.min_cosz
 
 
 
@@ -173,7 +178,7 @@ class Simulator(SimEvents):
                 Etrue_ = self.sources[i].flux_model.sample(num)
                 if self.sources[i].source_type == DIFFUSE:
 
-                    ra_, dec_ = sphere_sample(v_lim=v_lim, N=num)
+                    ra_, dec_ = sphere_sample(v_min=v_min, v_max=v_max, N=num)
 
                 else:
 
@@ -264,7 +269,8 @@ class Simulator(SimEvents):
             self.N = int(N)
             logger.info("N provided.")
 
-        v_lim = (np.cos(np.pi - np.arccos(self.max_cosz)) + 1) / 2
+        v_min = - self.max_cosz
+        v_max = - self.min_cosz
 
         self._true_energy = []
         self._arrival_energy = []
@@ -280,7 +286,7 @@ class Simulator(SimEvents):
         #the accepted ones.
 
         #TODO maybe change the factor to something spectral index dependent
-        num = self.N * 5000
+        num = self.N * 10
         label = np.random.choice(range(len(self.sources)), self.N, p=self._source_weights)
         l_set = set(label)
         l_num = {i: np.argwhere(i == label).shape[0] for i in l_set}
@@ -308,10 +314,13 @@ class Simulator(SimEvents):
                     logger.debug("no more empty slots, done")
                     break
                 
-                Etrue_ = self.sources[i].flux_model.sample(num)
+                # Etrue_ = self.sources[i].flux_model.sample(num)
+                # Should be the other way: Sample Earr, then calculate Etrue.
+                # Cuts on energy are applied at the detector, not at the source.
+                # Actually necessary for the bpl rejection sampling to work
                 if self.sources[i].source_type == DIFFUSE:
 
-                    ra_, dec_ = sphere_sample(v_lim=v_lim, N=num)
+                    ra_, dec_ = sphere_sample(v_min=v_min, v_max=v_max, N=num)
 
                 else:
 
@@ -320,21 +329,34 @@ class Simulator(SimEvents):
                 cosz = -np.sin(dec_)
 
 
-                Earr_ = Etrue_ / (1 + self.sources[i].z)
-                detection_prob = self.detector.effective_area.detection_probability(
+                # Earr_ = Etrue_ / (1 + self.sources[i].z)
+                u = uniform.rvs(size=num)
+                Earr_ = sample_bpl(u, EMIN, EBREAK, max_energy[i], INDEX1, INDEX2)
+                detection_prob = self.sources[i].flux_model.spectrum(Earr_) * self.detector.effective_area.detection_probability(
                         Earr_, cosz, max_energy[i]
                 ).astype(float)
-                #detection_prob = 1.0
+                # print("Eprelim:", Eprelim)
+                # print("unscaled detection prob:", detection_prob)
+                bpl_values = bpl(Earr_, EMIN, EBREAK, max_energy[i], INDEX1, INDEX2)
+                # print("bpl_values:", bpl_values)
+                prob = detection_prob / bpl_values
+                # print("relative prob max:", prob.max())
+                prob /= prob.max()
+                # print("prob:", prob, prob.max())
 
-                samples = uniform.rvs(size=num, random_state=seed)
-                accepted_ = samples <= detection_prob
+                accepted_ = bernoulli.rvs(prob).astype(bool)
+
+                # Earr_ = Eprelim[accepted_]
+                Etrue_ = Earr_ * (1 + self.sources[i].z)
+                #samples = uniform.rvs(size=num, random_state=seed)
+                #accepted_ = samples <= detection_prob
                 idx = np.nonzero(accepted_)
-                
                 if idx[0].size == 0:
                     continue
                 else:
                     start = np.min(where_zero)
                     end = start + idx[0].size
+                    # print("start:end", start, end)
                     try:
                         Etrue_d[i][start:end] = Etrue_[idx]
                         Earr_d[i][start:end] = Earr_[idx]
@@ -346,6 +368,10 @@ class Simulator(SimEvents):
                     except (IndexError, ValueError):
                         logger.debug("Not enough slots, cutting short.")
                         remaining = np.argwhere(Etrue_d[i] == 0.).size
+                        # print("start:end", start, end)
+                        # print("remaining:", remaining)
+                        # print(Etrue_[idx][0:remaining])
+                        # print(Etrue_d[i])
                         Etrue_d[i][start:] = Etrue_[idx][0:remaining]
                         Earr_d[i][start:] = Earr_[idx][0:remaining]
                         ra_d[i][start:] = ra_[idx][0:remaining]
@@ -446,13 +472,13 @@ class Simulator(SimEvents):
             progress.close()
         logger.info("Created array of simulation data")
 
-        self._ra = {self._period: self._ra}
-        self._dec = {self._period: self._dec}
+        self._ra = {self._period: np.array(self._ra)}
+        self._dec = {self._period: np.array(self._dec)}
         self._true_energy = {self._period: self._true_energy}
-        self._reco_energy = {self._period: self._reco_energy}
+        self._reco_energy = {self._period: np.array(self._reco_energy)}
         self._arrival_energy = {self._period: self._arrival_energy}
         self._source_label = {self._period: self._source_label}
-        self._ang_err = {self._period: self._ang_err}
+        self._ang_err = {self._period: np.array(self._ang_err)}
         
  
 
@@ -541,6 +567,7 @@ class Braun2008Simulator:
         # Hard code to match Braun+2008
         self.angular_resolution = angular_resolution
         self.max_cosz = 0.1
+        self.min_cosz = -1.
         self.reco_energy_index = 3.8
 
     def run(self, N, show_progress=True):
@@ -561,7 +588,8 @@ class Braun2008Simulator:
 
         self.reco_energy_sampler.set_index(self.reco_energy_index)
 
-        v_lim = (np.cos(np.pi - np.arccos(self.max_cosz)) + 1) / 2
+        v_min = - self.max_cosz
+        v_max = - self.min_cosz
 
         max_energy = self.source.flux_model._upper_energy
 
@@ -577,7 +605,7 @@ class Braun2008Simulator:
 
                 if self.source.source_type == DIFFUSE:
 
-                    ra, dec = sphere_sample(v_lim=v_lim)
+                    ra, dec = sphere_sample(v_min=v_min, v_max=v_max)
 
                 else:
 
@@ -655,8 +683,6 @@ class TimeDependentSimulator(SimEvents):
     Simulator-class for simulations spanning multiple data taking periods.
     """
 
-    _available_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
-
     _time_limits = {}
 
     # need to find time limits of data taking periods
@@ -673,13 +699,13 @@ class TimeDependentSimulator(SimEvents):
         """
         super().__init__()
         self.simulators = {}
-        if not all(_ in self._available_periods for _ in periods):
+        if not all(_ in available_irf_periods for _ in periods):
             raise ValueError("Some periods not supported.")
 
         #Get time dependent detector.
-        time_dependent_detector = TimeDependentIceCube.from_periods(*periods)
+        tirf = TimeDependentIceCube.from_periods(*periods)
         self.simulators = {
-            p: Simulator(sources, sim, p) for p, sim in time_dependent_detector.yield_detectors()
+            p: Simulator(sources, tirf[p], p) for p in periods
         }
         self.sources = sources
         self._periods = periods
@@ -689,10 +715,10 @@ class TimeDependentSimulator(SimEvents):
         else:
             logger.warning("Need to set simulation times, defaults to 1 year each.")
 
-    def run(self, N: List=None, seed=1234, show_progress=False):
+    def run(self, N: Dict=None, seed=1234, show_progress=False):
         """
         Runs simulation for each period.
-        :param N: List of Ns to be set as expected number of neutrinos in sample.
+        :param N: Dict of Ns to be set as expected number of neutrinos in sample.
         :param seed: Random seed.
         :param show_progress: Bool, True if debugging information on simulation is to be shown.
         Currently not implemented.
@@ -700,7 +726,10 @@ class TimeDependentSimulator(SimEvents):
 
         for p, sim in self.simulators.items():
             logger.info(f"Simulating period {p}.")
-            sim.run(N=None, seed=1234, show_progress=show_progress)
+            if N:
+                sim.run(N=N[p], seed=seed, show_progress=show_progress)
+            else:
+                sim.run(N=None, seed=seed, show_progress=show_progress)
             self._true_energy[sim._period] = sim.true_energy[p]
             self._arrival_energy[sim._period] = sim.arrival_energy[p]
             self._reco_energy[sim._period] = sim.reco_energy[p]
@@ -774,16 +803,16 @@ class TimeDependentSimulator(SimEvents):
 
 
     
-def sphere_sample(radius=1, v_lim=0, N=1):
+def sphere_sample(radius=1, v_min=-1, v_max=1, N=1):
     """
     Sample points uniformly on a sphere.
     """
 
     u = np.random.uniform(0, 1, size=N)
-    v = np.random.uniform(v_lim, 1, size=N)
+    v = np.random.uniform(v_min, v_max, size=N)
 
     phi = 2 * np.pi * u
-    theta = np.arccos(2 * v - 1)
+    theta = np.arccos(v)
 
     ra, dec = spherical_to_icrs(theta, phi)
 

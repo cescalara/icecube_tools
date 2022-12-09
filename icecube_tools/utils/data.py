@@ -21,12 +21,14 @@ from ..utils.vMF import get_kappa, get_theta_p
 from typing import List, Dict
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
 icecube_data_base_url = "https://icecube.wisc.edu/data-releases"
 data_directory = os.path.abspath(os.path.join(os.path.expanduser("~"), ".icecube_data"))
 
-available_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
+available_irf_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
+
+available_data_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII"]
 
 
 class IceCubeData:
@@ -273,11 +275,14 @@ class Uptime():
     Class to handle calculations of detector live time.
     """
 
+
+    
+
     def __init__(self):
         self.data = {}
         #Store start and end times of each period separately
-        self.times = np.zeros((len(available_periods), 2))
-        for c, p in enumerate(available_periods):
+        self.times = np.zeros((len(available_data_periods), 2))
+        for c, p in enumerate(available_data_periods):
             self.data[p] = np.loadtxt(os.path.join(
                 data_directory,
                 "20210126_PS-IC40-IC86_VII", 
@@ -290,30 +295,58 @@ class Uptime():
 
             
 
-    def time_span(self, period: str):
+    def time_span(self, *periods: str, IRF: bool=True):
         """
-        :param period: String of data period.
-        :return: total time between start and end of data period.
+        :param periods: Strings of data/irf periods.
+        :return: Dict of total times in years (without unit) between start and end of each queried data period.
         """
 
+        output = {}
+        for p in periods:
+            time = self._time_span(p)
+            if IRF and p in available_data_periods and not p in available_irf_periods:
+                try:
+                    output["IC86_II"] += time
+                except KeyError:
+                    output["IC86_II"] = time
+            else:
+                output[p] = time
+        return output
+
+
+    def _time_span(self, period: str):
         time = self.data[period][-1, -1] - self.data[period][0, 0]
         time = time * u.d
-        return time.to("year")
+        return time.to("year").value
 
 
-    def time_obs(self, period: str):
+    def time_obs(self, *periods: str, IRF: bool=True):
         """
-        :param period: String of data period.
-        :return: Return total observation time of data period.
+        :param periods: Strings of data periods.
+        :return: Return total observation time of each queried data period in years (without unit)
         """
 
+        output = {}
+        for p in periods:
+            time = self._time_obs(p)
+            if IRF and p in available_data_periods and p not in available_irf_periods:
+                try:
+                    output["IC86_II"] += time
+                except KeyError:
+                    output["IC86_II"] = time
+            else:
+                output[p] = time
+        return output
+
+
+    def _time_obs(self, period: str):
         intervals = self.data[period][:, 1] - self.data[period][:, 0]
         time = np.sum(intervals) * u.d
-        time = time.to("year")
-        return time
+        return time.to("year").value
 
 
-    def find_obs_time(self, **kwargs):
+
+    def find_obs_time(self, IRF: bool=True, **kwargs):
         """
         Calculate the amounts of time in each period covered for either:
          - given start and end time (should be MJD)
@@ -351,7 +384,7 @@ class Uptime():
         if end > self.times[-1, -1]:
             logger.info("End time outside of provided data set, sending an owl to Professor Trelawney")
             # Set to highest allowed value
-            p_end = len(available_periods) - 1
+            p_end = len(available_data_periods) - 1
             future = True
             
         else:    
@@ -367,27 +400,39 @@ class Uptime():
 
         obs_times = {}
         if p_start == p_end and not future:
-            fraction = duration / self.time_span(available_periods[p_start])
-            t_obs = fraction * self.time_obs(available_periods[p_start])
-            obs_times[available_periods[p_start]] = t_obs.value
+            fraction = duration / self._time_span(available_data_periods[p_start])
+            t_obs = fraction * self._time_obs(available_data_periods[p_start])
+            obs_times[available_data_periods[p_start]] = t_obs.value
         else:
             # find duration in start period:
             duration = ((self.times[p_start, 1] - start) * u.day).to("year")
-            fraction = duration / self.time_span(available_periods[p_start])
-            t_obs_start = fraction * self.time_obs(available_periods[p_start])
-            obs_times[available_periods[p_start]] = t_obs_start.value
+            fraction = duration / self._time_span(available_data_periods[p_start])
+            t_obs_start = fraction * self._time_obs(available_data_periods[p_start])
+            obs_times[available_data_periods[p_start]] = t_obs_start.value
                         
             # now for the middle periods:
             for c_p in range(p_start+1, p_end):
-                obs_times[available_periods[c_p]] = self.time_obs(available_periods[c_p]).value
+                obs_times[available_data_periods[c_p]] = self._time_obs(available_data_periods[c_p])
             
             # end
             duration = ((end - self.times[p_end, 0]) * u.day).to("year")
-            fraction = duration / self.time_span(available_periods[p_end])
-            t_obs_end = fraction * self.time_obs(available_periods[p_end])
-            obs_times[available_periods[p_end]] = t_obs_end.value
+            fraction = duration / self._time_span(available_data_periods[p_end])
+            t_obs_end = fraction * self._time_obs(available_data_periods[p_end])
+            obs_times[available_data_periods[p_end]] = t_obs_end.value
 
-        return obs_times
+        if IRF:
+            new_obs_times = {}
+            for p, t in obs_times.items():
+                if p in available_data_periods and p not in available_irf_periods:
+                    try:
+                        new_obs_times["IC86_II"] += t
+                    except KeyError:
+                        new_obs_times["IC86_II"] = t
+                else:
+                    new_obs_times[p] = t
+            return new_obs_times
+        else:
+            return obs_times
 
 
 
@@ -397,10 +442,11 @@ class Events(ABC):
     For single period event files, the properties return not a dictionary but a single array of data.
     """
 
-    def __init__(self):
+    def __init__(self, seed: int=1234):
         self._create_dicts()
         self._periods = []
         self.mask = None
+        self.seed = seed
 
 
     def _create_dicts(self):
@@ -427,6 +473,11 @@ class Events(ABC):
 
     @abstractmethod
     def write_to_h5(self):
+        pass
+
+
+    @abstractmethod
+    def scramble_ra(self):
         pass
 
 
@@ -467,6 +518,18 @@ class Events(ABC):
             return self._ang_err
 
 
+    @property
+    def seed(self):
+        return self._seed
+
+    
+    @seed.setter
+    def seed(self, s: int):
+        logger.warning("Resetting rng")
+        self._seed = s
+        self.rng = np.random.default_rng(seed=s)
+
+
     def _return_single_period(self, data):
         return data[self._periods[0]]
 
@@ -480,21 +543,22 @@ class SimEvents(Events):
     keys = ["true_energy", "arrival_energy", "reco_energy",
         "ra", "dec", "ang_err", "source_label"]
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, seed: int=1234):
+        super().__init__(seed=seed)
         self._true_energy = {}
         self._arrival_energy = {}
         self._source_label = {}
         
     
     @classmethod
-    def load_from_h5(cls, path: str):
+    def load_from_h5(cls, path: str, seed: int=1234):
         """
         Load events from hdf5 file.
         :param path: Path to file
+        :param seed: Random seed for RA scrambling
         """
 
-        inst = cls()
+        inst = cls(seed=seed)
         inst._periods = []
         inst.path = path
         inst.sources = {}
@@ -585,6 +649,19 @@ class SimEvents(Events):
         return out
 
 
+    def scramble_ra(self):
+        """
+        Srcambles RA of all events, no distinction between source and background is made.
+        """
+        num_of_events = 0
+        logger.info("Scrambling RAs.")
+        for p in self.periods:
+            num_of_events += self._ra[p].size
+            self._ra[p] = self.rng.uniform(low=0., high=2*np.pi, size=self._ra[p].size)
+        if num_of_events < 10000:
+            logger.warning(f"Shuffling RA with low ({num_of_events} events) statistics. Proceed with caution.")
+
+
     @property
     def true_energy(self):
         if self.mask:
@@ -623,8 +700,8 @@ class RealEvents(Events):
 
     keys = ["reco_energy", "ra", "dec", "ang_err", "mjd"]
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, seed=1234):
+        super().__init__(seed=seed)
         self._mjd = {}
 
 
@@ -678,7 +755,7 @@ class RealEvents(Events):
 
 
     @classmethod
-    def from_event_files(cls, *periods: str):
+    def from_event_files(cls, *periods: str, seed: int=1234):
         """
         Load from files provided by data release,
         if belonging to IC86_II or later, add to IC86_II keyword
@@ -691,7 +768,7 @@ class RealEvents(Events):
         else:
             #use all periods if none are specified
             periods = ("IC40", "IC59", "IC79", "IC86_I", "IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII")
-        inst = cls()
+        inst = cls(seed=seed)
         inst.events = {}
         add = []
         for p in periods:
@@ -752,6 +829,39 @@ class RealEvents(Events):
             return {p: self._mjd[p][self.mask[p]] for p in self.periods}
         else:
             return self._mjd
+
+
+    def insert_fake_data(self, data: SimEvents):
+        """
+        Inserts fake data into real data for e.g. sensitivity testing.
+        Should have some way of distinguishing between fake and real data?!
+        Tested, works!
+        :param data: :class:`icecube_tools.utils.data.SimEvents`
+        """
+
+        for p in data.periods:
+            self._reco_energy[p] = np.hstack((self._reco_energy[p], data._reco_energy[p]))
+            self._ra[p] = np.hstack((self._ra[p], data._ra[p]))
+            self._dec[p] = np.hstack((self._dec[p], data._dec[p]))
+            self._ang_err[p] = np.hstack((self._ang_err[p], data._ang_err[p]))
+
+
+    def scramble_ra(self):
+        """
+        Scrambles the RA of all events that are not inserted fakes. Done by using the size of MJD,
+        which is not provided for fake data.
+        Fake data is excluded s.t. inserted point sources are not accidentally washed out.
+        """
+        num_of_events = 0
+        logger.info("Scrambling RAs.")
+        for p in self.periods:
+            self._ra[p] = np.hstack((
+                self.rng.uniform(low=0., high=2*np.pi, size=self._mjd[p].size),
+                self._ra[p][self._mjd[p].size:]
+                ))
+            num_of_events += self._mjd[p].size
+        if num_of_events < 10000:
+            logger.warning(f"Shuffling RA with low ({num_of_events} events) statistics. Proceed with caution.")
 
     
 

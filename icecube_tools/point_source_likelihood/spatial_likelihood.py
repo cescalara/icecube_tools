@@ -30,7 +30,7 @@ class SpatialLikelihood(ABC):
 
 
 class EventDependentSpatialGaussianLikelihood(SpatialLikelihood):
-    def __init__(self, sigma=5.):
+    def __init__(self, sigma=2):
         """
         :param sigma: Upper limit of angular distance to considered events
         """

@@ -5,7 +5,7 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.13.8
+      jupytext_version: 1.14.1
   kernelspec:
     display_name: Python 3 (ipykernel)
     language: python
@@ -191,6 +191,7 @@ ax.add_collection(df_nu)
 ax.add_collection(ps_nu)
 
 ax.grid()
+fig.savefig("example_simulation.png", dpi=150)
 ```
 
 # Time dependent simulation

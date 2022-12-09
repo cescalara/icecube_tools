@@ -1,0 +1,4 @@
+sources:
+  nside: 16
+data:
+  likelihood: both

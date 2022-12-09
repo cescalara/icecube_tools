@@ -10,14 +10,25 @@ import logging
 
 from icecube_tools.detector.energy_resolution import EnergyResolution
 from icecube_tools.detector.angular_resolution import AngularResolution
-from icecube_tools.utils.data import find_files, data_directory, IceCubeData, ddict
+from icecube_tools.utils.data import (
+    find_files, data_directory, IceCubeData, ddict, available_irf_periods
+)
 from icecube_tools.utils.vMF import get_kappa, get_theta_p
 
 R2021_IRF_FILENAME = "smearing.csv"
-_supported_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+
+# Quantities for rejection sampling
+EMIN = 1e2
+EMAX = 1e9
+EBREAK = 1e4
+INDEX1 = 0.
+INDEX2 = -1.1
+K = 5e-5
+
 
 class DummyPDF():
     def __init__(self):
@@ -36,6 +47,10 @@ class DummyPDF():
             return np.zeros_like(x)
         else:
             return 0.
+
+
+    #def rvs(self, size=1, random_state=42):
+    #    return
 
 
 class R2021IRF(EnergyResolution, AngularResolution):
@@ -274,6 +289,8 @@ class R2021IRF(EnergyResolution, AngularResolution):
             for idx_d in set_d:
                 _index_d = np.argwhere(idx_d == c_d).squeeze()
                 _index_f = (np.intersect1d(_index_d, _index_e),)
+                if _index_f[0].size == 0:
+                    continue
                 Ereco[_index_f] = self.reco_energy[idx_e, idx_d].rvs(size=_index_f[0].size, random_state=seed)
                 current_c_e_r = self._return_reco_energy_bins(idx_e, idx_d, Ereco[_index_f])
                 c_e_r[_index_f] = current_c_e_r
@@ -375,7 +392,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         :param fetch: True if data should be downloaded
         """
 
-        if period not in _supported_periods:
+        if period not in available_irf_periods:
             raise ValueError("Period {period} is not supported.")
 
         if kwargs.get("fetch", True):
@@ -568,7 +585,6 @@ class R2021IRF(EnergyResolution, AngularResolution):
                 perp /= np.linalg.norm(perp)
             else:
                 perp[1] = 1.
-            # print(perp)
             return perp
 
         #sample kinematic angle from distribution

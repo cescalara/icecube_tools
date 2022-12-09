@@ -19,4 +19,4 @@ def test_uptime():
     uptime = Uptime()
     live_time = uptime.time_span("IC40")
     obs_time = uptime.time_obs("IC40")
-    assert obs_time <= live_time
+    assert obs_time["IC40"] <= live_time["IC40"]

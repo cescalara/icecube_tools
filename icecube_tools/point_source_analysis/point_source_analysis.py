@@ -1,13 +1,8 @@
 from ..point_source_likelihood.point_source_likelihood import (
-    PointSourceLikelihood, TimeDependentPointSourceLikelihood
-)
-from ..point_source_likelihood.energy_likelihood import (
-    MarginalisedIntegratedEnergyLikelihood, MarginalisedEnergyLikelihood
+    TimeDependentPointSourceLikelihood
 )
 
-from ..detector.r2021 import R2021IRF
-from ..detector.effective_area import EffectiveArea
-from ..utils.data import data_directory, available_periods, ddict, Events, Uptime
+from ..utils.data import ddict, Events, Uptime
 from ..utils.coordinate_transforms import *
 
 import yaml
@@ -18,13 +13,12 @@ from tqdm import tqdm as progress_bar
 
 from abc import ABC, abstractmethod
 
-from os.path import join
 import os.path
 import logging
 from typing import Tuple, Dict
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
 
 """
@@ -82,40 +76,28 @@ class MapScan(PointSourceAnalysis):
             },
             "likelihood": str
         },
+        "ts": {"seed": int, "ntrials": int}
     }
 
 
-    def __init__(self, path: str, events: Events):
+    def __init__(self, path: str, events: Events, output_path: str):
         """
-        Instantiate analysis object.
+        Instantiate analysis object. Parameters of the search have to be specified in a .yaml config file.
+        Afterwards, source lists etc. can still be changed. A list of periods is not necessary;
+        it is inferred from the provided events.
         :param path: Path to config
         :param events: object inheriting from :class:`icecube_tools.utils.data.Events`
         """
 
         self.events = events
-        self.num_of_irf_periods = 0
-        is_86 = False
-        for p in events.periods:
-            #if "86" in p and and not is_86:
-            if p in ["IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII"] and not is_86:
-                self.num_of_irf_periods += 1
-                is_86 = True
-            else:
-                self.num_of_irf_periods += 1
+        self.periods = events.periods
         self.uptime = Uptime()
-        self.times = {p: self.uptime.time_obs(p).value for p in self.events.periods}
+        self.times = self.uptime.time_obs(*events.periods)
        
         self.load_config(path)
         self.apply_cuts()
-        self.energy_likelihood = {}
-        for p in self.events.periods:
-            aeff = EffectiveArea.from_dataset("20210126", p)
-            irf = R2021IRF.from_period(p)
-            self.energy_likelihood[p] = MarginalisedIntegratedEnergyLikelihood(
-                irf,
-                aeff,
-                np.linspace(2, 9, num=25)    # should be made variable
-            )
+
+        self.output_path = output_path
 
 
     def perform_scan(self, show_progress: bool=False, minos: bool=False):
@@ -124,7 +106,7 @@ class MapScan(PointSourceAnalysis):
         :param show_progress: True if progress bar should be displayd
         :param minos: True if additionally `Minuit.minos()` should be called for calculating errors
         """
-
+        #s = sched.scheduler(time.time, time.sleep)
         logger.info("Performing scan for periods: {}".format(self.events.periods))
         ra = self.events.ra
         dec = self.events.dec
@@ -132,12 +114,18 @@ class MapScan(PointSourceAnalysis):
         reco_energy = self.events.reco_energy
         if show_progress:
             for c in progress_bar(range(len(self.ra_test))):
-                self._test_source((self.ra_test[c], self.dec_test[c]), c, ra, dec, reco_energy, ang_err)
+                self._test_source((self.ra_test[c], self.dec_test[c]), c, ra, dec, reco_energy, ang_err, minos)
+                if c % 60 == 59:
+                    #refresh output file
+                    self.write_output(self.output_path, source_list=True)
         else:
             for c, (ra_t, dec_t) in enumerate(zip(self.ra_test, self.dec_test)):
                 self._test_source((ra_t, dec_t), c, ra, dec, reco_energy, ang_err, minos)
-
-
+                if c % 60 == 59:
+                    # refresh output file
+                    self.write_output(self.output_path, source_list=True)
+        self.write_output(self.output_path, source_list=True)
+                
 
     def _test_source(
         self,
@@ -160,38 +148,45 @@ class MapScan(PointSourceAnalysis):
         :param minos: True if `Minuit.minos()` should be called for calculating errors
         """
 
-        if source_coord[1] <= np.deg2rad(90):    #delete this...
-            likelihood = TimeDependentPointSourceLikelihood(
+        try:
+            self.likelihood.source_coord = source_coord
+            if isinstance(self, MapScanTSDistribution):
+                # Insert scrambled events if `self` is supposed to
+                self.likelihood.reset_events(ra, dec, reco_energy, ang_err)
+        except AttributeError as e:
+            self.likelihood = TimeDependentPointSourceLikelihood(
                 source_coord,
                 self.events.periods,
                 ra,
                 dec,
                 reco_energy,
                 ang_err,
-                self.energy_likelihood,
                 which=self.which,
                 times=self.times
             )
-            if likelihood.Nprime > 0:    # else somewhere division by zero
-                logging.info("Nearby events: {}".format(likelihood.Nprime))
-                self.ts[num] = likelihood.get_test_statistic()
-                self.index[num] = likelihood._best_fit_index
-                self.ns[num] = likelihood._best_fit_ns
-                self.index_error[num] = likelihood.m.errors["index"]
+        finally:
+            if self.likelihood.Nprime > 0:    # else somewhere division by zero
+                logging.debug("Nearby events: {}".format(self.likelihood.Nprime))
+                self.ts[num] = self.likelihood.get_test_statistic()
+                self.index[num] = self.likelihood._best_fit_index
+                self.ns[num] = self.likelihood._best_fit_ns
+                self.index_error[num] = self.likelihood.m.errors["index"]
                 self.ns_error[num] = np.array(
-                    [likelihood.m.errors[n] for n in likelihood.m.parameters if n != "index"]
+                    [self.likelihood.m.errors[n] for n in self.likelihood.m.parameters if n != "index"]
                 )
-                self.fit_ok[num] = likelihood.m.fmin.is_valid
+                self.fit_ok[num] = self.likelihood.m.fmin.is_valid
                 
                 # is computationally too expensive for the entire grid, only use at certain points!
                 if self.fit_ok[num] and minos:
-                    minos = likelihood.m.minos()
+                    minos = self.likelihood.m.minos()
                     if minos.valid:
                         self.index_merror[num, 0] = minos.merrors["index"].lower
                         self.index_merror[num, 1] = minos.merrors["index"].upper
                         self.ns_merror[num, 0] = minos.merrors["ns"].lower
                         self.ns_merror[num, 1] = minos.merrors["ns"].upper
-                
+
+            else:
+                self.fit_ok[num] = True
 
 
     def load_config(self, path: str):
@@ -211,11 +206,21 @@ class MapScan(PointSourceAnalysis):
             self.ra_test = source_config.get("ra")
             self.dec_test = source_config.get("dec")
             if self.ra_test and self.dec_test:
+                if not isinstance(self.dec_test, list):
+                    self.dec_test = [self.dec_test]
+                if not isinstance(self.ra_test, list):
+                    self.ra_test = [self.ra_test]
                 self.ra_test = np.array(self.ra_test)
                 self.dec_test = np.array(self.dec_test)
+                assert self.ra_test.shape == self.dec_test.shape
+    
+        ts_config = config.get("ts")
+        if ts_config:
+            self.ntrials = ts_config["ntrials"]
+            self.seed = ts_config["seed"]
 
         data_config = config.get("data")
-        self.periods = data_config.get("periods")
+        #self.periods = data_config.get("periods", self.events.periods)
         cuts = data_config.get("cuts", False)
         if cuts:
             self.northern_emin = float(data_config.get("cuts").get("northern").get("emin", 1e1))
@@ -269,6 +274,15 @@ class MapScan(PointSourceAnalysis):
             config.add(90, "data", "cuts", "min_dec")
         config.add(self.which, "data", "likelihood")
 
+        try:
+            config.add(self.ntrials, "ts", "ntrials")
+        except AttributeError:
+            pass
+        try:
+            config.add(self.seed, "ts", "seed")
+        except AttributeError:
+            pass
+
         with open(path, "w") as f:
             yaml.dump(config, f)
 
@@ -282,7 +296,7 @@ class MapScan(PointSourceAnalysis):
 
         try:
             self.ts
-            assert np.any(self.ts)
+            # assert np.any(self.ts)
         except (AttributeError, AssertionError):
             logging.error("Call perform_scan() first")
             return
@@ -304,6 +318,29 @@ class MapScan(PointSourceAnalysis):
             data.create_dataset("index_error", shape=self.index_error.shape, data=self.index_error)
             data.create_dataset("ns_merror", shape=self.ns_merror.shape, data=self.ns_merror)
             data.create_dataset("index_merror", shape=self.index_merror.shape, data=self.index_merror)
+            data.create_dataset("fit_ok", shape=self.fit_ok.shape, data=self.fit_ok)
+
+
+    @classmethod
+    def load_output(cls, path: str, events: Events):
+        """
+        Load previously saved hdf5 file
+        :param path: Path to hdf5 file
+        """
+        with h5py.File(path, "r") as f:
+            config_path = f["meta"].attrs["config_path"]
+            obj = cls(config_path, events, path)
+            obj.ts = f["output/ts"][()]
+            obj.index = f["output/index"][()]
+            obj.ns = f["output/ns"][()]
+            obj.index_error = f["output/index_error"][()]
+            obj.ns_error = f["output/ns_error"][()]
+            obj.ns_merror = f["output/ns_merror"][()]
+            obj.index_merror = f["output/index_merror"][()]
+            obj.fit_ok = f["output/fit_ok"][()]
+            obj.ra_test = f["meta/ra"][()]
+            obj.dec_test = f["meta/dec"][()]
+        return obj
 
 
     def generate_sources(self, nside: bool=True):
@@ -318,10 +355,10 @@ class MapScan(PointSourceAnalysis):
             assert len(self.ra_test) == len(self.dec_test)
             logger.info("Using provided ra and dec")
             reload = False
-        elif self.nside is not None and nside:
+        elif self.nside and nside:
             self.npix = hp.nside2npix(self.nside)
             logger.warning("Overwriting npix with nside = {}".format(self.nside))
-        elif self.npix is not None and not nside:
+        elif self.npix and not nside:
             logger.info("Using npix = {}".format(self.npix))
         
 
@@ -345,8 +382,6 @@ class MapScan(PointSourceAnalysis):
 
         if self.ra_test is not None and self.dec_test is not None:
             num = len(self.ra_test)
-        elif self.npix is not None:
-            num = self.npix
         else:
             raise ValueError("Can't create output arrays, no well-defined source list supplied.")
 
@@ -382,4 +417,62 @@ class MapScan(PointSourceAnalysis):
             self.events.mask = mask
         except AttributeError:
             pass
-        
+
+
+
+class MapScanTSDistribution(MapScan):
+    """
+    Class to create TS distributions (and subsequently local p-values.
+    Inherhits from the 'normal' MapScan.
+    """
+    
+    def __init__(self, path: str, events: Events, output_path: str):
+        """
+        Instantiate object to create a TS distribution at a given declination
+        """
+        super().__init__(path, events, output_path)
+
+
+    def perform_scan(self, show_progress: bool=False, minos: bool=False):
+        """
+        Perform multiple (`ntrials`) fits of the same declination
+        """
+
+        logger.info("Performing scan for periods: {}".format(self.events.periods))
+        #self.events.seed = self.seed
+        dec = self.events.dec
+        reco_energy = self.events.reco_energy
+        ang_err = self.events.ang_err
+        if show_progress:
+            for c in progress_bar(range(self.ntrials)):
+                self.events.scramble_ra()
+                ra = self.events.ra
+                self._test_source((self.ra_test[0], self.dec_test[0]), c, ra, dec, reco_energy, ang_err, minos)
+                if c % 60 == 59:
+                    #refresh output file
+                    self.write_output(self.output_path, source_list=True)
+        else:
+            for c in range(self.ntrials):
+                self.events.scramble_ra()
+                ra = self.events.ra
+                self._test_source((self.ra_test[0], self.dec_test[0]), c, ra, dec, reco_energy, ang_err, minos)
+                if c % 60 == 59:
+                    # refresh output file
+                    self.write_output(self.output_path, source_list=True)
+        self.write_output(self.output_path, source_list=True)
+
+
+    def _make_output_arrays(self):
+        """
+        Creates output arrays based on ntrials
+        """
+
+        shape = self.ntrials
+        self.ts = np.zeros(shape)
+        self.index = np.zeros(shape)
+        self.ns = np.zeros(shape)
+        self.ns_error = np.zeros(shape)
+        self.index_error = np.zeros(shape)
+        self.fit_ok = np.zeros(shape)
+        self.index_merror = np.zeros((shape, 2))
+        self.ns_merror = np.zeros((shape, 2))
