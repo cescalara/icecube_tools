@@ -368,7 +368,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from icecube_tools.utils.data import IceCubeData
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.utils.data</span> <span class="kn">import</span> <span class="n">IceCubeData</span>
 </pre></div>
 </div>
 </div>
@@ -377,10 +377,10 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>my_data = IceCubeData(update=True)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_data</span> <span class="o">=</span> <span class="n">IceCubeData</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-# The available datasets
-my_data.datasets
+<span class="c1"># The available datasets</span>
+<span class="n">my_data</span><span class="o">.</span><span class="n">datasets</span>
 </pre></div>
 </div>
 </div>
@@ -429,8 +429,8 @@ my_data.datasets
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>found_dataset = my_data.find(&quot;20181018&quot;)
-found_dataset
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">found_dataset</span> <span class="o">=</span> <span class="n">my_data</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;20181018&quot;</span><span class="p">)</span>
+<span class="n">found_dataset</span>
 </pre></div>
 </div>
 </div>
@@ -448,7 +448,7 @@ found_dataset
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>my_data.data_directory
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_data</span><span class="o">.</span><span class="n">data_directory</span>
 </pre></div>
 </div>
 </div>
@@ -466,7 +466,7 @@ found_dataset
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>my_data.fetch(found_dataset)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_data</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">found_dataset</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -475,7 +475,7 @@ found_dataset
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:18&lt;00:00, 626259.96it/s]
+20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:07&lt;00:00, 1535986.00it/s]
 </pre></div></div>
 </div>
 <p>You may not want to use <code class="docutils literal notranslate"><span class="pre">icecube_tools</span></code> for other stuff, so you can also fetch to a specificed location with the keyword <code class="docutils literal notranslate"><span class="pre">write_to</span></code>.</p>
@@ -483,7 +483,7 @@ found_dataset
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>my_data.fetch(found_dataset, write_to=&quot;data&quot;, overwrite=True)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">my_data</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">found_dataset</span><span class="p">,</span> <span class="n">write_to</span><span class="o">=</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -492,7 +492,7 @@ found_dataset
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:33&lt;00:00, 352697.43it/s]
+20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:23&lt;00:00, 492066.28it/s]
 </pre></div></div>
 </div>
 <p>For convenience, there is also the <code class="docutils literal notranslate"><span class="pre">fetch_all_to</span></code> method to download all the available data to a specified location. We comment this here as it can take a while to execute.</p>
@@ -500,7 +500,7 @@ found_dataset
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># my_data.fetch_all_to(&quot;data&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># my_data.fetch_all_to(&quot;data&quot;)</span>
 </pre></div>
 </div>
 </div>

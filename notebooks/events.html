@@ -365,10 +365,10 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from icecube_tools.utils.data import SimEvents, RealEvents
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.utils.data</span> <span class="kn">import</span> <span class="n">SimEvents</span><span class="p">,</span> <span class="n">RealEvents</span>
 
-import numpy as np
-import matplotlib.pyplot as plt
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 </pre></div>
 </div>
 </div>
@@ -379,7 +379,7 @@ import matplotlib.pyplot as plt
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>events = SimEvents.load_from_h5(&quot;multi_test.hdf5&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span> <span class="o">=</span> <span class="n">SimEvents</span><span class="o">.</span><span class="n">load_from_h5</span><span class="p">(</span><span class="s2">&quot;multi_test.hdf5&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -396,7 +396,7 @@ Resetting rng
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>events.periods
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span><span class="o">.</span><span class="n">periods</span>
 </pre></div>
 </div>
 </div>
@@ -414,7 +414,7 @@ Resetting rng
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>events.keys
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span><span class="o">.</span><span class="n">keys</span>
 </pre></div>
 </div>
 </div>
@@ -439,7 +439,7 @@ Resetting rng
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>events.period(&quot;IC86_II&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span><span class="o">.</span><span class="n">period</span><span class="p">(</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

@@ -365,10 +365,10 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from icecube_tools.utils.data import RealEvents, SimEvents
-from icecube_tools.point_source_analysis.point_source_analysis import MapScan
-import numpy as np
-import matplotlib.pyplot as plt
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.utils.data</span> <span class="kn">import</span> <span class="n">RealEvents</span><span class="p">,</span> <span class="n">SimEvents</span>
+<span class="kn">from</span> <span class="nn">icecube_tools.point_source_analysis.point_source_analysis</span> <span class="kn">import</span> <span class="n">MapScan</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 </pre></div>
 </div>
 </div>
@@ -379,7 +379,7 @@ import matplotlib.pyplot as plt
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>events = SimEvents.load_from_h5(&quot;h5_test.hdf5&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span> <span class="o">=</span> <span class="n">SimEvents</span><span class="o">.</span><span class="n">load_from_h5</span><span class="p">(</span><span class="s2">&quot;h5_test.hdf5&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -396,7 +396,7 @@ Resetting rng
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>scan = MapScan(&quot;config.yaml&quot;, events, &quot;test_output.hdf5&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">scan</span> <span class="o">=</span> <span class="n">MapScan</span><span class="p">(</span><span class="s2">&quot;config.yaml&quot;</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="s2">&quot;test_output.hdf5&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -405,9 +405,9 @@ Resetting rng
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>dec = np.linspace(np.deg2rad(25), np.deg2rad(35), 11)
-ra = np.linspace(np.pi - np.deg2rad(5), np.pi + np.deg2rad(5), 11)
-rr, dd = np.meshgrid(ra, dec)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">25</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">35</span><span class="p">),</span> <span class="mi">11</span><span class="p">)</span>
+<span class="n">ra</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="mi">11</span><span class="p">)</span>
+<span class="n">rr</span><span class="p">,</span> <span class="n">dd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -416,10 +416,10 @@ rr, dd = np.meshgrid(ra, dec)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>scan.ra_test = rr.flatten()
-scan.dec_test = dd.flatten()
-scan.generate_sources()
-scan.perform_scan(show_progress=True)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">scan</span><span class="o">.</span><span class="n">ra_test</span> <span class="o">=</span> <span class="n">rr</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+<span class="n">scan</span><span class="o">.</span><span class="n">dec_test</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+<span class="n">scan</span><span class="o">.</span><span class="n">generate_sources</span><span class="p">()</span>
+<span class="n">scan</span><span class="o">.</span><span class="n">perform_scan</span><span class="p">(</span><span class="n">show_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -428,7 +428,7 @@ scan.perform_scan(show_progress=True)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-100%|██████████| 121/121 [00:09&lt;00:00, 12.10it/s]
+100%|██████████| 121/121 [00:16&lt;00:00,  7.17it/s]
 </pre></div></div>
 </div>
 <p>We can have a look at the results:</p>
@@ -436,17 +436,17 @@ scan.perform_scan(show_progress=True)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots(1, 3, figsize=(15, 4))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
 
-pcol = ax[0].pcolormesh(ra, dec, scan.ts.reshape((11, 11)), shading=&quot;nearest&quot;)
-fig.colorbar(pcol, ax=ax[0], label=&quot;TS&quot;)
+<span class="n">pcol</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">scan</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">)),</span> <span class="n">shading</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">pcol</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;TS&quot;</span><span class="p">)</span>
 
-pcol = ax[1].pcolormesh(ra, dec, scan.index.reshape((11, 11)), shading=&quot;nearest&quot;)
-fig.colorbar(pcol, ax=ax[1], label=&quot;index&quot;)
+<span class="n">pcol</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">scan</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">)),</span> <span class="n">shading</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">pcol</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;index&quot;</span><span class="p">)</span>
 
-pcol = ax[2].pcolormesh(ra, dec, scan.ns.reshape((11, 11)), shading=&quot;nearest&quot;)
-fig.colorbar(pcol, ax=ax[2], label=&quot;ns&quot;)
-fig.savefig(&quot;example_sky_skan.png&quot;, dpi=150)
+<span class="n">pcol</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">scan</span><span class="o">.</span><span class="n">ns</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">)),</span> <span class="n">shading</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">pcol</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;ns&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;example_sky_skan.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

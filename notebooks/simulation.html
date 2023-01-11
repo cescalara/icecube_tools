@@ -373,11 +373,11 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import numpy as np
-from matplotlib import pyplot as plt
-from matplotlib.patches import Circle
-from matplotlib.collections import PatchCollection
-import h5py
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Circle</span>
+<span class="kn">from</span> <span class="nn">matplotlib.collections</span> <span class="kn">import</span> <span class="n">PatchCollection</span>
+<span class="kn">import</span> <span class="nn">h5py</span>
 </pre></div>
 </div>
 </div>
@@ -387,14 +387,14 @@ import h5py
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from icecube_tools.detector.effective_area import EffectiveArea
-from icecube_tools.detector.energy_resolution import EnergyResolution
-from icecube_tools.detector.angular_resolution import AngularResolution
-from icecube_tools.detector.detector import IceCube
-from icecube_tools.source.flux_model import PowerLawFlux
-from icecube_tools.source.source_model import DiffuseSource, PointSource
-from icecube_tools.detector.r2021 import R2021IRF
-from icecube_tools.utils.data import SimEvents
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.detector.effective_area</span> <span class="kn">import</span> <span class="n">EffectiveArea</span>
+<span class="kn">from</span> <span class="nn">icecube_tools.detector.energy_resolution</span> <span class="kn">import</span> <span class="n">EnergyResolution</span>
+<span class="kn">from</span> <span class="nn">icecube_tools.detector.angular_resolution</span> <span class="kn">import</span> <span class="n">AngularResolution</span>
+<span class="kn">from</span> <span class="nn">icecube_tools.detector.detector</span> <span class="kn">import</span> <span class="n">IceCube</span>
+<span class="kn">from</span> <span class="nn">icecube_tools.source.flux_model</span> <span class="kn">import</span> <span class="n">PowerLawFlux</span>
+<span class="kn">from</span> <span class="nn">icecube_tools.source.source_model</span> <span class="kn">import</span> <span class="n">DiffuseSource</span><span class="p">,</span> <span class="n">PointSource</span>
+<span class="kn">from</span> <span class="nn">icecube_tools.detector.r2021</span> <span class="kn">import</span> <span class="n">R2021IRF</span>
+<span class="kn">from</span> <span class="nn">icecube_tools.utils.data</span> <span class="kn">import</span> <span class="n">SimEvents</span>
 </pre></div>
 </div>
 </div>
@@ -402,14 +402,14 @@ from icecube_tools.utils.data import SimEvents
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Define detector (see detector model notebook for more info)
-aeff = EffectiveArea.from_dataset(&quot;20210126&quot;, &quot;IC86_II&quot;)
-irf = R2021IRF.from_period(&quot;IC86_II&quot;)
-# IceCube expects an instance of EffectiveAerea, AngularResolution and
-# EnergyResolution, optionally the period (here IC86_I)
-# R2021IRF inherits from AngularResolution and EnergyResolution
-# just to be able to be used as both
-detector = IceCube(aeff, irf, irf, &quot;IC86_II&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define detector (see detector model notebook for more info)</span>
+<span class="n">aeff</span> <span class="o">=</span> <span class="n">EffectiveArea</span><span class="o">.</span><span class="n">from_dataset</span><span class="p">(</span><span class="s2">&quot;20210126&quot;</span><span class="p">,</span> <span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
+<span class="n">irf</span> <span class="o">=</span> <span class="n">R2021IRF</span><span class="o">.</span><span class="n">from_period</span><span class="p">(</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
+<span class="c1"># IceCube expects an instance of EffectiveAerea, AngularResolution and</span>
+<span class="c1"># EnergyResolution, optionally the period (here IC86_I)</span>
+<span class="c1"># R2021IRF inherits from AngularResolution and EnergyResolution</span>
+<span class="c1"># just to be able to be used as both</span>
+<span class="n">detector</span> <span class="o">=</span> <span class="n">IceCube</span><span class="p">(</span><span class="n">aeff</span><span class="p">,</span> <span class="n">irf</span><span class="p">,</span> <span class="n">irf</span><span class="p">,</span> <span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -417,21 +417,21 @@ detector = IceCube(aeff, irf, irf, &quot;IC86_II&quot;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Define simple sources (see source model notebook for more info)
-diff_flux_norm = 3e-21  # Flux normalisation in units of GeV^-1 cm^-2 s^-1 sr^-1
-point_flux_norm = 5e-19  # Flux normalisation in units of GeV^-1 cm^-2 s^-1
-norm_energy = 1e5  # Energy of normalisation in units of GeV
-min_energy = 1e2  # GeV
-max_energy = 1e8  # GeV
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define simple sources (see source model notebook for more info)</span>
+<span class="n">diff_flux_norm</span> <span class="o">=</span> <span class="mf">3e-21</span>  <span class="c1"># Flux normalisation in units of GeV^-1 cm^-2 s^-1 sr^-1</span>
+<span class="n">point_flux_norm</span> <span class="o">=</span> <span class="mf">5e-19</span>  <span class="c1"># Flux normalisation in units of GeV^-1 cm^-2 s^-1</span>
+<span class="n">norm_energy</span> <span class="o">=</span> <span class="mf">1e5</span>  <span class="c1"># Energy of normalisation in units of GeV</span>
+<span class="n">min_energy</span> <span class="o">=</span> <span class="mf">1e2</span>  <span class="c1"># GeV</span>
+<span class="n">max_energy</span> <span class="o">=</span> <span class="mf">1e8</span>  <span class="c1"># GeV</span>
 
-diff_power_law = PowerLawFlux(diff_flux_norm, norm_energy, 3.7, min_energy, max_energy)
-diff_source = DiffuseSource(diff_power_law, z=0.0)
+<span class="n">diff_power_law</span> <span class="o">=</span> <span class="n">PowerLawFlux</span><span class="p">(</span><span class="n">diff_flux_norm</span><span class="p">,</span> <span class="n">norm_energy</span><span class="p">,</span> <span class="mf">3.7</span><span class="p">,</span> <span class="n">min_energy</span><span class="p">,</span> <span class="n">max_energy</span><span class="p">)</span>
+<span class="n">diff_source</span> <span class="o">=</span> <span class="n">DiffuseSource</span><span class="p">(</span><span class="n">diff_power_law</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 
-point_power_law = PowerLawFlux(
-    point_flux_norm, norm_energy, 2.5, min_energy, max_energy
-)
-point_source = PointSource(point_power_law, z=0.0, coord=(np.pi, np.deg2rad(30)))
-sources = [diff_source, point_source]
+<span class="n">point_power_law</span> <span class="o">=</span> <span class="n">PowerLawFlux</span><span class="p">(</span>
+    <span class="n">point_flux_norm</span><span class="p">,</span> <span class="n">norm_energy</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="n">min_energy</span><span class="p">,</span> <span class="n">max_energy</span>
+<span class="p">)</span>
+<span class="n">point_source</span> <span class="o">=</span> <span class="n">PointSource</span><span class="p">(</span><span class="n">point_power_law</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">30</span><span class="p">)))</span>
+<span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">diff_source</span><span class="p">,</span> <span class="n">point_source</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
@@ -443,7 +443,7 @@ sources = [diff_source, point_source]
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from icecube_tools.neutrino_calculator import NeutrinoCalculator, PhiSolver
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.neutrino_calculator</span> <span class="kn">import</span> <span class="n">NeutrinoCalculator</span><span class="p">,</span> <span class="n">PhiSolver</span>
 </pre></div>
 </div>
 </div>
@@ -451,14 +451,14 @@ sources = [diff_source, point_source]
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>nu_calc = NeutrinoCalculator(sources, aeff)
-nu_calc(
-    time=1,  # years
-    min_energy=min_energy,
-    max_energy=max_energy,  # energy range
-    min_cosz=-1,
-    max_cosz=1,
-)  # cos(zenith) range
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">nu_calc</span> <span class="o">=</span> <span class="n">NeutrinoCalculator</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">aeff</span><span class="p">)</span>
+<span class="n">nu_calc</span><span class="p">(</span>
+    <span class="n">time</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># years</span>
+    <span class="n">min_energy</span><span class="o">=</span><span class="n">min_energy</span><span class="p">,</span>
+    <span class="n">max_energy</span><span class="o">=</span><span class="n">max_energy</span><span class="p">,</span>  <span class="c1"># energy range</span>
+    <span class="n">min_cosz</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">max_cosz</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span>  <span class="c1"># cos(zenith) range</span>
 </pre></div>
 </div>
 </div>
@@ -477,11 +477,11 @@ nu_calc(
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>phi_solver = PhiSolver(
-    aeff, norm_energy, min_energy, max_energy, time=1, min_cosz=-1, max_cosz=1
-)
-phi_norm = phi_solver(Nnu=15, dec=-30, index=2.0)  # degrees  # spectral index
-phi_norm  # GeV^-1 cm^-2 s^-1
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">phi_solver</span> <span class="o">=</span> <span class="n">PhiSolver</span><span class="p">(</span>
+    <span class="n">aeff</span><span class="p">,</span> <span class="n">norm_energy</span><span class="p">,</span> <span class="n">min_energy</span><span class="p">,</span> <span class="n">max_energy</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_cosz</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_cosz</span><span class="o">=</span><span class="mi">1</span>
+<span class="p">)</span>
+<span class="n">phi_norm</span> <span class="o">=</span> <span class="n">phi_solver</span><span class="p">(</span><span class="n">Nnu</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">dec</span><span class="o">=-</span><span class="mi">30</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>  <span class="c1"># degrees  # spectral index</span>
+<span class="n">phi_norm</span>  <span class="c1"># GeV^-1 cm^-2 s^-1</span>
 </pre></div>
 </div>
 </div>
@@ -501,7 +501,7 @@ phi_norm  # GeV^-1 cm^-2 s^-1
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from icecube_tools.simulator import Simulator, TimeDependentSimulator
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.simulator</span> <span class="kn">import</span> <span class="n">Simulator</span><span class="p">,</span> <span class="n">TimeDependentSimulator</span>
 </pre></div>
 </div>
 </div>
@@ -509,12 +509,12 @@ phi_norm  # GeV^-1 cm^-2 s^-1
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Set up simulation
-simulator = Simulator(sources, detector, &quot;IC86_II&quot;)
-simulator.time = 1  # year
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set up simulation</span>
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># year</span>
 
-# Run simulation
-simulator.run(show_progress=True, seed=42)
+<span class="c1"># Run simulation</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">show_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -524,7 +524,7 @@ simulator.run(show_progress=True, seed=42)
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
 Resetting rng
-Sampling: 100%|██████████| 204/204 [00:02&lt;00:00, 89.97it/s]
+Sampling: 100%|██████████| 204/204 [00:02&lt;00:00, 74.21it/s]
 </pre></div></div>
 </div>
 <p>This way, the simulator calculates the expected number of neutrinos from these sources given the observation period, effective area and relevant source properties. We note that we could also run a simulation for a fixed number of neutrinos if we want, simply by passing the optional argument <code class="docutils literal notranslate"><span class="pre">N</span></code> to <code class="docutils literal notranslate"><span class="pre">simulator.run()</span></code>.</p>
@@ -532,7 +532,7 @@ Sampling: 100%|██████████| 204/204 [00:02&lt;00:00, 89.97it/
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>simulator.write_to_h5(&quot;h5_test.hdf5&quot;, sources)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">simulator</span><span class="o">.</span><span class="n">write_to_h5</span><span class="p">(</span><span class="s2">&quot;h5_test.hdf5&quot;</span><span class="p">,</span> <span class="n">sources</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -540,7 +540,7 @@ Sampling: 100%|██████████| 204/204 [00:02&lt;00:00, 89.97it/
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>simulator.arrival_energy
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">simulator</span><span class="o">.</span><span class="n">arrival_energy</span>
 </pre></div>
 </div>
 </div>
@@ -607,7 +607,7 @@ Sampling: 100%|██████████| 204/204 [00:02&lt;00:00, 89.97it/
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>events = SimEvents.load_from_h5(&quot;h5_test.hdf5&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span> <span class="o">=</span> <span class="n">SimEvents</span><span class="o">.</span><span class="n">load_from_h5</span><span class="p">(</span><span class="s2">&quot;h5_test.hdf5&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -623,7 +623,7 @@ Resetting rng
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>events.period(&quot;IC86_II&quot;).keys()
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span><span class="o">.</span><span class="n">period</span><span class="p">(</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -640,7 +640,7 @@ dict_keys([&#39;true_energy&#39;, &#39;reco_energy&#39;, &#39;arrival_energy&#39
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>len(events)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -657,28 +657,28 @@ dict_keys([&#39;true_energy&#39;, &#39;reco_energy&#39;, &#39;arrival_energy&#39
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>&quot;&quot;&quot;
-for i in [1.5, 2.0, 2.5, 3.0, 3.5, 3.7]:
-    norm_energy = 1e5 # Energy of normalisation in units of GeV
-    min_energy = 1e2 # GeV
-    max_energy = 1e8 # GeV
-    phi_solver = PhiSolver(aeff, norm_energy, min_energy, max_energy,
-                           time=1, min_cosz=-1, max_cosz=1)
-    phi_norm = phi_solver(Nnu=2000,
-                          dec=30, # degrees
-                          index=i) # spectral index
-    phi_norm # GeV^-1 cm^-2 s^-1
-    point_power_law = PowerLawFlux(phi_norm, norm_energy, i,
-                                   min_energy, max_energy)
-    point_source = PointSource(point_power_law, z=0., coord=(np.pi, np.deg2rad(30)))
-    sources = [point_source]
-    simulator = Simulator(sources, detector)
-    simulator.time = 1 # year
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">for i in [1.5, 2.0, 2.5, 3.0, 3.5, 3.7]:</span>
+<span class="sd">    norm_energy = 1e5 # Energy of normalisation in units of GeV</span>
+<span class="sd">    min_energy = 1e2 # GeV</span>
+<span class="sd">    max_energy = 1e8 # GeV</span>
+<span class="sd">    phi_solver = PhiSolver(aeff, norm_energy, min_energy, max_energy,</span>
+<span class="sd">                           time=1, min_cosz=-1, max_cosz=1)</span>
+<span class="sd">    phi_norm = phi_solver(Nnu=2000,</span>
+<span class="sd">                          dec=30, # degrees</span>
+<span class="sd">                          index=i) # spectral index</span>
+<span class="sd">    phi_norm # GeV^-1 cm^-2 s^-1</span>
+<span class="sd">    point_power_law = PowerLawFlux(phi_norm, norm_energy, i,</span>
+<span class="sd">                                   min_energy, max_energy)</span>
+<span class="sd">    point_source = PointSource(point_power_law, z=0., coord=(np.pi, np.deg2rad(30)))</span>
+<span class="sd">    sources = [point_source]</span>
+<span class="sd">    simulator = Simulator(sources, detector)</span>
+<span class="sd">    simulator.time = 1 # year</span>
 
-    # Run simulation
-    simulator.run(show_progress=True, seed=42)
-    simulator.save(f&quot;data/sim_output_{i:.1f}.h5&quot;)
-&quot;&quot;&quot;
+<span class="sd">    # Run simulation</span>
+<span class="sd">    simulator.run(show_progress=True, seed=42)</span>
+<span class="sd">    simulator.save(f&quot;data/sim_output_{i:.1f}.h5&quot;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
 </pre></div>
 </div>
 </div>
@@ -695,15 +695,15 @@ for i in [1.5, 2.0, 2.5, 3.0, 3.5, 3.7]:
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Plot energies
-bins = np.geomspace(1e2, max_energy)
-fig, ax = plt.subplots()
-ax.hist(events.true_energy[&quot;IC86_II&quot;], bins=bins, alpha=0.7, label=&quot;E_true&quot;)
-ax.hist(events.reco_energy[&quot;IC86_II&quot;], bins=bins, alpha=0.7, label=&quot;E_reco&quot;)
-ax.set_xscale(&quot;log&quot;)
-ax.set_yscale(&quot;log&quot;)
-ax.set_xlabel(&quot;E [GeV]&quot;)
-ax.legend()
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Plot energies</span>
+<span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">geomspace</span><span class="p">(</span><span class="mf">1e2</span><span class="p">,</span> <span class="n">max_energy</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">true_energy</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;E_true&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">reco_energy</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;E_reco&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;E [GeV]&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -713,7 +713,7 @@ ax.legend()
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7fb6955aca30&gt;
+&lt;matplotlib.legend.Legend at 0x7f1dd3359490&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -727,37 +727,37 @@ ax.legend()
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Plot directions
-ps_sel = events.source_label[&quot;IC86_II&quot;] == 1
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Plot directions</span>
+<span class="n">ps_sel</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">source_label</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
 
-fig, ax = plt.subplots(subplot_kw={&quot;projection&quot;: &quot;aitoff&quot;})
-fig.set_size_inches((12, 7))
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">subplot_kw</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;projection&quot;</span><span class="p">:</span> <span class="s2">&quot;aitoff&quot;</span><span class="p">})</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">((</span><span class="mi">12</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
 
-circles = []
-for r, d, a in zip(
-    events.ra[&quot;IC86_II&quot;][~ps_sel],
-    events.dec[&quot;IC86_II&quot;][~ps_sel],
-    events.ang_err[&quot;IC86_II&quot;][~ps_sel],
-):
-    circle = Circle((r - np.pi, d), radius=np.deg2rad(a))
-    circles.append(circle)
-df_nu = PatchCollection(circles)
+<span class="n">circles</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+    <span class="n">events</span><span class="o">.</span><span class="n">ra</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">][</span><span class="o">~</span><span class="n">ps_sel</span><span class="p">],</span>
+    <span class="n">events</span><span class="o">.</span><span class="n">dec</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">][</span><span class="o">~</span><span class="n">ps_sel</span><span class="p">],</span>
+    <span class="n">events</span><span class="o">.</span><span class="n">ang_err</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">][</span><span class="o">~</span><span class="n">ps_sel</span><span class="p">],</span>
+<span class="p">):</span>
+    <span class="n">circle</span> <span class="o">=</span> <span class="n">Circle</span><span class="p">((</span><span class="n">r</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">d</span><span class="p">),</span> <span class="n">radius</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
+    <span class="n">circles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">circle</span><span class="p">)</span>
+<span class="n">df_nu</span> <span class="o">=</span> <span class="n">PatchCollection</span><span class="p">(</span><span class="n">circles</span><span class="p">)</span>
 
-circles = []
-for r, d, a in zip(
-    events.ra[&quot;IC86_II&quot;][ps_sel],
-    events.dec[&quot;IC86_II&quot;][ps_sel],
-    events.ang_err[&quot;IC86_II&quot;][ps_sel],
-):
-    circle = Circle((r - np.pi, d), radius=np.deg2rad(a))
-    circles.append(circle)
-ps_nu = PatchCollection(circles, color=&quot;r&quot;)
+<span class="n">circles</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+    <span class="n">events</span><span class="o">.</span><span class="n">ra</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">][</span><span class="n">ps_sel</span><span class="p">],</span>
+    <span class="n">events</span><span class="o">.</span><span class="n">dec</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">][</span><span class="n">ps_sel</span><span class="p">],</span>
+    <span class="n">events</span><span class="o">.</span><span class="n">ang_err</span><span class="p">[</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">][</span><span class="n">ps_sel</span><span class="p">],</span>
+<span class="p">):</span>
+    <span class="n">circle</span> <span class="o">=</span> <span class="n">Circle</span><span class="p">((</span><span class="n">r</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">d</span><span class="p">),</span> <span class="n">radius</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
+    <span class="n">circles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">circle</span><span class="p">)</span>
+<span class="n">ps_nu</span> <span class="o">=</span> <span class="n">PatchCollection</span><span class="p">(</span><span class="n">circles</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
 
-ax.add_collection(df_nu)
-ax.add_collection(ps_nu)
+<span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">df_nu</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">ps_nu</span><span class="p">)</span>
 
-ax.grid()
-fig.savefig(&quot;example_simulation.png&quot;, dpi=150)
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;example_simulation.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -777,7 +777,7 @@ fig.savefig(&quot;example_simulation.png&quot;, dpi=150)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>tsim = TimeDependentSimulator([&quot;IC86_I&quot;, &quot;IC86_II&quot;], sources)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span> <span class="o">=</span> <span class="n">TimeDependentSimulator</span><span class="p">([</span><span class="s2">&quot;IC86_I&quot;</span><span class="p">,</span> <span class="s2">&quot;IC86_II&quot;</span><span class="p">],</span> <span class="n">sources</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -787,7 +787,7 @@ fig.savefig(&quot;example_simulation.png&quot;, dpi=150)
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
 Resetting rng
-/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/icecube_tools/detector/r2021.py:82: RuntimeWarning: divide by zero encountered in log10
+/opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/icecube_tools/detector/r2021.py:82: RuntimeWarning: divide by zero encountered in log10
   self.dataset[:, 6:-1] = np.log10(self.dataset[:, 6:-1])
 Empty true energy bins at: [(0, 0), (1, 0)]
 Resetting rng
@@ -800,7 +800,7 @@ Need to set simulation times, defaults to 1 year each.
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from icecube_tools.utils.data import Uptime
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">icecube_tools.utils.data</span> <span class="kn">import</span> <span class="n">Uptime</span>
 </pre></div>
 </div>
 </div>
@@ -809,8 +809,8 @@ Need to set simulation times, defaults to 1 year each.
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>uptime = Uptime()
-uptime.time_obs(&quot;IC86_II&quot;), uptime.time_span(&quot;IC86_II&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">uptime</span> <span class="o">=</span> <span class="n">Uptime</span><span class="p">()</span>
+<span class="n">uptime</span><span class="o">.</span><span class="n">time_obs</span><span class="p">(</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">),</span> <span class="n">uptime</span><span class="o">.</span><span class="n">time_span</span><span class="p">(</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -831,8 +831,8 @@ uptime.time_obs(&quot;IC86_II&quot;), uptime.time_span(&quot;IC86_II&quot;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>times = uptime.find_obs_time(start=55569, duration=3)
-times
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">times</span> <span class="o">=</span> <span class="n">uptime</span><span class="o">.</span><span class="n">find_obs_time</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">55569</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">times</span>
 </pre></div>
 </div>
 </div>
@@ -850,7 +850,7 @@ times
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>tsim.time = times
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">times</span>
 </pre></div>
 </div>
 </div>
@@ -859,7 +859,7 @@ times
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>tsim.run(show_progress=True)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">show_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -868,15 +868,15 @@ times
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Sampling: 100%|██████████| 249/249 [00:03&lt;00:00, 79.65it/s]
-Sampling: 100%|██████████| 316/316 [00:02&lt;00:00, 131.35it/s]
+Sampling: 100%|██████████| 249/249 [00:04&lt;00:00, 56.76it/s]
+Sampling: 100%|██████████| 316/316 [00:03&lt;00:00, 98.49it/s]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>tsim._true_energy
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span><span class="o">.</span><span class="n">_true_energy</span>
 </pre></div>
 </div>
 </div>
@@ -1034,7 +1034,7 @@ Sampling: 100%|██████████| 316/316 [00:02&lt;00:00, 131.35it
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>tsim.write_to_h5(&quot;multi_test.hdf5&quot;, sources)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span><span class="o">.</span><span class="n">write_to_h5</span><span class="p">(</span><span class="s2">&quot;multi_test.hdf5&quot;</span><span class="p">,</span> <span class="n">sources</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1042,7 +1042,7 @@ Sampling: 100%|██████████| 316/316 [00:02&lt;00:00, 131.35it
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>tsim.arrival_energy
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tsim</span><span class="o">.</span><span class="n">arrival_energy</span>
 </pre></div>
 </div>
 </div>
@@ -1200,7 +1200,7 @@ Sampling: 100%|██████████| 316/316 [00:02&lt;00:00, 131.35it
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>events = SimEvents.load_from_h5(&quot;multi_test.hdf5&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span> <span class="o">=</span> <span class="n">SimEvents</span><span class="o">.</span><span class="n">load_from_h5</span><span class="p">(</span><span class="s2">&quot;multi_test.hdf5&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1216,7 +1216,7 @@ Resetting rng
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>events.arrival_energy
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span><span class="o">.</span><span class="n">arrival_energy</span>
 </pre></div>
 </div>
 </div>
@@ -1374,27 +1374,27 @@ Resetting rng
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>&quot;&quot;&quot;
-for i in [3.9]:
-    norm_energy = 1e5 # Energy of normalisation in units of GeV
-    min_energy = 1e2 # GeV
-    max_energy = 1e8 # GeV
-    phi_solver = PhiSolver(aeff, norm_energy, min_energy, max_energy,
-                           time=1, min_cosz=-1, max_cosz=1)
-    phi_norm = phi_solver(Nnu=2000,
-                          dec=30, # degrees
-                          index=i) # spectral index
-    phi_norm # GeV^-1 cm^-2 s^-1
-    point_power_law = PowerLawFlux(phi_norm, norm_energy, i,
-                                   min_energy, max_energy)
-    point_source = PointSource(point_power_law, z=0., coord=(np.pi, np.deg2rad(30)))
-    sources = [point_source]
-    tsim = TimeDependentSimulator([&quot;IC86_I&quot;, &quot;IC86_II&quot;], sources)
-    for sim in tsim.simulators.values():
-        sim.time = 1
-    tsim.run(show_progress=True)
-    tsim.save(f&quot;index_{i}&quot;)
-&quot;&quot;&quot;
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">for i in [3.9]:</span>
+<span class="sd">    norm_energy = 1e5 # Energy of normalisation in units of GeV</span>
+<span class="sd">    min_energy = 1e2 # GeV</span>
+<span class="sd">    max_energy = 1e8 # GeV</span>
+<span class="sd">    phi_solver = PhiSolver(aeff, norm_energy, min_energy, max_energy,</span>
+<span class="sd">                           time=1, min_cosz=-1, max_cosz=1)</span>
+<span class="sd">    phi_norm = phi_solver(Nnu=2000,</span>
+<span class="sd">                          dec=30, # degrees</span>
+<span class="sd">                          index=i) # spectral index</span>
+<span class="sd">    phi_norm # GeV^-1 cm^-2 s^-1</span>
+<span class="sd">    point_power_law = PowerLawFlux(phi_norm, norm_energy, i,</span>
+<span class="sd">                                   min_energy, max_energy)</span>
+<span class="sd">    point_source = PointSource(point_power_law, z=0., coord=(np.pi, np.deg2rad(30)))</span>
+<span class="sd">    sources = [point_source]</span>
+<span class="sd">    tsim = TimeDependentSimulator([&quot;IC86_I&quot;, &quot;IC86_II&quot;], sources)</span>
+<span class="sd">    for sim in tsim.simulators.values():</span>
+<span class="sd">        sim.time = 1</span>
+<span class="sd">    tsim.run(show_progress=True)</span>
+<span class="sd">    tsim.save(f&quot;index_{i}&quot;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
 </pre></div>
 </div>
 </div>
