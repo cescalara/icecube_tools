@@ -189,6 +189,10 @@ class PointSourceLikelihood:
             2 * np.pi * (np.sin(self._dec_high) - np.sin(self._dec_low))
         )
 
+        # Two pathological cases to consider here:
+        # RA is just below 2pi, then self._ra_high will spill over to 2pi >> RA > 0
+        # RA is just above 0, then self._ra_low will spill over to 2pi > RA >> 0
+        # Is taken care of in `_select_nearby_events()`
         self._ra_low = self.source_coord[0] - np.deg2rad(self._band_width)
         self._ra_high = self.source_coord[0] + np.deg2rad(self._band_width)
 
@@ -200,12 +204,30 @@ class PointSourceLikelihood:
         Select events used in analysis nearby the source.
         """
 
-        selected = np.nonzero((
-                    (self._decs >= self._dec_low)
-                    & (self._decs <= self._dec_high)
-                    & (self._ras >= self._ra_low)
-                    & (self._ras <= self._ra_high))
-                )
+        if self._ra_low < 0.:
+            selected = np.nonzero((
+                (self._decs >= self._dec_low)
+                & (self._decs <= self._dec_high)
+                & (((self._ras >= 0.) & (self._ras <= self._ra_high))
+                # include all events that are close to the source
+                # from the `other side of 2pi´ someone call a mathematician, how do you properly say that?
+                # 2pi ambiguity?
+                | ((self._ras >= self._ra_low + 2 * np.pi) & (self._ras <= 2 * np.pi)))
+            ))
+        elif self._ra_high > 2 * np.pi:
+            selected = np.nonzero((
+                (self._decs >= self._dec_low)
+                & (self._decs <= self._dec_high)
+                & (((self._ras <= 2 * np.pi) & (self._ras >= self._ra_low))
+                | ((self._ras >= 0.) & (self._ras <= self._ra_high - 2 * np.pi)))
+            ))
+        else:
+            selected = np.nonzero((
+                        (self._decs >= self._dec_low)
+                        & (self._decs <= self._dec_high)
+                        & (self._ras >= self._ra_low)
+                        & (self._ras <= self._ra_high))
+                    )
         selected_dec_band = np.nonzero((
                     (self._decs >= self._dec_low) & (self._decs <= self._dec_high))
                 )
