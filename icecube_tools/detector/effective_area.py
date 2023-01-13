@@ -1,11 +1,13 @@
 import numpy as np
 import os
 from abc import ABC, abstractmethod
+from itertools import product
 from icecube_tools.utils.data import (
     IceCubeData,
     find_files,
     find_folders,
     data_directory,
+    available_irf_periods
 )
 
 """
@@ -21,7 +23,6 @@ R2021_AEFF_FILENAME = "effectiveArea.csv"
 
 _supported_dataset_ids = ["20131121", "20150820", "20181018", "20210126"]
 
-_supported_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
 
 
 class IceCubeAeffReader(ABC):
@@ -275,6 +276,47 @@ class R2021AeffReader(IceCubeAeffReader):
         self.effective_area_values = np.flip(self.effective_area_values, axis=1)    # flip due to sort, see above
 
         self.effective_area_values *= self.scale_factor
+
+        # Need to mask out certain effective area values because there is no IRF defined for some
+        true_energy_bins = np.power(10, np.arange(2., 9.1, 0.5))
+        declination_bins = np.deg2rad(np.array([-90., -10., 10., 90.]))
+        
+        mask = np.ones_like(self.effective_area_values)
+        # Hardcoding this because I took long way too long trying to do it properly
+        # Faulty IRF bins (etrue, dec) taken from the IRF class,
+        # hardcoded because I couldn't resolve circular imports
+        # Only take those bins where there is conflict to save some time upon loading
+        faulty = {
+            "IC40": [(-1, 0), (-1, 1), (-1, 2)],   # aeff extends to higher energies than IRF
+            "IC59": [(2, 0)],
+        }
+        self.mask = mask
+        for period in faulty.keys():
+            if period+"_" in os.path.basename(self._filename):
+                break
+        else:
+            return
+        #print(period)
+        for (etrue, dec) in faulty[period]:
+            #print(etrue, dec)
+            if etrue != -1:
+                etrue_min, etrue_max = true_energy_bins[etrue], true_energy_bins[etrue+1]
+                aeff_etrue_min = np.digitize(etrue_min, self.true_energy_bins) - 1
+                aeff_etrue_max = np.digitize(etrue_max, self.true_energy_bins) - 1
+                aeff_etrue_max += 1 if self.true_energy_bins[aeff_etrue_max] < true_energy_bins[etrue+1] else 0
+            else:
+                etrue_min = true_energy_bins[-1]
+                aeff_etrue_min = np.digitize(etrue_min, self.true_energy_bins) - 1
+                aeff_etrue_max = self.true_energy_bins.size - 1
+            cosz_max, cosz_min = -np.sin(declination_bins[dec]), -np.sin(declination_bins[dec+1])
+
+            aeff_cosz_min = np.digitize(cosz_min, self.cos_zenith_bins) - 1
+            aeff_cosz_max = np.digitize(cosz_max, self.cos_zenith_bins) - 1
+            for (e, c) in product(range(aeff_etrue_min, aeff_etrue_max), range(aeff_cosz_min, aeff_cosz_max)):
+                #print(e, c)
+                self.mask[e, c] = 0.
+        self.effective_area_values = np.multiply(self.effective_area_values, mask)
+        
 
 
 class R2018AeffReader(IceCubeAeffReader):
@@ -534,7 +576,7 @@ class EffectiveArea(object):
             aeff_file_name = folders[0]
 
         elif dataset_id == "20210126":
-            if period not in _supported_periods:
+            if period not in available_irf_periods:
                 raise ValueError(f"Period {period} is not supported.")
 
             files = find_files(dataset_dir, R2021_AEFF_FILENAME)
