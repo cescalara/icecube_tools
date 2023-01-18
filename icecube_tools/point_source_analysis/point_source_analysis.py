@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ..point_source_likelihood.point_source_likelihood import (
     TimeDependentPointSourceLikelihood
 )
@@ -56,6 +58,18 @@ class PointSourceAnalysis(ABC):
     @property
     def which(self):
         return self._which
+    
+
+    @classmethod
+    def peek(cls, path: str):
+        """
+        Load previously saved hdf5 file
+        :param path: Path to hdf5 file
+        :param events: If provided, create `MapScan` and return it, else return `dict` with data
+        """
+        with h5py.File(path, "r") as f:            
+            dec_test = f["meta/dec"][()][0]
+            return dec_test
 
 
 
@@ -125,7 +139,7 @@ class MapScan(PointSourceAnalysis):
                     # refresh output file
                     self.write_output(self.output_path, source_list=True)
         self.write_output(self.output_path, source_list=True)
-                
+
 
     def _test_source(
         self,
@@ -354,6 +368,7 @@ class MapScan(PointSourceAnalysis):
                 output["fit_ok"] = f["output/fit_ok"][()]
                 output["ra_test"] = f["meta/ra"][()]
                 output["dec_test"] = f["meta/dec"][()]
+                output["config_path"] = f["meta"].attrs["config_path"]
                 return output
 
 
@@ -432,18 +447,23 @@ class MapScan(PointSourceAnalysis):
         except AttributeError:
             pass
 
-
+    '''
     @classmethod
-    def peek(cls, path: str):
+    def combine_outputs(cls, config: str, events: Events, output_path: str, *paths) -> MapScan:
         """
-        Load previously saved hdf5 file
-        :param path: Path to hdf5 file
-        :param events: If provided, create `MapScan` and return it, else return `dict` with data
+        Combine multiple files to a single MapScan instance.
+        Task of making sure that the order of files and coordinates sticks to the order of healpy is delegated to the user.
+        :config: str, path to an arbitrary config file of the split analysis.
+        :paths: Paths to outputs of analyses.
+        :return: Instance of `MapScan`
         """
-        with h5py.File(path, "r") as f:            
-            dec_test = f["meta/dec"][()][0]
-            return dec_test
 
+        logger.warning("Make sure that the files provided as arguments have the correct order!")
+
+        for path in paths:
+            cls.load_output(file)
+        return cls(config, events, output_path)
+    '''
 
     def make_p_values(self, file_base: str) -> np.ndarray:
         """
@@ -460,7 +480,6 @@ class MapScan(PointSourceAnalysis):
         aeff = EffectiveArea.from_dataset("20210126", "IC86_II")
         dec_bins = np.sort(np.arcsin(-aeff.cos_zenith_bins))
         decs = {}
-        output = {}
 
         directory = os.path.dirname(file_base)
         files = os.listdir(directory)
@@ -476,14 +495,98 @@ class MapScan(PointSourceAnalysis):
                 decs[dec] = [os.path.join(directory, file)]
         # Go through all files and use the combined results to convert TS into p_value
         for dec, arr in decs.items():
-            output[dec] = MapScanTSDistribution.combine_outputs(*arr)
+            # Load outputs and combine
+            output = MapScanTSDistribution.combine_outputs(*arr)
+            # Find entries where the declination of test source is in the same bin as the declination of the simulated source
             idx = np.digitize(self.dec_test, dec_bins) - 1 == dec
-            alpha[idx] = (np.digitize(self.ts[idx], np.sort(output[dec]["ts"])) - 1) / output[dec]["ntrials"]
-            p_values = 1. - alpha
+            # print(idx)
+            # Find position of selected TS in the simulations, divide by number of trials
+            alpha[idx] = (np.digitize(self.ts[idx], np.sort(output["ts"])) - 1) / output["ntrials"]
             # If the maximum TS from simulations does not exceed the data TS, use the largest possible alpha
-            p_values[alpha == 1.] = 1 / output[dec]["ntrials"]
+            alpha[idx][alpha[idx] == 1.] = (output["ntrials"] - 1) / output["ntrials"]
+        p_values = 1. - alpha
 
-        return p_values
+        return p_values, alpha
+    
+
+    @classmethod
+    def combine_outputs(cls, *paths, events: Events=None):
+        """
+        Wrapper for `load_output` to load and combine multiple data sets.
+        The task of checking for the correct declination is delegated to the user. #TODO check if check  works
+        :param paths: Paths to files whose output should be combined
+        :return: Dict of combined data
+        """
+
+        # Should create data structure for all different declination bins that are found first
+        ts = []
+        index = []
+        index_error = []
+        index_merror = []
+        ns = []
+        ns_error = []
+        ns_merror = []
+        fit_ok = []
+        ra_test = []
+        dec_test = []
+        ntrials = 0
+        for path in paths:
+            input = cls.load_output(path)
+            ts.append(input["ts"])
+            index.append(input["index"])
+            index_error.append(input["index_error"])
+            index_merror.append(input["index_merror"])
+            ns.append(input["ns"])
+            ns_error.append(input["ns_error"])
+            ns_merror.append(input["ns_merror"])
+            fit_ok.append(input["fit_ok"])
+            ntrials += int(np.sum(input["fit_ok"]))
+            if isinstance(cls, MapScanTSDistribution):
+                try:
+                    assert(np.isclose(declination, input["dec_test"]))
+                except NameError:
+                    declination = input["dec_test"][0]
+                    ra = input["ra_test"][0]
+            else:
+                ra_test.append(input["ra_test"])
+                dec_test.append(input["dec_test"])
+    
+        if events is None:
+            output = {}
+            output["ts"] = np.hstack(ts)
+            output["ns"] = np.hstack(ns)
+            output["ns_error"] = np.hstack(ns_error)
+            output["index"] = np.hstack(index)
+            output["index_error"] = np.hstack(index_error)
+            output["fit_ok"] = np.hstack(fit_ok)
+            # Needs vstack because of different shape
+            output["ns_merror"] = np.vstack(ns_merror)
+            output["index_merror"] = np.vstack(index_merror)
+            output["ntrials"] = ntrials
+            if isinstance(cls, MapScanTSDistribution):
+                output["ra_test"] = np.array([ra])
+                output["dec_test"] = np.array([declination])
+            else:
+                output["ra_test"] = np.hstack(ra_test)
+                output["dec_test"] = np.hstack(dec_test)
+            return output
+        
+        else:
+            config_path = input["config_path"]
+            output_path = os.path.join(os.path.dirname(config_path), "_output.hdf5")
+            instance = cls(config_path, events, output_path)
+            instance.ra_test = np.hstack(ra_test)
+            instance.dec_test = np.hstack(dec_test)
+            instance.ts = np.hstack(ts)
+            instance.ns = np.hstack(ns)
+            instance.ns_error = np.hstack(ns_error)
+            instance.ns_merror = np.vstack(ns_merror)
+            instance.index = np.hstack(index)
+            instance.index_error = np.hstack(index_error)
+            instance.index_merror = np.vstack(index_merror)
+            instance.fit_ok = np.hstack(fit_ok)
+            return instance
+    
 
 
 
@@ -556,41 +659,3 @@ class MapScanTSDistribution(MapScan):
         self.fit_ok = np.zeros(shape)
         self.index_merror = np.zeros((shape, 2))
         self.ns_merror = np.zeros((shape, 2))
-
-
-    @classmethod
-    def combine_outputs(cls, *paths) -> Dict:
-        """
-        Wrapper for `load_output` to load and combine multiple trial data sets.
-        The task of checking for the correct declination is delegated to the user.
-        :param paths: Paths to files whose output should be combined
-        :return: Dict of combined data
-        """
-
-        # Should create data structure for all different declination bins that are found first
-        ts = []
-        index = []
-        index_error = []
-        ns = []
-        ns_error = []
-        fit_ok = []
-        ntrials = 0
-        for path in paths:
-            output = cls.load_output(path)
-            ts.append(output["ts"])
-            index.append(output["index"])
-            index_error.append(output["index_error"])
-            ns.append(output["ns"])
-            ns_error.append(output["ns_error"])
-            fit_ok.append(output["fit_ok"])
-            ntrials += int(np.sum(output["fit_ok"]))
-        
-        output = {}
-        output["ts"] = np.hstack(ts)
-        output["ns"] = np.hstack(ns)
-        output["ns_error"] = np.hstack(ns_error)
-        output["index"] = np.hstack(index)
-        output["index_error"] = np.hstack(index_error)
-        output["fit_ok"] = np.hstack(fit_ok)
-        output["ntrials"] = ntrials
-        return output

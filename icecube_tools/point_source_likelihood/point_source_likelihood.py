@@ -284,8 +284,6 @@ class PointSourceLikelihood:
                 self._source_coord
             )
 
-            self._bg_llh_spatial = np.full(self._selected_energies.shape, 1. / self._band_solid_angle)
-
 
 
     def _signal_likelihood(
@@ -376,7 +374,7 @@ class PointSourceLikelihood:
                 return self._energy_likelihood(energy, index, dec)
         
         def spatial():
-            return self._bg_llh_spatial
+            return np.full(energy.shape, 1. / self._band_solid_angle)
 
         #Check which part is used for likelihood calculation
         if self.which == 'spatial':
