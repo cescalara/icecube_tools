@@ -49,6 +49,8 @@ class PointSourceLikelihood:
         ang_errs: Sequence[float],
         source_coord: Tuple[float, float],
         which: str='both',
+        vary_atmo: bool=False,
+        vary_astro: bool=False,
         bg_energy_likelihood=None,
         index_prior=None,
         band_width_factor: float=5.0,
@@ -67,6 +69,8 @@ class PointSourceLikelihood:
         :param ang_errs: $1 \sigma$ angular errors of events, in degrees
         :param source_coord: (ra, dec) pf the point to test.
         :param which: str, either `spatial`, `both`, which information of event to be used
+        :param vary_atmo: bool, if atmospheric background index should be varied, defaults to False
+        :param vary_astro: bool, if astroph. background index should be varied, defaults to False, only used if vary_atmo==True
         :param bg_energy_likelihood: Optional energy likelihood for background events,
             has only energy dependence.
         :param index_prior: Optional prior on the spectral index, instance of Prior.
@@ -80,6 +84,10 @@ class PointSourceLikelihood:
         else:
             self.which = which
             logger.debug(f"Using {which} likelihoods.")
+
+        self._vary_atmo = vary_atmo
+
+        self._vary_astro = vary_astro
 
         self._direction_likelihood = direction_likelihood
 
@@ -199,6 +207,18 @@ class PointSourceLikelihood:
         self._select_nearby_events()
 
 
+    def update_events(self, ra, dec, reco_energy, ang_err):
+        """
+        Provide new events and call `self._select_nearby_events()`
+        """
+        
+        self._ras = ra
+        self._decs = dec
+        self._energies = reco_energy
+        self._ang_errs = ang_err
+        self._select_nearby_events()
+
+
     def _select_nearby_events(self):
         """
         Select events used in analysis nearby the source.
@@ -256,6 +276,17 @@ class PointSourceLikelihood:
 
         self.N = len(selected_dec_band[0])
 
+        if isinstance(self._direction_likelihood, EventDependentSpatialGaussianLikelihood):
+            self._signal_llh_spatial = self._direction_likelihood(
+                self._selected_ang_errs,
+                self._selected_ras,
+                self._selected_decs, 
+                self._source_coord
+            )
+
+            self._bg_llh_spatial = np.full(self._selected_energies.shape, 1. / self._band_solid_angle)
+
+
 
     def _signal_likelihood(
         self,
@@ -292,9 +323,7 @@ class PointSourceLikelihood:
             self._direction_likelihood, EventDependentSpatialGaussianLikelihood
         ):
             def spatial():
-                return self._direction_likelihood(
-                    ang_err, ra, dec, source_coord
-                )
+                return self._signal_llh_spatial
             
             def en():
                 return self._energy_likelihood(energy, index, dec)
@@ -347,7 +376,7 @@ class PointSourceLikelihood:
                 return self._energy_likelihood(energy, index, dec)
         
         def spatial():
-            return np.full(energy.shape, 1. / self._band_solid_angle)
+            return self._bg_llh_spatial
 
         #Check which part is used for likelihood calculation
         if self.which == 'spatial':
@@ -573,11 +602,18 @@ class PointSourceLikelihood:
             m.errors["weight"] = 0.05
             m.errors["index_atmo"] = 0.1
             m.errors["index_astro"] = 0.1
+            if ~self._vary_atmo:
+                m.fixed["index_atmo"] = True
+            if not (self._vary_atmo and self._vary_astro):
+                #only let astro vary, if atmo is also varied, else atmo is only background
+                m.fixed["weight"] = True
+                m.fixed["index_astro"] = True
+
+        elif self.which == "spatial":
+            m.fixed["index"] = True
             m.fixed["index_atmo"] = True
             m.fixed["index_astro"] = True
             m.fixed["weight"] = True
-        elif self.which == "spatial":
-            m.fixed["index"] = True
 
         m.errordef = 0.5
         m.migrad()
@@ -628,7 +664,6 @@ class PointSourceLikelihood:
 
         self.m = m
         return m
-
 
 
     def _minimize_grid(self):
@@ -962,6 +997,8 @@ class TimeDependentPointSourceLikelihood:
         times: Dict=None,
         path=None,
         index_list=None,
+        vary_atmo: bool=False,
+        vary_astro: bool=False,
         which: str="both",
         emin: float=1e1,
         emax: float=1e9,
@@ -1003,6 +1040,8 @@ class TimeDependentPointSourceLikelihood:
         self.index_list = index_list
         self._min_index = min_index
         self._max_index = max_index
+        self._vary_atmo = vary_atmo
+        self._vary_astro = vary_astro
         self.likelihoods = OrderedDict()
         # Can use one spatial llh for all periods, 'tis but a Gaussian
         spatial_llh = EventDependentSpatialGaussianLikelihood(sigma=sigma)
@@ -1063,12 +1102,7 @@ class TimeDependentPointSourceLikelihood:
     def reset_events(self, ra: Dict, dec: Dict, reco_energy: Dict, ang_err: Dict):
         logger.info("Resetting events.")
         for p in self.periods:
-            self.likelihoods[p]._ras = ra[p]
-            self.likelihoods[p]._decs = dec[p]
-            self.likelihoods[p]._energies = reco_energy[p]
-            self.likelihoods[p]._ang_errs = ang_err[p]
-            self.likelihoods[p]._select_nearby_events()
-
+            self.likelihoods[p].update_events(ra[p], dec[p], reco_energy[p], ang_err[p])
 
 
     def __call__(self, ns: float, index: float):
@@ -1083,7 +1117,7 @@ class TimeDependentPointSourceLikelihood:
         return self._func_to_minimize(ns, index)
 
 
-    def _func_to_minimize(self, ns, index):
+    def _func_to_minimize(self, ns, index, weight=0., index_astro=2.5, index_atmo=3.7):
         """
         According to https://github.com/icecube/skyllh/blob/master/doc/user_manual.pdf,
         Eq. (59), the returned values of each period's llh._func_to_minimize() can be added.
@@ -1153,17 +1187,16 @@ class TimeDependentPointSourceLikelihood:
         for llh in self.likelihoods.values():
             ns_max.append(llh._ns_max)
         init_ns = min(ns_max) * 0.01
-        init = [init_ns, init_index]
+        init = [init_ns, init_index, 0, 2.5, 3.7]
 
         #for limit ns:
         # find all products of weight * ns and see where it will crash first
         smallest_N = min([llh.N for llh in self.likelihoods.values()])
-        limits = [(0, smallest_N), limit_index]
+        limits = [(0, smallest_N), limit_index, (0, 1), limit_index, limit_index]
 
         # Get errors to start with
-        errors = [1, 0.1]  
-        name = ["ns", "index"]
-
+        errors = [1, 0.1, 0.1, 0.1, 0.1]
+        name = ["ns", "index", "weight", "index_astro", "index_atmo"]
 
         if self.which == 'spatial':
             raise ValueError("Currently not supported")
@@ -1176,7 +1209,15 @@ class TimeDependentPointSourceLikelihood:
         self.m = Minuit(self.minimize_this, *init, name=name)
         self.m.errordef = 0.5
         self.m.errors = errors
-        self.m.limits = limits        
+        self.m.limits = limits
+        if not self._vary_atmo:
+            self.m.fixed["index_atmo"] = True
+            self.m.fixed["index_astro"] = True
+            self.m.fixed["weight"] = True
+        elif not self._vary_astro:
+            self.m.fixed["index_astro"] = True
+            self.m.fixed["weight"] = True
+   
         self.m.migrad()
 
         if self.which != 'spatial':
@@ -1184,6 +1225,9 @@ class TimeDependentPointSourceLikelihood:
 
                 # Fix the index as can be uninformative
                 self.m.fixed["index"] = True
+                self.m.fixed["index_atmo"] = True
+                self.m.fixed["index_astro"] = True
+                self.m.fixed["weight"] = True
                 self.m.migrad()
         else:
             if not self.m.fmin.is_valid or not self.m.fmin.has_covariance:

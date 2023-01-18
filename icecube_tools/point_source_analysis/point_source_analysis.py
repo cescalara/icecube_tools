@@ -171,9 +171,7 @@ class MapScan(PointSourceAnalysis):
                 self.index[num] = self.likelihood._best_fit_index
                 self.ns[num] = self.likelihood._best_fit_ns
                 self.index_error[num] = self.likelihood.m.errors["index"]
-                self.ns_error[num] = np.array(
-                    [self.likelihood.m.errors[n] for n in self.likelihood.m.parameters if n != "index"]
-                )
+                self.ns_error[num] = self.likelihood.m.errors["ns"]
                 self.fit_ok[num] = self.likelihood.m.fmin.is_valid
                 
                 # is computationally too expensive for the entire grid, only use at certain points!
@@ -322,25 +320,41 @@ class MapScan(PointSourceAnalysis):
 
 
     @classmethod
-    def load_output(cls, path: str, events: Events):
+    def load_output(cls, path: str, events: Events=None):
         """
         Load previously saved hdf5 file
         :param path: Path to hdf5 file
+        :param events: If provided, create `MapScan` and return it, else return `dict` with data
         """
         with h5py.File(path, "r") as f:
-            config_path = f["meta"].attrs["config_path"]
-            obj = cls(config_path, events, path)
-            obj.ts = f["output/ts"][()]
-            obj.index = f["output/index"][()]
-            obj.ns = f["output/ns"][()]
-            obj.index_error = f["output/index_error"][()]
-            obj.ns_error = f["output/ns_error"][()]
-            obj.ns_merror = f["output/ns_merror"][()]
-            obj.index_merror = f["output/index_merror"][()]
-            obj.fit_ok = f["output/fit_ok"][()]
-            obj.ra_test = f["meta/ra"][()]
-            obj.dec_test = f["meta/dec"][()]
-        return obj
+            if events is not None:
+                config_path = f["meta"].attrs["config_path"]
+                obj = cls(config_path, events, path)
+                obj.ts = f["output/ts"][()]
+                obj.index = f["output/index"][()]
+                obj.ns = f["output/ns"][()]
+                obj.index_error = f["output/index_error"][()]
+                obj.ns_error = f["output/ns_error"][()]
+                obj.ns_merror = f["output/ns_merror"][()]
+                obj.index_merror = f["output/index_merror"][()]
+                obj.fit_ok = f["output/fit_ok"][()]
+                obj.ra_test = f["meta/ra"][()]
+                obj.dec_test = f["meta/dec"][()]
+                return obj
+
+            else:
+                output = {}
+                output["ts"] = f["output/ts"][()]
+                output["index"] = f["output/index"][()]
+                output["ns"] = f["output/ns"][()]
+                output["index_error"] = f["output/index_error"][()]
+                output["ns_error"] = f["output/ns_error"][()]
+                output["ns_merror"] = f["output/ns_merror"][()]
+                output["index_merror"] = f["output/index_merror"][()]
+                output["fit_ok"] = f["output/fit_ok"][()]
+                output["ra_test"] = f["meta/ra"][()]
+                output["dec_test"] = f["meta/dec"][()]
+                return output
 
 
     def generate_sources(self, nside: bool=True):
@@ -419,6 +433,59 @@ class MapScan(PointSourceAnalysis):
             pass
 
 
+    @classmethod
+    def peek(cls, path: str):
+        """
+        Load previously saved hdf5 file
+        :param path: Path to hdf5 file
+        :param events: If provided, create `MapScan` and return it, else return `dict` with data
+        """
+        with h5py.File(path, "r") as f:            
+            dec_test = f["meta/dec"][()][0]
+            return dec_test
+
+
+    def make_p_values(self, file_base: str) -> np.ndarray:
+        """
+        Method to load output of `MapScanTSDistribution` and use it to create p_values from all TS values.
+        :param file_base: str of file names common to all results of `MapScanTSDistribution` outputs
+        :return: np.ndarray of p_values of shape `self.ts.shape`
+        """
+
+        from ..detector.effective_area import EffectiveArea
+
+        p_values = np.zeros_like(self.ts)
+        alpha = np.zeros_like(self.ts)
+
+        aeff = EffectiveArea.from_dataset("20210126", "IC86_II")
+        dec_bins = np.sort(np.arcsin(-aeff.cos_zenith_bins))
+        decs = {}
+        output = {}
+
+        directory = os.path.dirname(file_base)
+        files = os.listdir(directory)
+
+        # Sort files by declination band of test source
+        for file in files:
+            if not ".hdf5" in file:
+                continue
+            dec = np.digitize(self.peek(os.path.join(directory, file)), dec_bins) - 1
+            try:
+                decs[dec].append(os.path.join(directory, file))
+            except KeyError:
+                decs[dec] = [os.path.join(directory, file)]
+        # Go through all files and use the combined results to convert TS into p_value
+        for dec, arr in decs.items():
+            output[dec] = MapScanTSDistribution.combine_outputs(*arr)
+            idx = np.digitize(self.dec_test, dec_bins) - 1 == dec
+            alpha[idx] = (np.digitize(self.ts[idx], np.sort(output[dec]["ts"])) - 1) / output[dec]["ntrials"]
+            p_values = 1. - alpha
+            # If the maximum TS from simulations does not exceed the data TS, use the largest possible alpha
+            p_values[alpha == 1.] = 1 / output[dec]["ntrials"]
+
+        return p_values
+
+
 
 class MapScanTSDistribution(MapScan):
     """
@@ -431,31 +498,44 @@ class MapScanTSDistribution(MapScan):
         Instantiate object to create a TS distribution at a given declination
         """
         super().__init__(path, events, output_path)
+        self._make_output_arrays()
 
 
     def perform_scan(self, show_progress: bool=False, minos: bool=False):
         """
-        Perform multiple (`ntrials`) fits of the same declination
+        Perform multiple (`ntrials`) fits of the same declination.
+        :param show_progress: Bool, if True progress bar is shown, defaults to False
+        :param minos: Bool, if True minos error calculation is carried out, defaults to False
         """
 
         logger.info("Performing scan for periods: {}".format(self.events.periods))
-        #self.events.seed = self.seed
+        self.events.seed = self.seed
         dec = self.events.dec
         reco_energy = self.events.reco_energy
         ang_err = self.events.ang_err
         if show_progress:
             for c in progress_bar(range(self.ntrials)):
-                self.events.scramble_ra()
-                ra = self.events.ra
-                self._test_source((self.ra_test[0], self.dec_test[0]), c, ra, dec, reco_energy, ang_err, minos)
+                while True:
+                    # repeat until a fit has converged
+                    self.events.scramble_ra()
+                    ra = self.events.ra
+                    self._test_source((self.ra_test[0], self.dec_test[0]), c, ra, dec, reco_energy, ang_err, minos)
+                    if self.fit_ok[c]:
+                        # if converged, move to next iteration
+                        break
                 if c % 60 == 59:
                     #refresh output file
                     self.write_output(self.output_path, source_list=True)
         else:
             for c in range(self.ntrials):
-                self.events.scramble_ra()
-                ra = self.events.ra
-                self._test_source((self.ra_test[0], self.dec_test[0]), c, ra, dec, reco_energy, ang_err, minos)
+                while True:
+                    # repeat until a fit has converged
+                    self.events.scramble_ra()
+                    ra = self.events.ra
+                    self._test_source((self.ra_test[0], self.dec_test[0]), c, ra, dec, reco_energy, ang_err, minos)
+                    if self.fit_ok[c]:
+                        # if converged, move to next iteration
+                        break
                 if c % 60 == 59:
                     # refresh output file
                     self.write_output(self.output_path, source_list=True)
@@ -476,3 +556,41 @@ class MapScanTSDistribution(MapScan):
         self.fit_ok = np.zeros(shape)
         self.index_merror = np.zeros((shape, 2))
         self.ns_merror = np.zeros((shape, 2))
+
+
+    @classmethod
+    def combine_outputs(cls, *paths) -> Dict:
+        """
+        Wrapper for `load_output` to load and combine multiple trial data sets.
+        The task of checking for the correct declination is delegated to the user.
+        :param paths: Paths to files whose output should be combined
+        :return: Dict of combined data
+        """
+
+        # Should create data structure for all different declination bins that are found first
+        ts = []
+        index = []
+        index_error = []
+        ns = []
+        ns_error = []
+        fit_ok = []
+        ntrials = 0
+        for path in paths:
+            output = cls.load_output(path)
+            ts.append(output["ts"])
+            index.append(output["index"])
+            index_error.append(output["index_error"])
+            ns.append(output["ns"])
+            ns_error.append(output["ns_error"])
+            fit_ok.append(output["fit_ok"])
+            ntrials += int(np.sum(output["fit_ok"]))
+        
+        output = {}
+        output["ts"] = np.hstack(ts)
+        output["ns"] = np.hstack(ns)
+        output["ns_error"] = np.hstack(ns_error)
+        output["index"] = np.hstack(index)
+        output["index_error"] = np.hstack(index_error)
+        output["fit_ok"] = np.hstack(fit_ok)
+        output["ntrials"] = ntrials
+        return output

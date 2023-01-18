@@ -275,9 +275,6 @@ class Uptime():
     Class to handle calculations of detector live time.
     """
 
-
-    
-
     def __init__(self):
         self.data = {}
         #Store start and end times of each period separately
@@ -293,11 +290,12 @@ class Uptime():
             self.times[c, 0] = self.data[p][0, 0]
             self.times[c, 1] = self.data[p][-1, -1]
 
-            
 
     def time_span(self, *periods: str, IRF: bool=True):
         """
+        Return dictionary (keys are data or irf periods) with good time intervals of observations.
         :param periods: Strings of data/irf periods.
+        :param IRF: bool, if true observation time of IC86_III and later is counted towards IC86_II.
         :return: Dict of total times in years (without unit) between start and end of each queried data period.
         """
 
@@ -343,7 +341,6 @@ class Uptime():
         intervals = self.data[period][:, 1] - self.data[period][:, 0]
         time = np.sum(intervals) * u.d
         return time.to("year").value
-
 
 
     def find_obs_time(self, IRF: bool=True, **kwargs):
@@ -435,6 +432,32 @@ class Uptime():
             return obs_times
 
 
+class dddict(dict):
+
+    def __init__(self):
+        super().__init__()
+
+
+    def min(self):
+        for key, value in self.items():
+            try:
+                if value < minimum:
+                    minimum = value
+            except NameError:
+                    minimum = value
+        return minimum
+
+
+    def max(self):
+        for key, value in self.items():
+            try:
+                if value > maximum:
+                    maximum = value
+            except NameError:
+                    maximum = value
+        return maximum
+
+
 
 class Events(ABC):
     """
@@ -450,10 +473,10 @@ class Events(ABC):
 
 
     def _create_dicts(self):
-        self._reco_energy = {}
-        self._ang_err = {}
-        self._ra = {}
-        self._dec = {}
+        self._reco_energy = dddict()
+        self._ang_err = dddict()
+        self._ra = dddict()
+        self._dec = dddict()
 
 
     def __len__(self):
@@ -534,6 +557,44 @@ class Events(ABC):
         return data[self._periods[0]]
 
 
+    def restrict(self, dec_low: float=-np.pi/2, dec_high: float=np.pi/2, ereco_low: float=1.):
+        """
+        Restrict declination to given range, if None provided respective bound is ignored.
+        For fancier restrictions use `self.mask`.
+        :param dec_low: Lower declination bound, in rad.
+        :param dec_high: Upper declination bound, in rad.
+        """
+
+        if dec_low >= dec_high:
+            raise ValueError("dec_low is greater than or equal to dec_high!")
+        
+        mask = {}
+        for p in self.periods:
+            mask[p] = np.nonzero((
+                (self._dec[p] >= dec_low)
+                & (self._dec[p] <= dec_high)
+                & (self._reco_energy[p] >= ereco_low)
+            ))
+        self.mask = mask
+
+
+    @property
+    def N(self) -> Dict:
+        output = {}
+        for p in self.periods:
+            output[p] = self._ra[p].size
+        return output
+
+
+    @property
+    def N_restricted(self) -> Dict:
+        output = {}
+        ra = self.ra
+        for p in self.periods:
+            output[p] = ra[p].size
+        return output
+
+
 
 class SimEvents(Events):
     """
@@ -545,8 +606,8 @@ class SimEvents(Events):
 
     def __init__(self, seed: int=1234):
         super().__init__(seed=seed)
-        self._true_energy = {}
-        self._arrival_energy = {}
+        self._true_energy = dddict()
+        self._arrival_energy = dddict()
         self._source_label = {}
         
     
@@ -652,12 +713,17 @@ class SimEvents(Events):
     def scramble_ra(self):
         """
         Srcambles RA of all events, no distinction between source and background is made.
+        If a mask is supplied, only unmasked events are scrambled to save time on sampling random numbers.
         """
         num_of_events = 0
         logger.info("Scrambling RAs.")
         for p in self.periods:
             num_of_events += self._ra[p].size
-            self._ra[p] = self.rng.uniform(low=0., high=2*np.pi, size=self._ra[p].size)
+            if self.mask:
+                self._ra[p][self.mask[p]] = self.rng.uniform(low=0., high=2*np.pi, size=self.mask[p].size)
+            else:
+                self._ra[p] = self.rng.uniform(low=0., high=2*np.pi, size=self._ra[p].size)
+                
         if num_of_events < 10000:
             logger.warning(f"Shuffling RA with low ({num_of_events} events) statistics. Proceed with caution.")
 
@@ -851,6 +917,7 @@ class RealEvents(Events):
         Scrambles the RA of all events that are not inserted fakes. Done by using the size of MJD,
         which is not provided for fake data.
         Fake data is excluded s.t. inserted point sources are not accidentally washed out.
+        #TODO: Restricting to unmasked events
         """
         num_of_events = 0
         logger.info("Scrambling RAs.")

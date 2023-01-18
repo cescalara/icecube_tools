@@ -31,20 +31,20 @@ and detection simulations.
 """
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 
 class Simulator(SimEvents):
-    def __init__(self, sources, detector, period):
+    def __init__(self, sources, detector, period, seed=1234):
         """
         Class for handling simple neutrino production
         and detection simulations.
 
         :param sources: List of/single Source object.
         """
-        super().__init__()
-        logger.info("Instantiating simulation.")
+        super().__init__(seed=1234)
+        logger.debug("Instantiating simulation.")
         if not isinstance(sources, list):
             sources = [sources]
 
@@ -166,7 +166,7 @@ class Simulator(SimEvents):
 
             max_energy[i] = self.sources[i].flux_model._upper_energy
 
-            logger.info(f"source: {i}")
+            logger.debug(f"source: {i}")
 
             while True:
                 #check if data is needed, else break loop
@@ -286,7 +286,7 @@ class Simulator(SimEvents):
         #the accepted ones.
 
         #TODO maybe change the factor to something spectral index dependent
-        num = self.N_events * 10
+        num = self.N_events*10 if self.N_events*10 < 30000 else 30000
         label = np.random.choice(range(len(self.sources)), self.N_events, p=self._source_weights)
         l_set = set(label)
         l_num = {i: np.argwhere(i == label).shape[0] for i in l_set}
@@ -384,7 +384,7 @@ class Simulator(SimEvents):
                         not_done = False
                     finally:
                         if not isinstance(self.detector.energy_resolution, R2021IRF):
-                            logger.info("Sampled reco energy")
+                            logger.debug("Sampled reco energy")
                             Ereco = self.detector.energy_resolution.sample(Earr_d[i][start:end])
                             #this and all following try-except TypeError blocks
                             #are needed if only a single event is sampled
@@ -397,7 +397,7 @@ class Simulator(SimEvents):
                         #do source type specific things here
                         if self.sources[i].source_type == DIFFUSE:
 
-                            logger.info("Sampling angular uncertainty for diffuse source")
+                            logger.debug("Sampling angular uncertainty for diffuse source")
                             if isinstance(self.detector.angular_resolution, R2021IRF):
                                 _, _, reco_ang_err, Ereco = self.detector.angular_resolution.sample(
                                     (ra_d[i][start:end], dec_d[i][start:end]),
@@ -434,11 +434,11 @@ class Simulator(SimEvents):
                             except TypeError:
                                 self._dec += [dec_d[i]]
                                 self._ra += [ra_d[i]]
-                            logger.info("Sampled angular uncertainty for diffuse source")
+                            logger.debug("Sampled angular uncertainty for diffuse source")
 
                         else:
 
-                            logger.info("Sampling angular uncertainty for point source")
+                            logger.debug("Sampling angular uncertainty for point source")
                             if isinstance(self.detector.angular_resolution, R2021IRF):
                                 #loop over events handled inside R2021IRF
                                 reco_ra, reco_dec, reco_ang_err, Ereco = self.detector.angular_resolution.sample(
@@ -470,15 +470,15 @@ class Simulator(SimEvents):
                                 self._ang_err += [reco_ang_err]
                                 self._dec += [reco_dec]
                                 self._ra += [reco_ra]
-                            logger.info("Sampled angular uncertainty for point source")
+                            logger.debug("Sampled angular uncertainty for point source")
 
-        logger.info("Creating array of simulation data")  
+        logger.debug("Creating array of simulation data")  
         self._true_energy = np.concatenate(tuple(Etrue_d[k] for k in Earr_d.keys()))
         self._arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
         self._source_label = np.concatenate(tuple(np.full(l_num[l], l, dtype=int) for l in Earr_d.keys()))
         if show_progress:
             progress.close()
-        logger.info("Created array of simulation data")
+        logger.debug("Created array of simulation data")
 
         self._ra = {self._period: np.array(self._ra)}
         self._dec = {self._period: np.array(self._dec)}
@@ -733,7 +733,7 @@ class TimeDependentSimulator(SimEvents):
         """
 
         for p, sim in self.simulators.items():
-            logger.info(f"Simulating period {p}.")
+            logger.debug(f"Simulating period {p}.")
             if N:
                 sim.run(N=N[p], seed=seed, show_progress=show_progress)
             else:
@@ -808,6 +808,28 @@ class TimeDependentSimulator(SimEvents):
         self._sources = source_list
         for sim in self.simulators.values():
             sim._sources = source_list
+
+
+    @property
+    def max_cosz(self):
+        return self.simulators[self.periods[0]].max_cosz
+
+
+    @max_cosz.setter
+    def max_cosz(self, value):
+        for p in self.periods:
+            self.simulators[p].max_cosz = value
+
+
+    @property
+    def min_cosz(self):
+        return self.simulators[self.periods[0]].min_cosz
+
+
+    @min_cosz.setter
+    def min_cosz(self, value):
+        for p in self.periods:
+            self.simulators[p].min_cosz = value
 
 
     
