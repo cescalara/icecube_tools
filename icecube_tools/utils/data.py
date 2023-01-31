@@ -557,7 +557,7 @@ class Events(ABC):
         return data[self._periods[0]]
 
 
-    def restrict(self, dec_low: float=-np.pi/2, dec_high: float=np.pi/2, ereco_low: float=1.):
+    def restrict(self, dec_low: float=-np.pi/2, dec_high: float=np.pi/2, ra_low=0., ra_high=2*np.pi, ereco_low: float=1.):
         """
         Restrict declination to given range, if None provided respective bound is ignored.
         For fancier restrictions use `self.mask`.
@@ -574,6 +574,8 @@ class Events(ABC):
                 (self._dec[p] >= dec_low)
                 & (self._dec[p] <= dec_high)
                 & (self._reco_energy[p] >= ereco_low)
+                & (self._ra[p] >= ra_low)
+                & (self._ra[p] <= ra_high)
             ))
         self.mask = mask
 
