@@ -7,7 +7,7 @@ from typing import Sequence
 
 from ..detector.detector import Detector
 from ..utils.data import RealEvents
-from ..detector.effective_area import EffectiveArea
+#from ..detector.effective_area import EffectiveArea
 
 """
 Module to compute the IceCube energy likelihood
@@ -339,14 +339,14 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
         return -loglike
     
 
-class DataDrivenBackgroundEnergyLikelihood(MarginalisedEnergyLikelihood):
+class DataDrivenBackgroundEnergyLikelihood:
     """
     Energy likelihood for background obtained by making a distribution
     from the reconstructed energies. Data is mostly background.
     No spectral index is assumed.
     """
 
-    def __init__(self, period: str, bins: Sequence[float]=None):
+    def __init__(self, period, bins):
         self._period = period
         self._events = RealEvents.from_event_files(period)
 
@@ -417,7 +417,7 @@ class DataDrivenBackgroundEnergyLikelihood(MarginalisedEnergyLikelihood):
 
 
 
-    def sample(self, dec: np.ndarray, seed: int=42):
+    def sample(self, dec, seed=42):
         """
         Sample from pdfs
         :param dec: np.ndarray of declinations of events
@@ -431,22 +431,6 @@ class DataDrivenBackgroundEnergyLikelihood(MarginalisedEnergyLikelihood):
             size = idx[0].size
             output[idx] = self._rv_histogram[d_c].rvs(size=size, seed=seed)
         return output
-    
-
-    '''
-    def sample_dec(self, n: int, seed: int=42):
-        """
-        Sample declinations from the declination distribution
-        Takes into account the surface element of a sphere
-        :param n: int, number of samples to be drawn
-        :param seed: int, seed
-        :return: np.ndarray of declinations
-        """
-
-
-        pass
-    '''
-
 
     
 
