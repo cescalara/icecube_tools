@@ -24,6 +24,7 @@ from .detector.angular_resolution import FixedAngularResolution, AngularResoluti
 from .detector.r2021 import R2021IRF, K, EMIN, EBREAK, EMAX, INDEX1, INDEX2
 from .utils.data import SimEvents, available_irf_periods
 from .utils.bpl_sampling import bpl, sample_bpl
+from .point_source_likelihood.energy_likelihood import DataDrivenBackgroundEnergyLikelihood
 
 """
 Module for running neutrino production 
@@ -685,6 +686,45 @@ class Braun2008Simulator:
                 data=self.source.flux_model._normalisation_energy,
             )
     '''
+
+
+class BackgroundSimulator(SimEvents):
+    def __init__(self, period: str):
+        super().__init__()
+        self._periods = period
+        self.likelihood = DataDrivenBackgroundEnergyLikelihood(period)
+
+
+    def run(self, n: int, seed: int=42):
+        
+        # first sample ra's and decs
+        ra, _ = sphere_sample(N=n)
+        cos_theta = self.likelihood._costheta_rv_histogram(size=n, seed=seed)
+        ra, dec = spherical_to_icrs(np.arccos(cos_theta), ra)
+        log_ereco = self.likelihood.sample(dec, seed)
+        
+        self._ra[self._period] = ra
+        self._dec[self._period] = dec
+        self._reco_energy[self._period] = np.power(10, log_ereco)
+
+        
+
+
+
+class TimeDependentBackgroundSimulator(SimEvents):
+    def __init__(self, *periods: str):
+        super().__init__()
+        self._periods = periods
+        self.simulators = {}
+        for p in periods:
+            self.simulators[p] = BackgroundSimulator(p)
+
+
+
+    def run(self):
+        raise NotImplementedError
+
+        
 
 class TimeDependentSimulator(SimEvents):
     """

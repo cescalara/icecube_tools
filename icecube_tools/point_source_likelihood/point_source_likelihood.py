@@ -366,8 +366,12 @@ class PointSourceLikelihood:
         """
 
         if self._bg_energy_likelihood is not None:
-            def en():
-                return self._bg_energy_likelihood(energy) 
+            if isinstance(self._bg_energy_likelihood, DataDrivenBackgroundEnergyLikelihood):
+                def en(energy, index, dec):
+                    return self._bg_energy_likelihood(energy, index, dec)
+            else:
+                def en():
+                    return self._bg_energy_likelihood(energy) 
             
         else:
             def en(energy, index, dec):
@@ -1077,7 +1081,8 @@ class TimeDependentPointSourceLikelihood:
                 ang_err[p],
                 self.source_coord,
                 which=self.which,
-                band_width_factor=band_width_factor
+                band_width_factor=band_width_factor,
+                bg_energy_likelihood=DataDrivenBackgroundEnergyLikelihood(period=p)
             )
 
     @property
@@ -1184,7 +1189,8 @@ class TimeDependentPointSourceLikelihood:
         ns_max = []
         for llh in self.likelihoods.values():
             ns_max.append(llh._ns_max)
-        init_ns = min(ns_max) * 0.01
+        # init_ns = min(ns_max) * 0.01
+        init_ns = 2.
         init = [init_ns, init_index, 0, 2.5, 3.7]
 
         #for limit ns:

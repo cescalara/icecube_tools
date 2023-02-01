@@ -924,10 +924,11 @@ class RealEvents(Events):
         num_of_events = 0
         logger.info("Scrambling RAs.")
         for p in self.periods:
-            self._ra[p] = np.hstack((
-                self.rng.uniform(low=0., high=2*np.pi, size=self._mjd[p].size),
-                self._ra[p][self._mjd[p].size:]
-                ))
+            self._ra[p] = self.rng.uniform(low=0., high=2*np.pi, size=self._mjd[p].size)
+            #self._ra[p] = np.hstack((
+            #    self.rng.uniform(low=0., high=2*np.pi, size=self._mjd[p].size),
+            #    self._ra[p][self._mjd[p].size:]
+            #    ))
             num_of_events += self._mjd[p].size
         if num_of_events < 10000:
             logger.warning(f"Shuffling RA with low ({num_of_events} events) statistics. Proceed with caution.")
