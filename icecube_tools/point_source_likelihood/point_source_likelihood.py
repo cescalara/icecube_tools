@@ -124,6 +124,8 @@ class PointSourceLikelihood:
 
         self.source_coord = source_coord    # moved select_nearby_events into setter
 
+        self._angular_distance = self.angular_distance()
+
         # Sensible values based on Braun+2008
         # and Aartsen+2018 analyses
         self._bg_index = 3.7
@@ -139,6 +141,25 @@ class PointSourceLikelihood:
         self._ns_max = self.N
 
         self.Ntot = len(self._energies)
+
+
+    def angular_distance(self):
+        src_ra = self.source_coord[0]
+        src_dec = self.source_coord[1]
+        ra = self._selected_ras
+        dec = self._selected_decs
+        cos_r = np.cos(src_ra - ra) * np.cos(src_dec) * np.cos(dec) + np.sin(
+            src_dec
+        ) * np.sin(dec)
+
+        # Handle possible floating precision errors.
+        idx = np.nonzero((cos_r < -1.0))
+        cos_r[idx] = 1.0
+        idx = np.nonzero((cos_r > 1.0))
+        cos_r[idx] = 1.0
+
+        r = np.arccos(cos_r)
+        return r
 
 
     @property
@@ -1159,19 +1180,20 @@ class TimeDependentPointSourceLikelihood:
         return neg_log_like
 
 
-    '''
-    def _func_to_minimize_sp(self, ns, index=2.7):
+    
+    def _func_to_minimize_sp(self, ns, index, weight=0., index_astro=2.5, index_atmo=3.7):
         """
         According to https://github.com/icecube/skyllh/blob/master/doc/user_manual.pdf,
         Eq. (59), the returned values of each period's llh._func_to_minimize() can be added.
         :param arg: numpy.ndarray, last entry is index, all before are number of source events.
         """
         neg_log_like = 0
-        for (n, llh) in zip(arg, self.likelihoods.values()):
-            val = llh._func_to_minimize_sp(n)
+        weights = [1]
+        for (w, llh) in zip(weights, self.likelihoods.values()):
+            val = llh._func_to_minimize_sp(ns)
             neg_log_like += val
         return neg_log_like
-    '''
+    
 
 
     def _minimize(self):
@@ -1203,7 +1225,7 @@ class TimeDependentPointSourceLikelihood:
         name = ["ns", "index", "weight", "index_astro", "index_atmo"]
 
         if self.which == 'spatial':
-            raise ValueError("Currently not supported")
+            # raise ValueError("Currently not supported")
             #Only spatial-only likelihood needs special function, because no spectral index is used
             self.minimize_this = self._func_to_minimize_sp
         else:
@@ -1221,6 +1243,8 @@ class TimeDependentPointSourceLikelihood:
         elif not self._vary_astro:
             self.m.fixed["index_astro"] = True
             self.m.fixed["weight"] = True
+        if self.which == "spatial":
+            self.m.fixed["index"] = True
    
         self.m.migrad()
 
