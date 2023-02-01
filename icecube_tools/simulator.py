@@ -691,7 +691,8 @@ class Braun2008Simulator:
 class BackgroundSimulator(SimEvents):
     def __init__(self, period: str):
         super().__init__()
-        self._periods = period
+        self._period = period
+        self._periods = [period]
         self.likelihood = DataDrivenBackgroundEnergyLikelihood(period)
 
 
@@ -699,7 +700,7 @@ class BackgroundSimulator(SimEvents):
         
         # first sample ra's and decs
         ra, _ = sphere_sample(N=n)
-        cos_theta = self.likelihood._costheta_rv_histogram(size=n, seed=seed)
+        cos_theta = self.likelihood._costheta_rv_histogram.rvs(size=n, random_state=seed)
         ra, dec = spherical_to_icrs(np.arccos(cos_theta), ra)
         log_ereco = self.likelihood.sample(dec, seed)
         

@@ -7,7 +7,7 @@ from typing import Sequence
 
 from ..detector.detector import Detector
 from ..utils.data import RealEvents
-#from ..detector.effective_area import EffectiveArea
+from ..detector.effective_area import EffectiveArea
 
 """
 Module to compute the IceCube energy likelihood
@@ -339,21 +339,24 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
         return -loglike
     
 
-class DataDrivenBackgroundEnergyLikelihood:
+class DataDrivenBackgroundEnergyLikelihood(MarginalisedEnergyLikelihood):
     """
     Energy likelihood for background obtained by making a distribution
     from the reconstructed energies. Data is mostly background.
     No spectral index is assumed.
     """
 
-    def __init__(self, period, bins):
+    def __init__(self, period, bins: Sequence[float]=None):
         self._period = period
         self._events = RealEvents.from_event_files(period)
 
         # Combine declination bins of the irf and aeff
-        self._sin_dec_aeff_bins = np.linspace(-1., 1., num=51, endpoint=True)
+        # self._sin_dec_aeff_bins = np.linspace(-1., 1., num=51, endpoint=True)
+        aeff = EffectiveArea.from_dataset("20210126", period)
+        cosz_bins = aeff.cos_zenith_bins
+        self._sin_dec_aeff_bins = - cosz_bins
         self._dec_aeff_bins = np.arcsin(self._sin_dec_aeff_bins)
-        self._declination_bin_edges = np.union1d(np.deg2rad([-90, -10, 10, 90]), self._dec_aeff_bins)
+        self._declination_bin_edges = np.sort(np.union1d(np.deg2rad([-90, -10, 10, 90]), self._dec_aeff_bins))
         if bins is None:
             self._ereco_bins = np.linspace(1, 9, num=50)
         else:
@@ -381,28 +384,14 @@ class DataDrivenBackgroundEnergyLikelihood:
 
         self._likelihood = np.zeros((self._declination_bin_edges.size-1, self._ereco_bins.size-1))
         self._rv_histogram = []
-        self._dec_distribution = np.zeros(self._declination_bin_edges.size-1)
-
-
-        dec_indices = np.digitize(self._events.dec[self._period], self._declination_bin_edges) - 1
-        # dec_idx is sorted, dec_counts matches the entries of dec_idx, per numpy docs
-        dec_idx, dec_counts = np.unique(dec_indices, return_counts=True)
-        # Need to account for possibly missing dec indices, so extra loop is needed
-        # Loop over all declination bins (with events) and store counts
-        for id, counts in zip(dec_idx, dec_counts):
-            self._dec_distribution[id] = counts
-
-        # Make histogram of counts in cos(theta) bins. 
-        # Drawing from these takes into account the surface element
-        # theta = pi/2 - dec
-        # Flips order, so counts need to be flipped, too
-        self._costheta_bin_edges = np.flip(np.pi / 2 - np.arcsin(self._declination_bin_edges))
-        self._costheta_rv_histogram = rv_histogram((np.flip(self._dec_distribution), self._costheta_bin_edges))
+        self._costheta_bin_edges = np.sort(np.cos(np.pi / 2 - self._declination_bin_edges))
+        # Use real data to create pdf of the cos(theta) distribution
+        # Use cos(theta) for easier sampling on a sphere, is converted to dec in simulator
+        self._costheta_rv_histogram = rv_histogram(np.histogram(np.cos(np.pi/2 - self._events.dec[self._period]), self._costheta_bin_edges), density=True)
 
         # Loop over declination bins and create ereco distribution for each bin
         for c, (dec_l, dec_h) in enumerate(zip(self._declination_bin_edges[:-1], self._declination_bin_edges[1:])):
             self._events.restrict(dec_low=dec_l, dec_high=dec_h)
-        
             llh, bins = np.histogram(
                     np.log10(self._events.reco_energy[self._period]),
                     bins=self._ereco_bins,
@@ -411,7 +400,7 @@ class DataDrivenBackgroundEnergyLikelihood:
             self._likelihood[c, :] = llh
             # If there are events in the declination bin, make an rv_histogram
             if np.any(llh):
-                self._rv_histogram.append(rv_histogram((llh, bins)))
+                self._rv_histogram.append(rv_histogram((llh, bins), density=True))
             else:
                 self._rv_histogram.append(0)
 
@@ -429,7 +418,7 @@ class DataDrivenBackgroundEnergyLikelihood:
         for d_c in range(self._declination_bin_edges.size-1):
             idx = np.nonzero(dec_idx==d_c)
             size = idx[0].size
-            output[idx] = self._rv_histogram[d_c].rvs(size=size, seed=seed)
+            output[idx] = self._rv_histogram[d_c].rvs(size=size, random_state=seed)
         return output
 
     
