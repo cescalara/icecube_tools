@@ -5,6 +5,7 @@ from .source.source_model import Source, PointSource, DIFFUSE, POINT
 from .source.flux_model import FluxModel, PowerLawFlux
 from .detector.effective_area import EffectiveArea
 from .cosmology import luminosity_distance, Mpc_to_cm
+from .point_source_likelihood.energy_likelihood import MarginalisedIntegratedEnergyLikelihood
 
 """
 Module for calculating the number of neutrinos,
@@ -22,7 +23,12 @@ class NeutrinoCalculator:
     Calculate the expected number of detected neutrinos.
     """
 
-    def __init__(self, sources, effective_area):
+    def __init__(
+        self,
+        sources,
+        effective_area,
+        energy_resolution: MarginalisedIntegratedEnergyLikelihood=None
+    ):
         """
         Calculate the expected number of detected neutrinos.
 
@@ -33,6 +39,8 @@ class NeutrinoCalculator:
         self._sources = sources
 
         self._effective_area = effective_area
+        
+        self._energy_resolution = energy_resolution
 
     @property
     def source(self):
@@ -73,8 +81,20 @@ class NeutrinoCalculator:
         czm = self.effective_area.cos_zenith_bins[:-1]
         czM = self.effective_area.cos_zenith_bins[1:]
 
+        sdm = -czM.copy()
+        sdM = -czm.copy()
+
+        dec_c = np.arcsin((sdm + sdM) / 2)
+
+
         integrated_spectrum = source.flux_model.integrated_spectrum(Em, EM)
         integrated_direction = (czM - czm) * 2* np.pi
+
+        bin_c = (np.log10(Em) + np.log10(EM)) / 2
+        p_det_above_thr = np.zeros((bin_c.size, czm.size))
+        for c_e in range(bin_c.size):
+            for c_c in range(czm.size):
+                p_det_above_thr[c_e, c_c] = self._energy_resolution.p_det_above_threshold(bin_c[c_e], dec_c[c_c])
 
         aeff = self._selected_effective_area_values * M_TO_CM ** 2   # 1st index is energy, 2nd is cosz
         dN_dt = integrated_spectrum.dot(aeff).dot(integrated_direction)
@@ -99,11 +119,21 @@ class NeutrinoCalculator:
 
         Em = self.effective_area.true_energy_bins[:-1]
         EM = self.effective_area.true_energy_bins[1:]
+        # needs to be replaced by an integral
+        # going over reconstructed energy from minimally detected maximally detected
+        # or take the hi_nu shortcut:
+        # calculate integral at bin center, and assume that's fine
         integrated_flux = source.flux_model.integrated_spectrum(Em, EM)
+        bin_c = (np.log10(Em) + np.log10(EM)) / 2
+        p_det_above_thr = np.zeros((bin_c.size))
+        for c in range(bin_c.size):
+            p_det_above_thr[c] = self._energy_resolution.p_det_above_threshold(bin_c[c], source.coord[1])
 
         aeff = self._selected_effective_area_values.T[selected_bin_index] * M_TO_CM ** 2
+        # need to multiply with p(E detected above threshold)
+        # threshold given by data releas
 
-        dN_dt = np.dot(aeff, integrated_flux)
+        dN_dt = np.dot(aeff, integrated_flux*p_det_above_thr)
 
         return dN_dt * self._time * source.redshift_factor
 
@@ -193,6 +223,7 @@ class PhiSolver:
         time=1,
         min_cosz=-1.0,
         max_cosz=1.0,
+        energy_resolution: MarginalisedIntegratedEnergyLikelihood=None
     ):
         """
         :param effective_area: An EffectiveArea instance
@@ -216,6 +247,9 @@ class PhiSolver:
         self._min_cosz = min_cosz
         self._max_cosz = max_cosz
 
+        if energy_resolution is not None:
+            self._energy_resolution = energy_resolution
+
     def _solve_for_phi(self, phi_norm, Nnu, dec, index):
         """
         For use within get_phi_norm.
@@ -229,7 +263,10 @@ class PhiSolver:
             upper_energy=self._Emax,
         )
         source = PointSource(flux_model=power_law, coord=(np.pi, np.deg2rad(dec)))
-        nu_calc = NeutrinoCalculator([source], self._effective_area)
+        if hasattr(self, "_energy_resolution"):
+            nu_calc = NeutrinoCalculator([source], self._effective_area, self._energy_resolution)
+        else:
+            nu_calc = NeutrinoCalculator([source], self._effective_area)
         return (
             Nnu
             - nu_calc(

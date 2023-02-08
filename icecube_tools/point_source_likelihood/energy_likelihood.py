@@ -67,6 +67,7 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         self._irf = irf
         self._aeff = aeff
         self.reco_bins = reco_bins
+        self._irf_period = detector._period
         #print(self.reco_bins)
         self.true_bins_irf = irf.true_energy_bins
         self.true_bins_aeff = np.log10(aeff.true_energy_bins)
@@ -83,7 +84,12 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         self._max_index = max_index
         self.true_bins_c = self.true_energy_bins[:-1] + 0.5 * np.diff(self.true_energy_bins)
         self._previous_index = None
-        self._values = {} 
+        self._values = {}
+        if self._irf_period == "IC86_II":
+            self._events = RealEvents.from_event_files("IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_II")
+        else:
+            self._events = RealEvents.from_event_files(self._irf_period)
+        self._get_ereco_cuts()
 
         #pre-calculate cdf values
         self._cdf = np.zeros((self.true_energy_bins.size - 1, 3, self.reco_bins.size - 1))
@@ -186,6 +192,45 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         #print("norm", norm)
         values = values / norm
         return values
+
+
+    def _get_ereco_cuts(self):
+        """
+        Get ereco cuts from data, stores log10(Ereco).
+        """
+
+        self._ereco_limits = np.zeros((self.declination_bins_aeff.size-1, 2))
+        for c, (dec_low, dec_high) in enumerate(
+            zip(
+                self.declination_bins_aeff[:-1], self.declination_bins_aeff[1:]
+            )
+        ):
+            self._events.restrict(dec_low=dec_low, dec_high=dec_high)
+            ereco = self._events.reco_energy["IC86_II"]
+            self._ereco_limits[c, 0] = np.log10(ereco.min())
+            self._ereco_limits[c, 1] = np.log10(ereco.max())
+
+
+    def p_det_above_threshold(self, Etrue, dec):
+        """
+        Calculate probability of an event with Etrue being reconstructed
+        above and below given thresholds, which are provided by the data
+        and are declination dependent.
+        """
+
+        log_etrue = np.log10(Etrue)
+        dec_idx_aeff = np.digitize(dec, self.declination_bins_aeff) - 1
+        ereco_low = self._ereco_limits[dec_idx_aeff, 0]
+        ereco_high = self._ereco_limits[dec_idx_aeff, 1]
+
+        dec_idx_irf = np.digitize(dec, self._irf.declination_bins) - 1
+        etrue_idx = np.digitize(log_etrue, self._irf.true_energy_bins) - 1
+
+        # pdf is self._irf.reco_energy[]
+        cdf = self._irf.reco_energy[etrue_idx, dec_idx_irf].cdf
+        return cdf(ereco_high) - cdf(ereco_low)
+
+
 
 
     @staticmethod
