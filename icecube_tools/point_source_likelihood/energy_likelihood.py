@@ -5,7 +5,7 @@ import h5py
 from os.path import join
 from typing import Sequence
 
-from ..detector.detector import Detector
+from ..detector.detector import Detector, IceCube
 from ..utils.data import RealEvents
 from ..detector.effective_area import EffectiveArea
 
@@ -16,7 +16,7 @@ using publicly available information.
 Based on the method described in:
 Braun, J. et al., 2008. Methods for point source analysis 
 in high energy neutrino telescopes. Astroparticle Physics, 
-29(4), pp.299–305.
+29(4), pp.299-305.
 
 Currently well-defined for searches with
 Northern sky muon neutrinos.
@@ -46,7 +46,8 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
     #@profile
     def __init__(
         self,
-        detector: Detector,
+        # detector: Detector,
+        period: str,
         reco_bins: np.ndarray,
         min_index: float=1.5,
         max_index: float=4.0,
@@ -62,12 +63,13 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
 
         # TODO change reco_bins to cover the range provided by all the pdfs
         # and have the coarsest binning of all pdfs
+        detector = IceCube.from_period(period)
         aeff = detector._effective_area
         irf = detector._angular_resolution
         self._irf = irf
         self._aeff = aeff
         self.reco_bins = reco_bins
-        self._irf_period = detector._period
+        self._irf_period = period
         #print(self.reco_bins)
         self.true_bins_irf = irf.true_energy_bins
         self.true_bins_aeff = np.log10(aeff.true_energy_bins)
@@ -89,7 +91,7 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
             self._events = RealEvents.from_event_files("IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_II")
         else:
             self._events = RealEvents.from_event_files(self._irf_period)
-        self._get_ereco_cuts()
+        # self._get_ereco_cuts()
 
         #pre-calculate cdf values
         self._cdf = np.zeros((self.true_energy_bins.size - 1, 3, self.reco_bins.size - 1))
@@ -393,17 +395,17 @@ class DataDrivenBackgroundEnergyLikelihood(MarginalisedEnergyLikelihood):
 
     def __init__(self, period, bins: Sequence[float]=None):
         self._period = period
-        self._events = RealEvents.from_event_files(period)
+        self._events = RealEvents.from_event_files(period, use_all=True)
 
         # Combine declination bins of the irf and aeff
         # self._sin_dec_aeff_bins = np.linspace(-1., 1., num=51, endpoint=True)
         aeff = EffectiveArea.from_dataset("20210126", period)
         cosz_bins = aeff.cos_zenith_bins
-        self._sin_dec_aeff_bins = - cosz_bins
-        self._dec_aeff_bins = np.arcsin(self._sin_dec_aeff_bins)
-        self._declination_bin_edges = np.sort(np.union1d(np.deg2rad([-90, -10, 10, 90]), self._dec_aeff_bins))
+        self._sin_dec_bins = np.sort(-cosz_bins)
+        self._dec_bins = np.arcsin(self._sin_dec_bins)
+        # self._declination_bin_edges = np.sort(self._dec_aeff_bins) # np.sort(np.union1d(np.deg2rad([-90, -10, 10, 90]), self._dec_aeff_bins))
         if bins is None:
-            self._ereco_bins = np.linspace(1, 9, num=50)
+            self._ereco_bins = np.linspace(1, 8, num=50)
         else:
             self._ereco_bins = bins
         self.make_hist()
@@ -416,10 +418,10 @@ class DataDrivenBackgroundEnergyLikelihood(MarginalisedEnergyLikelihood):
         """
 
         log_ereco = np.log10(energy)
-        dec_idx = np.digitize(dec, self._declination_bin_edges) - 1
+        sin_dec_idx = np.digitize(np.sin(dec), self._sin_dec_bins) - 1
         energy_idx = np.digitize(log_ereco, self._ereco_bins) - 1
 
-        return self._likelihood[dec_idx, energy_idx]
+        return self._likelihood[sin_dec_idx, energy_idx]
 
 
     def make_hist(self):
@@ -427,15 +429,16 @@ class DataDrivenBackgroundEnergyLikelihood(MarginalisedEnergyLikelihood):
         Create pdf-histograms
         """
 
-        self._likelihood = np.zeros((self._declination_bin_edges.size-1, self._ereco_bins.size-1))
+        self._likelihood = np.zeros((self._sin_dec_bins.size-1, self._ereco_bins.size-1))
         self._rv_histogram = []
-        self._costheta_bin_edges = np.sort(np.cos(np.pi / 2 - self._declination_bin_edges))
+        self._costheta_bin_edges = np.sort(np.cos(np.pi / 2 - self._dec_bins))
         # Use real data to create pdf of the cos(theta) distribution
         # Use cos(theta) for easier sampling on a sphere, is converted to dec in simulator
         self._costheta_rv_histogram = rv_histogram(np.histogram(np.cos(np.pi/2 - self._events.dec[self._period]), self._costheta_bin_edges), density=True)
 
         # Loop over declination bins and create ereco distribution for each bin
-        for c, (dec_l, dec_h) in enumerate(zip(self._declination_bin_edges[:-1], self._declination_bin_edges[1:])):
+        # both sin(dec) and dec increase monotically, so one loop for both is fine
+        for c, (dec_l, dec_h) in enumerate(zip(self._dec_bins[:-1], self._dec_bins[1:])):
             self._events.restrict(dec_low=dec_l, dec_high=dec_h)
             llh, bins = np.histogram(
                     np.log10(self._events.reco_energy[self._period]),
@@ -448,6 +451,14 @@ class DataDrivenBackgroundEnergyLikelihood(MarginalisedEnergyLikelihood):
                 self._rv_histogram.append(rv_histogram((llh, bins), density=True))
             else:
                 self._rv_histogram.append(0)
+        self._events.restrict()
+        # 1st value is declination, 2nd value is energy
+        self.hist_2d, _, _ = np.histogram2d(
+            self._events.dec[self._period],
+            np.log10(self._events.reco_energy[self._period]),
+            [self._sin_dec_bins, self._ereco_bins],
+            density=True
+        )
 
 
 
@@ -457,14 +468,17 @@ class DataDrivenBackgroundEnergyLikelihood(MarginalisedEnergyLikelihood):
         :param dec: np.ndarray of declinations of events
         :return: Samples drawn from the pdfs of corresponding declination bin
         """
-
+        
         output = np.zeros_like(dec)
-        dec_idx = np.digitize(dec, self._declination_bin_edges) - 1
-        for d_c in range(self._declination_bin_edges.size-1):
-            idx = np.nonzero(dec_idx==d_c)
+        sin_dec_idx = np.digitize(np.sin(dec), self._sin_dec_bins) - 1
+        for sd_c in range(self._sin_dec_bins.size-1):
+            idx = np.nonzero(sin_dec_idx==sd_c)
             size = idx[0].size
-            output[idx] = self._rv_histogram[d_c].rvs(size=size, random_state=seed)
+            output[idx] = self._rv_histogram[sd_c].rvs(size=size, random_state=seed)
         return output
+        
+        # output = np.zeros_like(dec)
+
 
     
 

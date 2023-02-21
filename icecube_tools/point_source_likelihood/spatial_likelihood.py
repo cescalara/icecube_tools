@@ -1,6 +1,10 @@
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import Tuple
+from scipy.stats import rv_histogram
+
+from ..utils.data import RealEvents
+from ..detector.effective_area import EffectiveArea
 
 
 """
@@ -82,6 +86,32 @@ class EventDependentSpatialGaussianLikelihood(SpatialLikelihood):
         dist = np.exp(-0.5 * (r / sigma_rad) ** 2)
 
         return norm * dist
+
+
+class DataDrivenBackgroundSpatialLikelihood(SpatialLikelihood):
+    """
+    Class using data to calculate the background spatial likelihood,
+    instead of using 1 / (4pi) as one would naively use
+    """
+
+    def __init__(self, period: str):
+
+        self._period = period
+        self._events = RealEvents.from_event_files(period, use_all=True)
+        aeff = EffectiveArea.from_dataset("20210126", period)
+        cosz_bins = aeff.cos_zenith_bins
+        self._sin_dec_bins = np.sort(-cosz_bins)
+        self._dec_bins = np.arcsin(self._sin_dec_bins)
+        self.hist = np.histogram(np.sin(self._events.dec[self._period]),  bins=self._sin_dec_bins, density=True)
+        self.likelihood = rv_histogram(self.hist, density=True)
+
+
+    def __call__(self, dec: np.ndarray):
+        """
+        Returns likelihood for each provided event
+        """
+
+        return self.likelihood.pdf(np.sin(dec)) / (2 * np.pi)
 
 
 
