@@ -31,20 +31,20 @@ and detection simulations.
 """
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 
 class Simulator(SimEvents):
-    def __init__(self, sources, detector, period):
+    def __init__(self, sources, detector, period, seed=1234):
         """
         Class for handling simple neutrino production
         and detection simulations.
 
         :param sources: List of/single Source object.
         """
-        super().__init__()
-        logger.info("Instantiating simulation.")
+        super().__init__(seed=1234)
+        logger.debug("Instantiating simulation.")
         if not isinstance(sources, list):
             sources = [sources]
 
@@ -121,11 +121,11 @@ class Simulator(SimEvents):
 
         if not N:
 
-            self.N = np.random.poisson(sum(self._Nex))
+            self.N_events = np.random.poisson(sum(self._Nex))
 
         else:
 
-            self.N = int(N)
+            self.N_events = int(N)
 
         v_min = - self.max_cosz
         v_max = - self.min_cosz
@@ -138,7 +138,7 @@ class Simulator(SimEvents):
         self.coordinate = []
         self._ra = []
         self._dec = []
-        self._source_label = np.zeros(self.N, dtype=int)
+        self._source_label = np.zeros(self.N_events, dtype=int)
         self._ang_err = []        
 
         #During detector simulation, many events are discarded due to 
@@ -147,8 +147,8 @@ class Simulator(SimEvents):
         #the accepted ones.
 
         #TODO maybe change the factor to something spectral index dependent
-        num = self.N * 1000
-        label = np.random.choice(range(len(self.sources)), self.N, p=self._source_weights)
+        num = self.N_events * 1000
+        label = np.random.choice(range(len(self.sources)), self.N_events, p=self._source_weights)
         l_set = set(label)
         l_num = {i: np.argwhere(i == label).shape[0] for i in l_set}
         max_energy = {}
@@ -158,7 +158,7 @@ class Simulator(SimEvents):
         Etrue_d = {i: np.zeros(l_num[i]) for i in l_set}
         Earr_d = {i: np.zeros(l_num[i]) for i in l_set}
         
-        accepted = np.zeros(self.N, dtype=bool)
+        accepted = np.zeros(self.N_events, dtype=bool)
  
         #go over each source
         for i in l_set:
@@ -166,7 +166,7 @@ class Simulator(SimEvents):
 
             max_energy[i] = self.sources[i].flux_model._upper_energy
 
-            logger.info(f"source: {i}")
+            logger.debug(f"source: {i}")
 
             while True:
                 #check if data is needed, else break loop
@@ -261,12 +261,12 @@ class Simulator(SimEvents):
 
         if not N:
 
-            self.N = np.random.poisson(sum(self._Nex))
+            self.N_events = np.random.poisson(sum(self._Nex))
             logger.info("Random N.")
 
         else:
 
-            self.N = int(N)
+            self.N_events = int(N)
             logger.info("N provided.")
 
         v_min = - self.max_cosz
@@ -286,8 +286,8 @@ class Simulator(SimEvents):
         #the accepted ones.
 
         #TODO maybe change the factor to something spectral index dependent
-        num = self.N * 10
-        label = np.random.choice(range(len(self.sources)), self.N, p=self._source_weights)
+        num = self.N_events*10 if self.N_events*10 < 30000 else 30000
+        label = np.random.choice(range(len(self.sources)), self.N_events, p=self._source_weights)
         l_set = set(label)
         l_num = {i: np.argwhere(i == label).shape[0] for i in l_set}
         max_energy = {}
@@ -297,9 +297,8 @@ class Simulator(SimEvents):
         Etrue_d = {i: np.zeros(l_num[i]) for i in l_set}
         Earr_d = {i: np.zeros(l_num[i]) for i in l_set}
         
-        accepted = np.zeros(self.N, dtype=bool)
         if show_progress:
-            progress = progress_bar(range(self.N), desc="Sampling", position=0, leave=True)
+            progress = progress_bar(range(self.N_events), desc="Sampling", position=0, leave=True)
         #go over each source
         for i in l_set:
             #simulate until appropriate number of events is accepted
@@ -307,7 +306,8 @@ class Simulator(SimEvents):
             max_energy[i] = self.sources[i].flux_model._upper_energy
             
             logger.info(f"Simulating source {i}")
-            while True:
+            not_done = True
+            while not_done:
                 #check if data is needed, else break loop
                 where_zero = np.argwhere(Etrue_d[i] == 0.)
                 if where_zero.size == 0:
@@ -356,7 +356,7 @@ class Simulator(SimEvents):
                 else:
                     start = np.min(where_zero)
                     end = start + idx[0].size
-                    # print("start:end", start, end)
+                    # 
                     try:
                         Etrue_d[i][start:end] = Etrue_[idx]
                         Earr_d[i][start:end] = Earr_[idx]
@@ -365,9 +365,12 @@ class Simulator(SimEvents):
                         logger.debug("All data placed.")
                         if show_progress:
                             progress.update(idx[0].size)
+                        num_samples = idx[0].size
+                        # print("start:end", start, end)
                     except (IndexError, ValueError):
                         logger.debug("Not enough slots, cutting short.")
                         remaining = np.argwhere(Etrue_d[i] == 0.).size
+                        end = start + remaining
                         # print("start:end", start, end)
                         # print("remaining:", remaining)
                         # print(Etrue_[idx][0:remaining])
@@ -378,99 +381,104 @@ class Simulator(SimEvents):
                         dec_d[i][start:] = dec_[idx][0:remaining]
                         if show_progress:
                             progress.update(remaining)
-                        break
-            # print("Sampling spectrum is done")
-            logger.info("Done sampling the spectrum") 
-            if not isinstance(self.detector.energy_resolution, R2021IRF):
-                logger.info("Sampled reco energy")
-                Ereco = self.detector.energy_resolution.sample(Earr_d[i])
-                #this and all following try-except TypeError blocks
-                #are needed if only a single event is sampled
-                #then list() will not work bc float is not an iterable
-                try:
-                    self._reco_energy += list(Ereco)           
-                except TypeError:
-                    self._reco_energy += [Ereco]
+                        not_done = False
+                    finally:
+                        if not isinstance(self.detector.energy_resolution, R2021IRF):
+                            logger.debug("Sampled reco energy")
+                            Ereco = self.detector.energy_resolution.sample(Earr_d[i][start:end])
+                            #this and all following try-except TypeError blocks
+                            #are needed if only a single event is sampled
+                            #then list() will not work bc float is not an iterable
+                            try:
+                                self._reco_energy += list(Ereco)           
+                            except TypeError:
+                                self._reco_energy += [Ereco]
 
-            #do source type specific things here
-            if self.sources[i].source_type == DIFFUSE:
+                        #do source type specific things here
+                        if self.sources[i].source_type == DIFFUSE:
 
-                logger.info("Sampling angular uncertainty for diffuse source")
-                if isinstance(self.detector.angular_resolution, R2021IRF):
-                    _, _, reco_ang_err, Ereco = self.detector.angular_resolution.sample(
-                        (ra_d[i], dec_d[i]), np.log10(Earr_d[i]), seed=seed
-                    )
-                    try:
-                        self._ang_err += list(reco_ang_err)
-                        self._reco_energy += list(Ereco)
-                    except TypeError as e:
-                        print(e)
-                        self._ang_err += [reco_ang_err]
-                        self._reco_energy += [Ereco]
-                        
-                elif isinstance(self.detector.angular_resolution, AngularResolution):
-                    reco_ang_err = self.detector.angular_resolution.get_ret_ang_err(
-                        Earr_d[i]
-                    )
-                    try:
-                        self._ang_err += list(reco_ang_err)
-                    except TypeError:
-                        self._ang_err += [reco_ang_err]
-                elif isinstance(
-                    self.detector.angular_resolution, FixedAngularResolution
-                ):
-                    reco_ang_err = self.detector.angular_resolution.ret_ang_err
-                    #TODO fix
-                    temp = [reco_ang_err] * l_num[i]
+                            logger.debug("Sampling angular uncertainty for diffuse source")
+                            if isinstance(self.detector.angular_resolution, R2021IRF):
+                                _, _, reco_ang_err, Ereco = self.detector.angular_resolution.sample(
+                                    (ra_d[i][start:end], dec_d[i][start:end]),
+                                    np.log10(Earr_d[i][start:end]),
+                                    seed=seed
+                                )
+                                try:
+                                    self._ang_err += list(reco_ang_err)
+                                    self._reco_energy += list(Ereco)
+                                except TypeError as e:
+                                    print(e)
+                                    self._ang_err += [reco_ang_err]
+                                    self._reco_energy += [Ereco]
+                                    
+                            elif isinstance(self.detector.angular_resolution, AngularResolution):
+                                reco_ang_err = self.detector.angular_resolution.get_ret_ang_err(
+                                    Earr_d[i][start:end]
+                                )
+                                try:
+                                    self._ang_err += list(reco_ang_err)
+                                except TypeError:
+                                    self._ang_err += [reco_ang_err]
+                            elif isinstance(
+                                self.detector.angular_resolution, FixedAngularResolution
+                            ):
+                                reco_ang_err = self.detector.angular_resolution.ret_ang_err
+                                #TODO fix
+                                logger.warning("Fixed angular resolution not tested, proceed at your own risk!")
+                                temp = [reco_ang_err] * l_num[i]
 
-                try:
-                    self._dec += list(dec_d[i])
-                    self._ra += list(ra_d[i])
-                except TypeError:
-                    self._dec += [dec_d[i]]
-                    self._ra += [ra_d[i]]
-                logger.info("Sampled angular uncertainty for diffuse source")
+                            try:
+                                self._dec += list(dec_d[i][start:end])
+                                self._ra += list(ra_d[i][start:end])
+                            except TypeError:
+                                self._dec += [dec_d[i]]
+                                self._ra += [ra_d[i]]
+                            logger.debug("Sampled angular uncertainty for diffuse source")
 
-            else:
+                        else:
 
-                logger.info("Sampling angular uncertainty for point source")
-                if isinstance(self.detector.angular_resolution, R2021IRF):
-                    #loop over events handled inside R2021IRF
-                    reco_ra, reco_dec, reco_ang_err, Ereco  = self.detector.angular_resolution.sample(
-                        (ra_d[i], dec_d[i]), np.log10(Earr_d[i]), seed=seed)
-                    self._reco_energy += list(Ereco)
+                            logger.debug("Sampling angular uncertainty for point source")
+                            if isinstance(self.detector.angular_resolution, R2021IRF):
+                                #loop over events handled inside R2021IRF
+                                reco_ra, reco_dec, reco_ang_err, Ereco = self.detector.angular_resolution.sample(
+                                    (ra_d[i][start:end], dec_d[i][start:end]),
+                                    np.log10(Earr_d[i][start:end]),
+                                    seed=seed)
+                                self._reco_energy += list(Ereco)
 
-                elif isinstance(self.detector.angular_resolution, AngularResolution):
-                    reco_ra, reco_dec = self.detector.angular_resolution.sample(
-                        Earr_d[i], (ra_d[i], dec_d[i])
-                    )
-                    reco_ang_err = self.detector.angular_resolution.ret_ang_err
+                            elif isinstance(self.detector.angular_resolution, AngularResolution):
+                                reco_ra, reco_dec = self.detector.angular_resolution.sample(
+                                    Earr_d[i][start:end],
+                                    (ra_d[i][start:end], dec_d[i][start:end])
+                                )
+                                reco_ang_err = self.detector.angular_resolution.ret_ang_err
 
-                elif isinstance(
-                    self.detector.angular_resolution, FixedAngularResolution
-                ):
-                    reco_ra, reco_dec = self.detector.angular_resolution.sample(
-                        (ra_d[i], dec_d[i])
-                    )
-                    reco_ang_err = self.detector.angular_resolution.ret_ang_err
-                try:
-                    self._ang_err +=list(reco_ang_err)
-                    self._dec += list(reco_dec)
-                    self._ra += list(reco_ra)
-                except TypeError as e:
-                    print(e)
-                    self._ang_err += [reco_ang_err]
-                    self._dec += [reco_dec]
-                    self._ra += [reco_ra]
-                logger.info("Sampled angular uncertainty for point source")
+                            elif isinstance(
+                                self.detector.angular_resolution, FixedAngularResolution
+                            ):
+                                reco_ra, reco_dec = self.detector.angular_resolution.sample(
+                                    (ra_d[i][start:end], dec_d[i][start:end])
+                                )
+                                reco_ang_err = self.detector.angular_resolution.ret_ang_err
+                            try:
+                                self._ang_err +=list(reco_ang_err)
+                                self._dec += list(reco_dec)
+                                self._ra += list(reco_ra)
+                            except TypeError as e:
+                                print(e)
+                                self._ang_err += [reco_ang_err]
+                                self._dec += [reco_dec]
+                                self._ra += [reco_ra]
+                            logger.debug("Sampled angular uncertainty for point source")
 
-        logger.info("Creating array of simulation data")  
+        logger.debug("Creating array of simulation data")  
         self._true_energy = np.concatenate(tuple(Etrue_d[k] for k in Earr_d.keys()))
         self._arrival_energy = np.concatenate(tuple(Earr_d[k] for k in Earr_d.keys()))
         self._source_label = np.concatenate(tuple(np.full(l_num[l], l, dtype=int) for l in Earr_d.keys()))
         if show_progress:
             progress.close()
-        logger.info("Created array of simulation data")
+        logger.debug("Created array of simulation data")
 
         self._ra = {self._period: np.array(self._ra)}
         self._dec = {self._period: np.array(self._dec)}
@@ -577,7 +585,7 @@ class Braun2008Simulator:
         :param N: Number of events to simulate.
         """
 
-        self.N = N
+        self.N_events = N
 
         self._true_energy = []
         self._reco_energy = []
@@ -594,7 +602,7 @@ class Braun2008Simulator:
         max_energy = self.source.flux_model._upper_energy
 
         for i in progress_bar(
-            range(self.N), desc="Sampling", disable=(not show_progress)
+            range(self.N_events), desc="Sampling", disable=(not show_progress)
         ):
 
             accepted = False
@@ -725,7 +733,7 @@ class TimeDependentSimulator(SimEvents):
         """
 
         for p, sim in self.simulators.items():
-            logger.info(f"Simulating period {p}.")
+            logger.debug(f"Simulating period {p}.")
             if N:
                 sim.run(N=N[p], seed=seed, show_progress=show_progress)
             else:
@@ -800,6 +808,28 @@ class TimeDependentSimulator(SimEvents):
         self._sources = source_list
         for sim in self.simulators.values():
             sim._sources = source_list
+
+
+    @property
+    def max_cosz(self):
+        return self.simulators[self.periods[0]].max_cosz
+
+
+    @max_cosz.setter
+    def max_cosz(self, value):
+        for p in self.periods:
+            self.simulators[p].max_cosz = value
+
+
+    @property
+    def min_cosz(self):
+        return self.simulators[self.periods[0]].min_cosz
+
+
+    @min_cosz.setter
+    def min_cosz(self, value):
+        for p in self.periods:
+            self.simulators[p].min_cosz = value
 
 
     

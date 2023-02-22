@@ -49,8 +49,8 @@ class DummyPDF():
             return 0.
 
 
-    #def rvs(self, size=1, random_state=42):
-    #    return
+    def rvs(self, size=1, random_state=42):
+        raise NotImplementedError("Dummies cannot be sampled from!")
 
 
 class R2021IRF(EnergyResolution, AngularResolution):
