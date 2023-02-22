@@ -7,7 +7,7 @@ jupyter:
       format_version: '1.3'
       jupytext_version: 1.14.4
   kernelspec:
-    display_name: Python 3 (ipykernel)
+    display_name: icecube_dev
     language: python
     name: python3
 ---
@@ -33,7 +33,7 @@ events = SimEvents.load_from_h5("multi_test.hdf5")
 Events can span multiple data seasons. For each season, one entry is stored in `periods`.
 
 ```python
-events.periods
+events._data_periods
 ```
 
 The properties of the event are stored as properties. A list of all data fields is accessible through

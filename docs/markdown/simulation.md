@@ -7,7 +7,7 @@ jupyter:
       format_version: '1.3'
       jupytext_version: 1.14.4
   kernelspec:
-    display_name: Python 3 (ipykernel)
+    display_name: icecube_dev
     language: python
     name: python3
 ---

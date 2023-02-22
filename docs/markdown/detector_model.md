@@ -5,9 +5,9 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.13.8
+      jupytext_version: 1.14.4
   kernelspec:
-    display_name: Python 3 (ipykernel)
+    display_name: icecube_dev
     language: python
     name: python3
 ---
@@ -70,7 +70,7 @@ ax.set_xscale("log")
 ax.set_xlim(1e2, 1e9)
 ax.set_xlabel("True energy [GeV]")
 ax.set_ylabel("cos(zenith)")
-cbar.set_label("Aeff [m^2]")
+cbar.set_label("Aeff [m$^2$]")
 ```
 
 ### Energy resolution
@@ -218,7 +218,7 @@ cbar = fig.colorbar(h)
 ax.set_xscale("log")
 ax.set_xlabel("True energy [GeV]")
 ax.set_ylabel("cos(zenith)")
-cbar.set_label("Aeff [m^2]")
+cbar.set_label("Aeff [m$^2$]")
 ```
 
 ```python
@@ -263,7 +263,7 @@ cbar = fig.colorbar(h)
 ax.set_xscale("log")
 ax.set_xlabel("True energy [GeV]")
 ax.set_ylabel("cos(zenith)")
-cbar.set_label("Aeff [m^2]")
+cbar.set_label("Aeff [m$^2$]")
 ```
 
 ```python

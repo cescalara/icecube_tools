@@ -5,9 +5,9 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.13.8
+      jupytext_version: 1.14.4
   kernelspec:
-    display_name: Python 3 (ipykernel)
+    display_name: icecube_dev
     language: python
     name: python3
 ---
@@ -52,7 +52,7 @@ ax.axvline(norm_energy, color="k", linestyle=":")
 ax.set_xscale("log")
 ax.set_yscale("log")
 ax.set_xlabel("E [GeV]")
-ax.set_ylabel("F [GeV^-1 cm^-2 s^-1 (sr^-1)]");
+ax.set_ylabel("F $[GeV^-1 cm^-2 s^-1 (sr^-1)]$");
 ```
 
 We can also use the `PowerLawFlux` class to perform some simple calculations, such as integration of the flux.
