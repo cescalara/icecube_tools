@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>icecube_tools.point_source_analysis.point_source_analysis module &mdash; icecube_tools v3.2 documentation</title>
@@ -11,10 +11,8 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -30,11 +28,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> icecube_tools
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            icecube_tools
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -69,7 +71,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="api.html">API</a></li>
           <li class="breadcrumb-item"><a href="icecube_tools.html">icecube_tools package</a></li>
           <li class="breadcrumb-item"><a href="icecube_tools.point_source_analysis.html">icecube_tools.point_source_analysis package</a></li>
@@ -124,6 +126,15 @@ in terms of masked properties. All data stored in private variables
 stays in place.</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.point_source_analysis.point_source_analysis.MapScan.combine_outputs">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">combine_outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events" title="icecube_tools.utils.data.Events"><span class="pre">Events</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_analysis.point_source_analysis.MapScan.combine_outputs" title="Permalink to this definition"></a></dt>
+<dd><p>Wrapper for <cite>load_output</cite> to load and combine multiple data sets.
+The task of checking for the correct declination is delegated to the user. #TODO check if check  works
+:param paths: Paths to files whose output should be combined
+:return: Dict of combined data</p>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="icecube_tools.point_source_analysis.point_source_analysis.MapScan.config_structure">
 <span class="sig-name descname"><span class="pre">config_structure</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'data':</span> <span class="pre">{'cuts':</span> <span class="pre">{'equator':</span> <span class="pre">{'emin':</span> <span class="pre">&lt;class</span> <span class="pre">'float'&gt;},</span> <span class="pre">'max_dec':</span> <span class="pre">&lt;class</span> <span class="pre">'float'&gt;,</span> <span class="pre">'min_dec':</span> <span class="pre">&lt;class</span> <span class="pre">'float'&gt;,</span> <span class="pre">'northern':</span> <span class="pre">{'emin':</span> <span class="pre">&lt;class</span> <span class="pre">'float'&gt;},</span> <span class="pre">'southern':</span> <span class="pre">{'emin':</span> <span class="pre">&lt;class</span> <span class="pre">'float'&gt;}},</span> <span class="pre">'likelihood':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;,</span> <span class="pre">'periods':</span> <span class="pre">&lt;class</span> <span class="pre">'list'&gt;},</span> <span class="pre">'sources':</span> <span class="pre">{'dec':</span> <span class="pre">&lt;class</span> <span class="pre">'list'&gt;,</span> <span class="pre">'npix':</span> <span class="pre">&lt;class</span> <span class="pre">'int'&gt;,</span> <span class="pre">'nside':</span> <span class="pre">&lt;class</span> <span class="pre">'int'&gt;,</span> <span class="pre">'ra':</span> <span class="pre">&lt;class</span> <span class="pre">'list'&gt;},</span> <span class="pre">'ts':</span> <span class="pre">{'ntrials':</span> <span class="pre">&lt;class</span> <span class="pre">'int'&gt;,</span> <span class="pre">'seed':</span> <span class="pre">&lt;class</span> <span class="pre">'int'&gt;}}</span></em><a class="headerlink" href="#icecube_tools.point_source_analysis.point_source_analysis.MapScan.config_structure" title="Permalink to this definition"></a></dt>
@@ -146,9 +157,18 @@ Provided ra, dec lists take priority over npix and nside.
 
 <dl class="py method">
 <dt class="sig sig-object py" id="icecube_tools.point_source_analysis.point_source_analysis.MapScan.load_output">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events" title="icecube_tools.utils.data.Events"><span class="pre">Events</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_analysis.point_source_analysis.MapScan.load_output" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events" title="icecube_tools.utils.data.Events"><span class="pre">Events</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_analysis.point_source_analysis.MapScan.load_output" title="Permalink to this definition"></a></dt>
 <dd><p>Load previously saved hdf5 file
-:param path: Path to hdf5 file</p>
+:param path: Path to hdf5 file
+:param events: If provided, create <cite>MapScan</cite> and return it, else return <cite>dict</cite> with data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.point_source_analysis.point_source_analysis.MapScan.make_p_values">
+<span class="sig-name descname"><span class="pre">make_p_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_base</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#icecube_tools.point_source_analysis.point_source_analysis.MapScan.make_p_values" title="Permalink to this definition"></a></dt>
+<dd><p>Method to load output of <cite>MapScanTSDistribution</cite> and use it to create p_values from all TS values.
+:param file_base: str of file names common to all results of <cite>MapScanTSDistribution</cite> outputs
+:return: np.ndarray of p_values of shape <cite>self.ts.shape</cite></p>
 </dd></dl>
 
 <dl class="py method">
@@ -186,7 +206,9 @@ Inherhits from the ‘normal’ MapScan.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="icecube_tools.point_source_analysis.point_source_analysis.MapScanTSDistribution.perform_scan">
 <span class="sig-name descname"><span class="pre">perform_scan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minos</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_analysis.point_source_analysis.MapScanTSDistribution.perform_scan" title="Permalink to this definition"></a></dt>
-<dd><p>Perform multiple (<cite>ntrials</cite>) fits of the same declination</p>
+<dd><p>Perform multiple (<cite>ntrials</cite>) fits of the same declination.
+:param show_progress: Bool, if True progress bar is shown, defaults to False
+:param minos: Bool, if True minos error calculation is carried out, defaults to False</p>
 </dd></dl>
 
 </dd></dl>
@@ -206,6 +228,14 @@ Inherhits from the ‘normal’ MapScan.</p>
 <dt class="sig sig-object py" id="icecube_tools.point_source_analysis.point_source_analysis.PointSourceAnalysis.load_config">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_analysis.point_source_analysis.PointSourceAnalysis.load_config" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.point_source_analysis.point_source_analysis.PointSourceAnalysis.peek">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">peek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_analysis.point_source_analysis.PointSourceAnalysis.peek" title="Permalink to this definition"></a></dt>
+<dd><p>Load previously saved hdf5 file
+:param path: Path to hdf5 file
+:param events: If provided, create <cite>MapScan</cite> and return it, else return <cite>dict</cite> with data</p>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="icecube_tools.point_source_analysis.point_source_analysis.PointSourceAnalysis.which">

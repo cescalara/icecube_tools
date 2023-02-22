@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Point source likelihood &mdash; icecube_tools v3.2 documentation</title>
@@ -11,10 +11,8 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -32,11 +30,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> icecube_tools
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            icecube_tools
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -77,7 +79,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Point source likelihood</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/notebooks/point_source_likelihood.ipynb.txt" rel="nofollow"> View page source</a>
@@ -442,7 +444,7 @@ Also, there may be a temporal dependence added, but this is not yet implemented 
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7ff296af28b0&gt;
+&lt;matplotlib.legend.Legend at 0x7f3e706acd30&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -524,7 +526,7 @@ array([1.        , 1.33333333, 1.66666667, 2.        , 2.33333333,
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7ff28a61c0d0&gt;
+&lt;matplotlib.legend.Legend at 0x7f3e703c9d60&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -587,7 +589,7 @@ Resetting rng
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(204, 175, 45)
+(204, 163, 35)
 </pre></div></div>
 </div>
 <p>We also note that the background likelihood is implemented automatically, for more information on the options here, check out the API docs. This is just a function of energy, with a constant factor to account for the isotropic directional likelihood.</p>
@@ -644,7 +646,7 @@ Text(0, 0.5, &#39;Background likelihood&#39;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-301.3139234907952
+320.64352705110747
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -661,7 +663,7 @@ Text(0, 0.5, &#39;Background likelihood&#39;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-45
+35
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -678,8 +680,8 @@ Text(0, 0.5, &#39;Background likelihood&#39;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(&lt;ValueView ns=26.16368270773888 index=2.549932793927467 weight=0.0 index_astro=2.5 index_atmo=3.7&gt;,
- &lt;ErrorView ns=4.739103236206084 index=0.21087007989256912 weight=0.05 index_astro=0.1 index_atmo=0.1&gt;)
+(&lt;ValueView ns=25.899254939833437 index=2.3119196231608368 weight=0.0 index_astro=2.5 index_atmo=3.7&gt;,
+ &lt;ErrorView ns=4.6726503766395755 index=0.18926382870697167 weight=0.05 index_astro=0.1 index_atmo=0.1&gt;)
 </pre></div></div>
 </div>
 <p>To understand the significance of this results, we would have to calculate the test statistic for a large number of background-only simulations. These could then be used to calculate a p-value. Given there is a strong point source in the simulation we used, we can expect the test stastic to be lower if we remove the source events. Let’s try this:</p>
@@ -694,7 +696,6 @@ Text(0, 0.5, &#39;Background likelihood&#39;)
 <span class="c1"># Remove them one by one and find test statistic</span>
 <span class="n">test_statistics</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">n_rm</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntot_ps_events</span><span class="p">):</span>
-
     <span class="n">i_keep</span> <span class="o">=</span> <span class="p">(</span><span class="n">ntot_ps_events</span> <span class="o">-</span> <span class="n">n_rm</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
     <span class="n">ps_sel</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ps_sel</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="n">i_keep</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -780,8 +781,8 @@ True
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                                Migrad                                   │
 ├──────────────────────────────────┬──────────────────────────────────────┤
-│ FCN = -150.7                     │              Nfcn = 37               │
-│ EDM = 1.38e-07 (Goal: 0.0001)    │            time = 0.3 sec            │
+│ FCN = -160.3                     │              Nfcn = 48               │
+│ EDM = 9.12e-07 (Goal: 0.0001)    │            time = 0.2 sec            │
 ├──────────────────────────────────┼──────────────────────────────────────┤
 │          Valid Minimum           │        No Parameters at limit        │
 ├──────────────────────────────────┼──────────────────────────────────────┤
@@ -792,8 +793,8 @@ True
 ┌───┬─────────────┬───────────┬───────────┬────────────┬────────────┬─────────┬─────────┬───────┐
 │   │ Name        │   Value   │ Hesse Err │ Minos Err- │ Minos Err+ │ Limit-  │ Limit+  │ Fixed │
 ├───┼─────────────┼───────────┼───────────┼────────────┼────────────┼─────────┼─────────┼───────┤
-│ 0 │ ns          │    26     │     5     │            │            │    0    │   175   │       │
-│ 1 │ index       │   2.55    │   0.21    │            │            │   1.5   │   4.5   │       │
+│ 0 │ ns          │    26     │     5     │            │            │    0    │   163   │       │
+│ 1 │ index       │   2.31    │   0.19    │            │            │   1.5   │   4.5   │       │
 │ 2 │ weight      │   0.00    │   0.05    │            │            │    0    │    1    │  yes  │
 │ 3 │ index_astro │    2.5    │    0.1    │            │            │   1.5   │   4.5   │  yes  │
 │ 4 │ index_atmo  │    3.7    │    0.1    │            │            │   1.5   │   4.5   │  yes  │
@@ -801,8 +802,8 @@ True
 ┌─────────────┬─────────────────────────────────────────────────────────────┐
 │             │          ns       index      weight index_astro  index_atmo │
 ├─────────────┼─────────────────────────────────────────────────────────────┤
-│          ns │        22.5     0.00686           0           0           0 │
-│       index │     0.00686      0.0448           0           0           0 │
+│          ns │        21.9     0.00233           0           0           0 │
+│       index │     0.00233      0.0361           0           0           0 │
 │      weight │           0           0           0           0           0 │
 │ index_astro │           0           0           0           0           0 │
 │  index_atmo │           0           0           0           0           0 │
@@ -980,7 +981,7 @@ data/p_IC86_II_index_3.9.h5
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-332.0715258930535
+374.39717241317146
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -1046,7 +1047,7 @@ data/p_IC86_II_index_3.9.h5
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Text(0.5, 1.0, &#39;index = 2.5 - 0.2 + 0.2&#39;)
+Text(0.5, 1.0, &#39;index = 2.3 - 0.2 + 0.2&#39;)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1106,12 +1107,12 @@ Resetting rng
         <th colspan="5" style="text-align:center" title="Minimizer"> Migrad </th>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:left" title="Minimum value of function"> FCN = -142.9 </td>
-        <td colspan="3" style="text-align:center" title="Total number of function and (optional) gradient evaluations"> Nfcn = 58 </td>
+        <td colspan="2" style="text-align:left" title="Minimum value of function"> FCN = -156.8 </td>
+        <td colspan="3" style="text-align:center" title="Total number of function and (optional) gradient evaluations"> Nfcn = 56 </td>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:left" title="Estimated distance to minimum and goal"> EDM = 3.39e-08 (Goal: 0.0001) </td>
-        <td colspan="3" style="text-align:center" title="Total run time of algorithms"> time = 0.2 sec </td>
+        <td colspan="2" style="text-align:left" title="Estimated distance to minimum and goal"> EDM = 3.49e-07 (Goal: 0.0001) </td>
+        <td colspan="3" style="text-align:center" title="Total run time of algorithms">  </td>
     </tr>
     <tr>
         <td colspan="2" style="text-align:center;background-color:#92CCA6;color:black"> Valid Minimum </td>
@@ -1148,35 +1149,101 @@ Resetting rng
         <td>  </td>
         <td>  </td>
         <td> 0 </td>
-        <td> 106 </td>
+        <td> 87 </td>
         <td>  </td>
     </tr>
     <tr>
         <th> 1 </th>
         <td> index </td>
-        <td> 2.54 </td>
-        <td> 0.21 </td>
+        <td> 2.31 </td>
+        <td> 0.19 </td>
         <td>  </td>
         <td>  </td>
         <td> 1.5 </td>
         <td> 5 </td>
         <td>  </td>
     </tr>
+    <tr>
+        <th> 2 </th>
+        <td> weight </td>
+        <td> 0.0 </td>
+        <td> 0.1 </td>
+        <td>  </td>
+        <td>  </td>
+        <td> 0 </td>
+        <td> 1 </td>
+        <td> yes </td>
+    </tr>
+    <tr>
+        <th> 3 </th>
+        <td> index_astro </td>
+        <td> 2.5 </td>
+        <td> 0.1 </td>
+        <td>  </td>
+        <td>  </td>
+        <td> 1.5 </td>
+        <td> 5 </td>
+        <td> yes </td>
+    </tr>
+    <tr>
+        <th> 4 </th>
+        <td> index_atmo </td>
+        <td> 3.7 </td>
+        <td> 0.1 </td>
+        <td>  </td>
+        <td>  </td>
+        <td> 1.5 </td>
+        <td> 5 </td>
+        <td> yes </td>
+    </tr>
 </table><table>
     <tr>
         <td></td>
         <th> ns </th>
         <th> index </th>
+        <th> weight </th>
+        <th> index_astro </th>
+        <th> index_atmo </th>
     </tr>
     <tr>
         <th> ns </th>
-        <td> 19.7 </td>
-        <td style="background-color:rgb(250,250,250);color:black"> 0.00195 </td>
+        <td> 18.3 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0.00243 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
     </tr>
     <tr>
         <th> index </th>
-        <td style="background-color:rgb(250,250,250);color:black"> 0.00195 </td>
-        <td> 0.0447 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0.00243 </td>
+        <td> 0.0361 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+    </tr>
+    <tr>
+        <th> weight </th>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+        <td> 0 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+    </tr>
+    <tr>
+        <th> index_astro </th>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+        <td> 0 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+    </tr>
+    <tr>
+        <th> index_atmo </th>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
+        <td> 0 </td>
     </tr>
 </table></div>
 </div>
@@ -1229,11 +1296,11 @@ Resetting rng
         <th colspan="5" style="text-align:center" title="Minimizer"> Migrad </th>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:left" title="Minimum value of function"> FCN = 102.1 </td>
-        <td colspan="3" style="text-align:center" title="Total number of function and (optional) gradient evaluations"> Nfcn = 11 </td>
+        <td colspan="2" style="text-align:left" title="Minimum value of function"> FCN = 84.14 </td>
+        <td colspan="3" style="text-align:center" title="Total number of function and (optional) gradient evaluations"> Nfcn = 20 </td>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:left" title="Estimated distance to minimum and goal"> EDM = 1.25e-05 (Goal: 0.0001) </td>
+        <td colspan="2" style="text-align:left" title="Estimated distance to minimum and goal"> EDM = 1.49e-07 (Goal: 0.0001) </td>
         <td colspan="3" style="text-align:center" title="Total run time of algorithms">  </td>
     </tr>
     <tr>
@@ -1288,8 +1355,8 @@ Resetting rng
     <tr>
         <th> 2 </th>
         <td> index_atmo </td>
-        <td> 3.33 </td>
-        <td> 0.20 </td>
+        <td> 2.78 </td>
+        <td> 0.13 </td>
         <td>  </td>
         <td>  </td>
         <td> 1.5 </td>
@@ -1319,7 +1386,7 @@ Resetting rng
         <th> index_atmo </th>
         <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
         <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
-        <td> 0.0385 </td>
+        <td> 0.018 </td>
     </tr>
 </table></div>
 </div>

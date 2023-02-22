@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>icecube_tools.utils package &mdash; icecube_tools v3.2 documentation</title>
@@ -11,10 +11,8 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -30,11 +28,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> icecube_tools
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            icecube_tools
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -69,7 +71,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="api.html">API</a></li>
           <li class="breadcrumb-item"><a href="icecube_tools.html">icecube_tools package</a></li>
       <li class="breadcrumb-item active">icecube_tools.utils package</li>
@@ -126,6 +128,8 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="icecube_tools.utils.data.html">icecube_tools.utils.data module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events"><code class="docutils literal notranslate"><span class="pre">Events</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.N"><code class="docutils literal notranslate"><span class="pre">Events.N</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.N_restricted"><code class="docutils literal notranslate"><span class="pre">Events.N_restricted</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.ang_err"><code class="docutils literal notranslate"><span class="pre">Events.ang_err</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.dec"><code class="docutils literal notranslate"><span class="pre">Events.dec</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.load_from_h5"><code class="docutils literal notranslate"><span class="pre">Events.load_from_h5()</span></code></a></li>
@@ -133,6 +137,7 @@
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.periods"><code class="docutils literal notranslate"><span class="pre">Events.periods</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.ra"><code class="docutils literal notranslate"><span class="pre">Events.ra</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.reco_energy"><code class="docutils literal notranslate"><span class="pre">Events.reco_energy</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.restrict"><code class="docutils literal notranslate"><span class="pre">Events.restrict()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.scramble_ra"><code class="docutils literal notranslate"><span class="pre">Events.scramble_ra()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.seed"><code class="docutils literal notranslate"><span class="pre">Events.seed</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.Events.write_to_h5"><code class="docutils literal notranslate"><span class="pre">Events.write_to_h5()</span></code></a></li>
@@ -180,6 +185,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.crawl_delay"><code class="docutils literal notranslate"><span class="pre">crawl_delay()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.dddict"><code class="docutils literal notranslate"><span class="pre">dddict</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.dddict.max"><code class="docutils literal notranslate"><span class="pre">dddict.max()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.dddict.min"><code class="docutils literal notranslate"><span class="pre">dddict.min()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.ddict"><code class="docutils literal notranslate"><span class="pre">ddict</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="icecube_tools.utils.data.html#icecube_tools.utils.data.ddict.add"><code class="docutils literal notranslate"><span class="pre">ddict.add()</span></code></a></li>
 </ul>
