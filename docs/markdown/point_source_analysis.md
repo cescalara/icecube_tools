@@ -32,8 +32,8 @@ Then we create a MapScan() object with some configuration `config.yaml` in which
 ```python
 scan = MapScan(
     "config.yaml",
-    events,
-    "test_output.hdf5"
+    "test_output.hdf5",
+    events
 )
 ```
 
