@@ -1095,17 +1095,20 @@ class TimeDependentPointSourceLikelihood:
             create_e_llh = False
 
         for p in self._irf_periods:
-            self.nu_calcs[p] = NeutrinoCalculator(
-                [self.source],
-                self.tirf[p]._effective_area
-            )
-            #create likelihood objects
             if create_e_llh:
                 energy_llh[p] = MarginalisedIntegratedEnergyLikelihood(
                     p,
                     new_reco_bins,
                     self._min_index,
                     self._max_index)
+            
+            self.nu_calcs[p] = NeutrinoCalculator(
+                [self.source],
+                self.tirf[p]._effective_area,
+                energy_resolution=energy_llh[p] if create_e_llh else None
+            )
+            #create likelihood objects
+            
                 
             self.likelihoods[p] = PointSourceLikelihood(
                 spatial_llh,
@@ -1339,8 +1342,26 @@ class TimeDependentPointSourceLikelihood:
 
         return weights
 
+    
+    def ns_to_flux(self, ns: float, index: float):
+        """
+        Convert some given ns and spectral index to the average flux
+        over the detector livetime.
+        """
+
+        raise NotImplementedError
+        
+        
+    def _update_flux(self, flux):
+
+        raise NotImplementedError
+    
 
     def get_test_statistic(self):
+        """
+        Calculate test statistic
+        """
+
         self._minimize()
         neg_log_lik = self.minimize_this(self._best_fit_ns, self._best_fit_index)
         self.likelihood_ratio = np.exp(neg_log_lik)

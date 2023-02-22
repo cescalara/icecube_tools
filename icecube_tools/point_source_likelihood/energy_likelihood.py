@@ -88,10 +88,10 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         self._previous_index = None
         self._values = {}
         if self._irf_period == "IC86_II":
-            self._events = RealEvents.from_event_files("IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_II")
+            self._events = RealEvents.from_event_files("IC86_II", use_all=True)
         else:
             self._events = RealEvents.from_event_files(self._irf_period)
-        # self._get_ereco_cuts()
+        self._get_ereco_cuts()
 
         #pre-calculate cdf values
         self._cdf = np.zeros((self.true_energy_bins.size - 1, 3, self.reco_bins.size - 1))
@@ -208,7 +208,7 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
             )
         ):
             self._events.restrict(dec_low=dec_low, dec_high=dec_high)
-            ereco = self._events.reco_energy["IC86_II"]
+            ereco = self._events.reco_energy[self._irf_period]
             self._ereco_limits[c, 0] = np.log10(ereco.min())
             self._ereco_limits[c, 1] = np.log10(ereco.max())
 
@@ -223,16 +223,15 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         log_etrue = np.log10(Etrue)
         dec_idx_aeff = np.digitize(dec, self.declination_bins_aeff) - 1
         ereco_low = self._ereco_limits[dec_idx_aeff, 0]
-        ereco_high = self._ereco_limits[dec_idx_aeff, 1]
+        # ereco_high = self._ereco_limits[dec_idx_aeff, 1]
+        # only use lower energy bound, as per the IceCubes
 
         dec_idx_irf = np.digitize(dec, self._irf.declination_bins) - 1
         etrue_idx = np.digitize(log_etrue, self._irf.true_energy_bins) - 1
 
         # pdf is self._irf.reco_energy[]
         cdf = self._irf.reco_energy[etrue_idx, dec_idx_irf].cdf
-        return cdf(ereco_high) - cdf(ereco_low)
-
-
+        return 1. - cdf(ereco_low)
 
 
     @staticmethod
@@ -461,7 +460,6 @@ class DataDrivenBackgroundEnergyLikelihood(MarginalisedEnergyLikelihood):
         )
 
 
-
     def sample(self, dec, seed=42):
         """
         Sample from pdfs
@@ -476,10 +474,6 @@ class DataDrivenBackgroundEnergyLikelihood(MarginalisedEnergyLikelihood):
             size = idx[0].size
             output[idx] = self._rv_histogram[sd_c].rvs(size=size, random_state=seed)
         return output
-        
-        # output = np.zeros_like(dec)
-
-
     
 
 

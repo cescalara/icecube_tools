@@ -4,8 +4,10 @@ from scipy.optimize import fsolve
 from .source.source_model import Source, PointSource, DIFFUSE, POINT
 from .source.flux_model import FluxModel, PowerLawFlux
 from .detector.effective_area import EffectiveArea
+from .detector.detector import TimeDependentIceCube
 from .cosmology import luminosity_distance, Mpc_to_cm
 from .point_source_likelihood.energy_likelihood import MarginalisedIntegratedEnergyLikelihood
+from .utils.data import Uptime
 
 """
 Module for calculating the number of neutrinos,
@@ -81,23 +83,25 @@ class NeutrinoCalculator:
         czm = self.effective_area.cos_zenith_bins[:-1]
         czM = self.effective_area.cos_zenith_bins[1:]
 
+        # Switch labels due to sign
         sdm = -czM.copy()
         sdM = -czm.copy()
 
         dec_c = np.arcsin((sdm + sdM) / 2)
 
-
+        # TODO fix this for the data-driven background model
         integrated_spectrum = source.flux_model.integrated_spectrum(Em, EM)
-        integrated_direction = (czM - czm) * 2* np.pi
+        integrated_direction = (czM - czm) * 2 * np.pi
 
         bin_c = (np.log10(Em) + np.log10(EM)) / 2
-        #p_det_above_thr = np.zeros((bin_c.size, czm.size))
-        #for c_e in range(bin_c.size):
-        #    for c_c in range(czm.size):
-        #        p_det_above_thr[c_e, c_c] = self._energy_resolution.p_det_above_threshold(bin_c[c_e], dec_c[c_c])
+        p_det_above_thr = np.ones((bin_c.size, czm.size))
+        if self._energy_resolution is not None:
+            for c_e in range(bin_c.size):
+                for c_c in range(czm.size):
+                    p_det_above_thr[c_e, c_c] = self._energy_resolution.p_det_above_threshold(np.exp(bin_c[c_e]), dec_c[c_c])
 
         aeff = self._selected_effective_area_values * M_TO_CM ** 2   # 1st index is energy, 2nd is cosz
-        dN_dt = integrated_spectrum.dot(aeff).dot(integrated_direction)
+        dN_dt = integrated_spectrum.dot(aeff * p_det_above_thr).dot(integrated_direction)
 
         return dN_dt * self._time * source.redshift_factor
 
@@ -124,16 +128,17 @@ class NeutrinoCalculator:
         # or take the hi_nu shortcut:
         # calculate integral at bin center, and assume that's fine
         integrated_flux = source.flux_model.integrated_spectrum(Em, EM)
-        #bin_c = (np.log10(Em) + np.log10(EM)) / 2
-        #p_det_above_thr = np.zeros((bin_c.size))
-        #for c in range(bin_c.size):
-        #    p_det_above_thr[c] = self._energy_resolution.p_det_above_threshold(bin_c[c], source.coord[1])
+        bin_c = (np.log10(Em) + np.log10(EM)) / 2
+        p_det_above_thr = np.ones((bin_c.size))
+        if self._energy_resolution is not None:
+            for c in range(bin_c.size):
+                p_det_above_thr[c] = self._energy_resolution.p_det_above_threshold(np.exp(bin_c[c]), source.coord[1])
 
         aeff = self._selected_effective_area_values.T[selected_bin_index] * M_TO_CM ** 2
         # need to multiply with p(E detected above threshold)
         # threshold given by data releas
 
-        dN_dt = np.dot(aeff, integrated_flux)
+        dN_dt = np.dot(aeff * p_det_above_thr, integrated_flux)
 
         return dN_dt * self._time * source.redshift_factor
 
@@ -288,6 +293,25 @@ class PhiSolver:
         phi_norm = fsolve(self._solve_for_phi, x0=guess, args=(Nnu, dec, index))[0]
 
         return phi_norm
+    
+
+class TimeDependentPhiSolver():
+    def __init__(self, *data_periods, sources=[], eres_dict={}):
+        self._uptime = Uptime(data_periods)
+        self._tirf = TimeDependentIceCube.from_periods(self._uptime.irf_periods)
+        self._phi_solvers = {}
+        for p in self._uptime.irf_periods:
+            self._phi_solvers[p] = PhiSolver(
+                self._tirf[p].effective_area,
+                self._uptime.cumulative_time_obs()[p],
+                eres_dict.get(
+                    p, MarginalisedIntegratedEnergyLikelihood(
+                        p,
+                        np.linspace(1, 8, 25)
+                    )
+                )
+            )
+        
 
 
 class zSolver:

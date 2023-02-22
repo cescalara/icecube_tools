@@ -108,7 +108,7 @@ class DataDrivenBackgroundSpatialLikelihood(SpatialLikelihood):
 
     def __call__(self, dec: np.ndarray):
         """
-        Returns likelihood for each provided event
+        Returns likelihood for each provided event, 2pi accounts for uniform RA distribution.
         """
 
         return self.likelihood.pdf(np.sin(dec)) / (2 * np.pi)
