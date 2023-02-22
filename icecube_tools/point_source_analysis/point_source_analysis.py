@@ -4,7 +4,8 @@ from ..point_source_likelihood.point_source_likelihood import (
     TimeDependentPointSourceLikelihood
 )
 
-from ..utils.data import ddict, Events, Uptime
+from ..simulator import BackgroundSimulator
+from ..utils.data import ddict, Events, Uptime, RealEvents, Uptime
 from ..utils.coordinate_transforms import *
 
 import yaml
@@ -94,7 +95,7 @@ class MapScan(PointSourceAnalysis):
     }
 
 
-    def __init__(self, path: str, events: Events, output_path: str):
+    def __init__(self, path: str, output_path: str, events: Events=None):
         """
         Instantiate analysis object. Parameters of the search have to be specified in a .yaml config file.
         Afterwards, source lists etc. can still be changed. A list of periods is not necessary;
@@ -103,12 +104,17 @@ class MapScan(PointSourceAnalysis):
         :param events: object inheriting from :class:`icecube_tools.utils.data.Events`
         """
 
-        self.events = events
-        self.periods = events.periods
-        self.uptime = Uptime()
-        self.times = self.uptime.time_obs(*events.periods)
-       
         self.load_config(path)
+        if events is None:
+            self.events = RealEvents.from_event_files(*self._data_periods)
+            self._uptime = Uptime(*self._data_periods)
+            self._irf_periods = self._uptime._irf_periods
+        else:
+            self.events = events
+            self._irf_periods = self.events._irf_periods
+            self._data_periods = self.events._data_periods
+        self.uptime = Uptime(*self._data_periods)
+        self.times = self.uptime.cumulative_time_obs()
         self.apply_cuts()
 
         self.output_path = output_path
@@ -170,7 +176,7 @@ class MapScan(PointSourceAnalysis):
         except AttributeError as e:
             self.likelihood = TimeDependentPointSourceLikelihood(
                 source_coord,
-                self.events.periods,
+                self._data_periods,
                 ra,
                 dec,
                 reco_energy,
@@ -232,7 +238,7 @@ class MapScan(PointSourceAnalysis):
             self.seed = ts_config["seed"]
 
         data_config = config.get("data")
-        #self.periods = data_config.get("periods", self.events.periods)
+        self._data_periods = data_config.get("periods")
         cuts = data_config.get("cuts", False)
         if cuts:
             self.northern_emin = float(data_config.get("cuts").get("northern").get("emin", 1e1))
@@ -268,7 +274,7 @@ class MapScan(PointSourceAnalysis):
         if source_list:
             config.add(self.ra_test.tolist(), "sources", "ra")
             config.add(self.dec_test.tolist(), "sources", "dec")
-        config.add(self.periods, "data", "periods")
+        config.add(self._data_periods, "data", "periods")
         try:
             for emin, region in zip([self.northern_emin, self.equator_emin, self.southern_emin],
                 ["northern", "equator", "southern"]
@@ -319,7 +325,7 @@ class MapScan(PointSourceAnalysis):
             meta = f.create_group("meta")
             meta.create_dataset("ra", shape=self.ra_test.shape, data=self.ra_test)
             meta.create_dataset("dec", shape=self.dec_test.shape, data=self.dec_test)
-            meta.create_dataset("periods", data=self.periods)
+            meta.create_dataset("periods", data=self._data_periods)
             meta.attrs["config_path"] = os.path.splitext(path)[0]+".yaml"
         
             data = f.create_group("output")
@@ -435,7 +441,7 @@ class MapScan(PointSourceAnalysis):
         mask = {}
         self.events.mask = None
         try:
-            for p in self.periods:
+            for p in self._irf_periods:
                 events = self.events.period(p)
                 mask[p] = np.nonzero(
                     ((events["reco_energy"] > self.northern_emin) & (events["dec"] >= np.deg2rad(10))) |
@@ -595,13 +601,21 @@ class MapScanTSDistribution(MapScan):
     Class to create TS distributions (and subsequently local p-values.
     Inherhits from the 'normal' MapScan.
     """
-    
-    def __init__(self, path: str, events: Events, output_path: str):
+    def __init__(self, path: str, output_path: str, events: Events=None, bg_sim: bool=False):
         """
         Instantiate object to create a TS distribution at a given declination
         """
-        super().__init__(path, events, output_path)
+
+        super().__init__(path, output_path, events)
         self._make_output_arrays()
+        #needs to be declination-dependent number of expected events
+        #should have in each Aeff dec bin as much events as the real data
+        #else we have some sort of bias against the effective area/data selection process
+        #using the data driven background likelihood also circumvents the problem
+        #of having to manually cut some data that's below the reco energy cut
+        if bg_sim:
+            self.sim = BackgroundSimulator(self._irf_periods[0])
+            self.Nex = self.events.N[self._irf_periods[0]]
 
 
     def perform_scan(self, show_progress: bool=False, minos: bool=False):
@@ -636,6 +650,53 @@ class MapScanTSDistribution(MapScan):
                     self.events.scramble_ra()
                     ra = self.events.ra
                     self._test_source((self.ra_test[0], self.dec_test[0]), c, ra, dec, reco_energy, ang_err, minos)
+                    if self.fit_ok[c]:
+                        # if converged, move to next iteration
+                        break
+                if c % 60 == 59:
+                    # refresh output file
+                    self.write_output(self.output_path, source_list=True)
+        self.write_output(self.output_path, source_list=True)
+
+
+    def perform_scan_bg_sim(self, show_progress: bool=False, minos: bool=False):
+        """
+        Perform multiple (`ntrials`) fits of the same declination.
+        :param show_progress: Bool, if True progress bar is shown, defaults to False
+        :param minos: Bool, if True minos error calculation is carried out, defaults to False
+        """
+
+        logger.info("Performing scan for periods: {}".format(self.events.periods))
+
+        if show_progress:
+            for c in progress_bar(range(self.ntrials)):
+                while True:
+                    self.sim.run(self.N, seed=self.seed+c)
+                    self._test_source((self.ra_test[0], self.dec_test[0]),
+                        self.sim.ra,
+                        self.sim.dec,
+                        self.sim.reco_energy,
+                        self.sim.ang_err,
+                        minos,
+                    )
+                    if self.fit_ok[c]:
+                        # if converged, move to next iteration
+                        break
+                if c % 60 == 59:
+                    #refresh output file
+                    self.write_output(self.output_path, source_list=True)
+        else:
+            for c in range(self.ntrials):
+                while True:
+                    # repeat until a fit has converged
+                    self.sim.run(self.N, seed=self.seed+c)
+                    self._test_source((self.ra_test[0], self.dec_test[0]),
+                        self.sim.ra,
+                        self.sim.dec,
+                        self.sim.reco_energy,
+                        self.sim.ang_err,
+                        minos,
+                    )
                     if self.fit_ok[c]:
                         # if converged, move to next iteration
                         break

@@ -1,9 +1,13 @@
 import numpy as np
+from scipy.stats import rv_histogram
 from abc import ABC, abstractmethod
 import h5py
 from os.path import join
+from typing import Sequence
 
-from ..detector.detector import Detector
+from ..detector.detector import Detector, IceCube
+from ..utils.data import RealEvents
+from ..detector.effective_area import EffectiveArea
 
 """
 Module to compute the IceCube energy likelihood
@@ -12,7 +16,7 @@ using publicly available information.
 Based on the method described in:
 Braun, J. et al., 2008. Methods for point source analysis 
 in high energy neutrino telescopes. Astroparticle Physics, 
-29(4), pp.299–305.
+29(4), pp.299-305.
 
 Currently well-defined for searches with
 Northern sky muon neutrinos.
@@ -42,7 +46,8 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
     #@profile
     def __init__(
         self,
-        detector: Detector,
+        # detector: Detector,
+        period: str,
         reco_bins: np.ndarray,
         min_index: float=1.5,
         max_index: float=4.0,
@@ -58,11 +63,13 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
 
         # TODO change reco_bins to cover the range provided by all the pdfs
         # and have the coarsest binning of all pdfs
+        detector = IceCube.from_period(period)
         aeff = detector._effective_area
         irf = detector._angular_resolution
         self._irf = irf
         self._aeff = aeff
         self.reco_bins = reco_bins
+        self._irf_period = period
         #print(self.reco_bins)
         self.true_bins_irf = irf.true_energy_bins
         self.true_bins_aeff = np.log10(aeff.true_energy_bins)
@@ -79,7 +86,12 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         self._max_index = max_index
         self.true_bins_c = self.true_energy_bins[:-1] + 0.5 * np.diff(self.true_energy_bins)
         self._previous_index = None
-        self._values = {} 
+        self._values = {}
+        if self._irf_period == "IC86_II":
+            self._events = RealEvents.from_event_files("IC86_II", use_all=True)
+        else:
+            self._events = RealEvents.from_event_files(self._irf_period)
+        self._get_ereco_cuts()
 
         #pre-calculate cdf values
         self._cdf = np.zeros((self.true_energy_bins.size - 1, 3, self.reco_bins.size - 1))
@@ -182,6 +194,44 @@ class MarginalisedIntegratedEnergyLikelihood(MarginalisedEnergyLikelihood):
         #print("norm", norm)
         values = values / norm
         return values
+
+
+    def _get_ereco_cuts(self):
+        """
+        Get ereco cuts from data, stores log10(Ereco).
+        """
+
+        self._ereco_limits = np.zeros((self.declination_bins_aeff.size-1, 2))
+        for c, (dec_low, dec_high) in enumerate(
+            zip(
+                self.declination_bins_aeff[:-1], self.declination_bins_aeff[1:]
+            )
+        ):
+            self._events.restrict(dec_low=dec_low, dec_high=dec_high)
+            ereco = self._events.reco_energy[self._irf_period]
+            self._ereco_limits[c, 0] = np.log10(ereco.min())
+            self._ereco_limits[c, 1] = np.log10(ereco.max())
+
+
+    def p_det_above_threshold(self, Etrue, dec):
+        """
+        Calculate probability of an event with Etrue being reconstructed
+        above and below given thresholds, which are provided by the data
+        and are declination dependent.
+        """
+
+        log_etrue = np.log10(Etrue)
+        dec_idx_aeff = np.digitize(dec, self.declination_bins_aeff) - 1
+        ereco_low = self._ereco_limits[dec_idx_aeff, 0]
+        # ereco_high = self._ereco_limits[dec_idx_aeff, 1]
+        # only use lower energy bound, as per the IceCubes
+
+        dec_idx_irf = np.digitize(dec, self._irf.declination_bins) - 1
+        etrue_idx = np.digitize(log_etrue, self._irf.true_energy_bins) - 1
+
+        # pdf is self._irf.reco_energy[]
+        cdf = self._irf.reco_energy[etrue_idx, dec_idx_irf].cdf
+        return 1. - cdf(ereco_low)
 
 
     @staticmethod
@@ -333,6 +383,98 @@ class MarginalisedEnergyLikelihood2021(MarginalisedEnergyLikelihood):
             loglike += np.log10(temp)
 
         return -loglike
+    
+
+class DataDrivenBackgroundEnergyLikelihood(MarginalisedEnergyLikelihood):
+    """
+    Energy likelihood for background obtained by making a distribution
+    from the reconstructed energies. Data is mostly background.
+    No spectral index is assumed.
+    """
+
+    def __init__(self, period, bins: Sequence[float]=None):
+        self._period = period
+        self._events = RealEvents.from_event_files(period, use_all=True)
+
+        # Combine declination bins of the irf and aeff
+        # self._sin_dec_aeff_bins = np.linspace(-1., 1., num=51, endpoint=True)
+        aeff = EffectiveArea.from_dataset("20210126", period)
+        cosz_bins = aeff.cos_zenith_bins
+        self._sin_dec_bins = np.sort(-cosz_bins)
+        self._dec_bins = np.arcsin(self._sin_dec_bins)
+        # self._declination_bin_edges = np.sort(self._dec_aeff_bins) # np.sort(np.union1d(np.deg2rad([-90, -10, 10, 90]), self._dec_aeff_bins))
+        if bins is None:
+            self._ereco_bins = np.linspace(1, 8, num=50)
+        else:
+            self._ereco_bins = bins
+        self.make_hist()
+
+
+    def __call__(self, energy, index, dec):
+        """
+        Calculate energy likelihood for given events
+        index is dummy argument s.t. PointSourceLikelihood doesn't complain
+        """
+
+        log_ereco = np.log10(energy)
+        sin_dec_idx = np.digitize(np.sin(dec), self._sin_dec_bins) - 1
+        energy_idx = np.digitize(log_ereco, self._ereco_bins) - 1
+
+        return self._likelihood[sin_dec_idx, energy_idx]
+
+
+    def make_hist(self):
+        """
+        Create pdf-histograms
+        """
+
+        self._likelihood = np.zeros((self._sin_dec_bins.size-1, self._ereco_bins.size-1))
+        self._rv_histogram = []
+        self._costheta_bin_edges = np.sort(np.cos(np.pi / 2 - self._dec_bins))
+        # Use real data to create pdf of the cos(theta) distribution
+        # Use cos(theta) for easier sampling on a sphere, is converted to dec in simulator
+        self._costheta_rv_histogram = rv_histogram(np.histogram(np.cos(np.pi/2 - self._events.dec[self._period]), self._costheta_bin_edges), density=True)
+
+        # Loop over declination bins and create ereco distribution for each bin
+        # both sin(dec) and dec increase monotically, so one loop for both is fine
+        for c, (dec_l, dec_h) in enumerate(zip(self._dec_bins[:-1], self._dec_bins[1:])):
+            self._events.restrict(dec_low=dec_l, dec_high=dec_h)
+            llh, bins = np.histogram(
+                    np.log10(self._events.reco_energy[self._period]),
+                    bins=self._ereco_bins,
+                    density=True
+            )
+            self._likelihood[c, :] = llh
+            # If there are events in the declination bin, make an rv_histogram
+            if np.any(llh):
+                self._rv_histogram.append(rv_histogram((llh, bins), density=True))
+            else:
+                self._rv_histogram.append(0)
+        self._events.restrict()
+        # 1st value is declination, 2nd value is energy
+        self.hist_2d, _, _ = np.histogram2d(
+            self._events.dec[self._period],
+            np.log10(self._events.reco_energy[self._period]),
+            [self._sin_dec_bins, self._ereco_bins],
+            density=True
+        )
+
+
+    def sample(self, dec, seed=42):
+        """
+        Sample from pdfs
+        :param dec: np.ndarray of declinations of events
+        :return: Samples drawn from the pdfs of corresponding declination bin
+        """
+        
+        output = np.zeros_like(dec)
+        sin_dec_idx = np.digitize(np.sin(dec), self._sin_dec_bins) - 1
+        for sd_c in range(self._sin_dec_bins.size-1):
+            idx = np.nonzero(sin_dec_idx==sd_c)
+            size = idx[0].size
+            output[idx] = self._rv_histogram[sd_c].rvs(size=size, random_state=seed)
+        return output
+    
 
 
 class MarginalisedEnergyLikelihoodFromSimFixedIndex(MarginalisedEnergyLikelihood):
