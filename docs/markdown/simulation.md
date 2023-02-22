@@ -211,8 +211,8 @@ from icecube_tools.utils.data import Uptime
 It lets us calculate the actual observation time through, e.g. IC86_II, vs the time covered:
 
 ```python
-uptime = Uptime()
-uptime.time_obs("IC86_II"), uptime.time_span("IC86_II")
+uptime = Uptime("IC86_I", "IC86_II")
+uptime._time_obs("IC86_II"), uptime.time_span()["IC86_II"]
 ```
 
 We can further define a start and end time of an observation and let it calculate the observation time in each period. Viable possible options are
