@@ -837,6 +837,8 @@ class SimEvents(Events):
                         except:
                             pass
                     inst.sources[p] = indices
+                inst._irf_periods = list(inst._reco_energy.keys())
+                inst._data_periods = list(inst._reco_energy.keys())
         return inst
 
 
