@@ -398,7 +398,7 @@ Resetting rng
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">scan</span> <span class="o">=</span> <span class="n">MapScan</span><span class="p">(</span><span class="s2">&quot;config.yaml&quot;</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="s2">&quot;test_output.hdf5&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">scan</span> <span class="o">=</span> <span class="n">MapScan</span><span class="p">(</span><span class="s2">&quot;config.yaml&quot;</span><span class="p">,</span> <span class="s2">&quot;test_output.hdf5&quot;</span><span class="p">,</span> <span class="n">events</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -430,7 +430,10 @@ Resetting rng
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-100%|██████████| 121/121 [00:08&lt;00:00, 14.27it/s]
+  0%|          | 0/121 [00:00&lt;?, ?it/s]Resetting rng
+WARNING:icecube_tools.utils.data:Resetting rng
+WARNING:icecube_tools.utils.data:Resetting rng
+100%|██████████| 121/121 [00:26&lt;00:00,  4.48it/s]
 </pre></div></div>
 </div>
 <p>We can have a look at the results:</p>

@@ -112,6 +112,29 @@
 <section id="module-icecube_tools.point_source_likelihood.energy_likelihood">
 <span id="icecube-tools-point-source-likelihood-energy-likelihood-module"></span><h1>icecube_tools.point_source_likelihood.energy_likelihood module<a class="headerlink" href="#module-icecube_tools.point_source_likelihood.energy_likelihood" title="Permalink to this heading"></a></h1>
 <dl class="py class">
+<dt class="sig sig-object py" id="icecube_tools.point_source_likelihood.energy_likelihood.DataDrivenBackgroundEnergyLikelihood">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.point_source_likelihood.energy_likelihood.</span></span><span class="sig-name descname"><span class="pre">DataDrivenBackgroundEnergyLikelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">period</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_likelihood.energy_likelihood.DataDrivenBackgroundEnergyLikelihood" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedEnergyLikelihood" title="icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedEnergyLikelihood"><code class="xref py py-class docutils literal notranslate"><span class="pre">MarginalisedEnergyLikelihood</span></code></a></p>
+<p>Energy likelihood for background obtained by making a distribution
+from the reconstructed energies. Data is mostly background.
+No spectral index is assumed.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.point_source_likelihood.energy_likelihood.DataDrivenBackgroundEnergyLikelihood.make_hist">
+<span class="sig-name descname"><span class="pre">make_hist</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_likelihood.energy_likelihood.DataDrivenBackgroundEnergyLikelihood.make_hist" title="Permalink to this definition"></a></dt>
+<dd><p>Create pdf-histograms</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.point_source_likelihood.energy_likelihood.DataDrivenBackgroundEnergyLikelihood.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_likelihood.energy_likelihood.DataDrivenBackgroundEnergyLikelihood.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Sample from pdfs
+:param dec: np.ndarray of declinations of events
+:return: Samples drawn from the pdfs of corresponding declination bin</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedEnergyLikelihood">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.point_source_likelihood.energy_likelihood.</span></span><span class="sig-name descname"><span class="pre">MarginalisedEnergyLikelihood</span></span><a class="headerlink" href="#icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedEnergyLikelihood" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
@@ -180,7 +203,7 @@ Precompute likelihood distributions</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedIntegratedEnergyLikelihood">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.point_source_likelihood.energy_likelihood.</span></span><span class="sig-name descname"><span class="pre">MarginalisedIntegratedEnergyLikelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">detector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="icecube_tools.detector.detector.html#icecube_tools.detector.detector.Detector" title="icecube_tools.detector.detector.Detector"><span class="pre">Detector</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reco_bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedIntegratedEnergyLikelihood" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.point_source_likelihood.energy_likelihood.</span></span><span class="sig-name descname"><span class="pre">MarginalisedIntegratedEnergyLikelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reco_bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedIntegratedEnergyLikelihood" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedEnergyLikelihood" title="icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedEnergyLikelihood"><code class="xref py py-class docutils literal notranslate"><span class="pre">MarginalisedEnergyLikelihood</span></code></a></p>
 <p>Calculates energy likelihood by integration rather than simulation.</p>
 <dl class="py method">
@@ -191,6 +214,14 @@ Precompute likelihood distributions</p>
 :param loge_high: float or np.ndarray of lower integration bound(s)
 :param index: spectral index
 :return: Integrated power law, float or np.ndarray</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedIntegratedEnergyLikelihood.p_det_above_threshold">
+<span class="sig-name descname"><span class="pre">p_det_above_threshold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Etrue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedIntegratedEnergyLikelihood.p_det_above_threshold" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate probability of an event with Etrue being reconstructed
+above and below given thresholds, which are provided by the data
+and are declination dependent.</p>
 </dd></dl>
 
 <dl class="py method">

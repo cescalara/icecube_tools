@@ -444,7 +444,7 @@ Also, there may be a temporal dependence added, but this is not yet implemented 
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7f3e706acd30&gt;
+&lt;matplotlib.legend.Legend at 0x7f15e19c5dc0&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -460,7 +460,7 @@ Also, there may be a temporal dependence added, but this is not yet implemented 
 <p>Now let’s think about the energy-dependent term. The way this is handled is to marginalise over the true neutrino energies, to directly connect the reconstructed neutrino energies to the spectral index of a simple power-law source model.</p>
 <p>Doing this properly requires a knowledge of the relationship between the true and reconstructed energies as well as the details of the power law model. The most straightforward way to implement this is to simulate the a large number of events using the <code class="docutils literal notranslate"><span class="pre">Simulator</span></code> and build a likelihood using the output of this simulation and <code class="docutils literal notranslate"><span class="pre">MarginalisedEnergyLikelihoodFromSim</span></code>. We do exactly this with pre-computed lists of events, to be found in the data subdirectory: <code class="docutils literal notranslate"><span class="pre">sim_output_{index}.h5</span></code>. These were
 simulated using point sources with spectral index <code class="docutils literal notranslate"><span class="pre">index</span></code> at 45 degrees declination. The likelihood is restricted to a small band of declination around the assumed source. Using the same declination for our test source, this is fine. For different source declinations further simulations would be needed to account for the declination dependence of the detector acceptance.</p>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
@@ -470,12 +470,20 @@ simulated using point sources with spectral index <code class="docutils literal 
 <span class="n">new_reco_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
 <span class="n">detector</span> <span class="o">=</span> <span class="n">IceCube</span><span class="o">.</span><span class="n">from_period</span><span class="p">(</span><span class="s2">&quot;IC86_II&quot;</span><span class="p">)</span>
 <span class="n">energy_likelihood</span> <span class="o">=</span> <span class="n">MarginalisedIntegratedEnergyLikelihood</span><span class="p">(</span>
-    <span class="n">detector</span><span class="p">,</span> <span class="n">new_reco_bins</span><span class="p">,</span> <span class="n">max_index</span><span class="o">=</span><span class="mf">4.5</span>
+    <span class="s2">&quot;IC86_II&quot;</span><span class="p">,</span> <span class="n">new_reco_bins</span><span class="p">,</span> <span class="n">max_index</span><span class="o">=</span><span class="mf">4.5</span>
 <span class="p">)</span>
 <span class="c1"># energy_likelihood = MarginalisedEnergyLikelihood2021([1.5, 2.0, 2.5, 3.0, 3.5, 3.7, 4.0], &#39;data&#39;, &#39;sim_output&#39;, np.pi/4,)</span>
 <span class="c1"># the likelihood class is backwardscompatible with the &quot;older&quot; simulation-based energy likelihood</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Resetting rng
+</pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
@@ -526,7 +534,7 @@ array([1.        , 1.33333333, 1.66666667, 2.        , 2.33333333,
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7f3e703c9d60&gt;
+&lt;matplotlib.legend.Legend at 0x7f15dc7fba90&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -553,7 +561,7 @@ array([1.        , 1.33333333, 1.66666667, 2.        , 2.33333333,
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Resetting rng
+WARNING:icecube_tools.utils.data:Resetting rng
 </pre></div></div>
 </div>
 <p>Now lets put our likelihood structure and data in together, along with a proposed source location:</p>
@@ -589,7 +597,7 @@ Resetting rng
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(204, 163, 35)
+(204, 204, 35)
 </pre></div></div>
 </div>
 <p>We also note that the background likelihood is implemented automatically, for more information on the options here, check out the API docs. This is just a function of energy, with a constant factor to account for the isotropic directional likelihood.</p>
@@ -646,7 +654,7 @@ Text(0, 0.5, &#39;Background likelihood&#39;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-320.64352705110747
+353.07528127247383
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -680,8 +688,8 @@ Text(0, 0.5, &#39;Background likelihood&#39;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(&lt;ValueView ns=25.899254939833437 index=2.3119196231608368 weight=0.0 index_astro=2.5 index_atmo=3.7&gt;,
- &lt;ErrorView ns=4.6726503766395755 index=0.18926382870697167 weight=0.05 index_astro=0.1 index_atmo=0.1&gt;)
+(&lt;ValueView ns=25.94357293872001 index=2.313262357603534 weight=0.0 index_astro=2.5 index_atmo=3.7&gt;,
+ &lt;ErrorView ns=4.76008651386765 index=0.18908171303220578 weight=0.05 index_astro=0.1 index_atmo=0.1&gt;)
 </pre></div></div>
 </div>
 <p>To understand the significance of this results, we would have to calculate the test statistic for a large number of background-only simulations. These could then be used to calculate a p-value. Given there is a strong point source in the simulation we used, we can expect the test stastic to be lower if we remove the source events. Let’s try this:</p>
@@ -781,8 +789,8 @@ True
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                                Migrad                                   │
 ├──────────────────────────────────┬──────────────────────────────────────┤
-│ FCN = -160.3                     │              Nfcn = 48               │
-│ EDM = 9.12e-07 (Goal: 0.0001)    │            time = 0.2 sec            │
+│ FCN = -176.5                     │              Nfcn = 45               │
+│ EDM = 3.75e-07 (Goal: 0.0001)    │            time = 0.2 sec            │
 ├──────────────────────────────────┼──────────────────────────────────────┤
 │          Valid Minimum           │        No Parameters at limit        │
 ├──────────────────────────────────┼──────────────────────────────────────┤
@@ -793,7 +801,7 @@ True
 ┌───┬─────────────┬───────────┬───────────┬────────────┬────────────┬─────────┬─────────┬───────┐
 │   │ Name        │   Value   │ Hesse Err │ Minos Err- │ Minos Err+ │ Limit-  │ Limit+  │ Fixed │
 ├───┼─────────────┼───────────┼───────────┼────────────┼────────────┼─────────┼─────────┼───────┤
-│ 0 │ ns          │    26     │     5     │            │            │    0    │   163   │       │
+│ 0 │ ns          │    26     │     5     │            │            │    0    │   204   │       │
 │ 1 │ index       │   2.31    │   0.19    │            │            │   1.5   │   4.5   │       │
 │ 2 │ weight      │   0.00    │   0.05    │            │            │    0    │    1    │  yes  │
 │ 3 │ index_astro │    2.5    │    0.1    │            │            │   1.5   │   4.5   │  yes  │
@@ -802,8 +810,8 @@ True
 ┌─────────────┬─────────────────────────────────────────────────────────────┐
 │             │          ns       index      weight index_astro  index_atmo │
 ├─────────────┼─────────────────────────────────────────────────────────────┤
-│          ns │        21.9     0.00233           0           0           0 │
-│       index │     0.00233      0.0361           0           0           0 │
+│          ns │        22.7     0.00128           0           0           0 │
+│       index │     0.00128       0.036           0           0           0 │
 │      weight │           0           0           0           0           0 │
 │ index_astro │           0           0           0           0           0 │
 │  index_atmo │           0           0           0           0           0 │
@@ -981,7 +989,7 @@ data/p_IC86_II_index_3.9.h5
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-374.39717241317146
+403.3478434197606
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -1094,7 +1102,10 @@ Text(0.5, 1.0, &#39;index = 2.3 - 0.2 + 0.2&#39;)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-Resetting rng
+WARNING:icecube_tools.utils.data:Resetting rng
+WARNING:icecube_tools.utils.data:Resetting rng
+WARNING:icecube_tools.utils.data:Resetting rng
+WARNING:icecube_tools.utils.data:Resetting rng
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1107,12 +1118,12 @@ Resetting rng
         <th colspan="5" style="text-align:center" title="Minimizer"> Migrad </th>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:left" title="Minimum value of function"> FCN = -156.8 </td>
-        <td colspan="3" style="text-align:center" title="Total number of function and (optional) gradient evaluations"> Nfcn = 56 </td>
+        <td colspan="2" style="text-align:left" title="Minimum value of function"> FCN = -165.1 </td>
+        <td colspan="3" style="text-align:center" title="Total number of function and (optional) gradient evaluations"> Nfcn = 63 </td>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:left" title="Estimated distance to minimum and goal"> EDM = 3.49e-07 (Goal: 0.0001) </td>
-        <td colspan="3" style="text-align:center" title="Total run time of algorithms">  </td>
+        <td colspan="2" style="text-align:left" title="Estimated distance to minimum and goal"> EDM = 1.52e-06 (Goal: 0.0001) </td>
+        <td colspan="3" style="text-align:center" title="Total run time of algorithms"> time = 0.3 sec </td>
     </tr>
     <tr>
         <td colspan="2" style="text-align:center;background-color:#92CCA6;color:black"> Valid Minimum </td>
@@ -1145,11 +1156,11 @@ Resetting rng
         <th> 0 </th>
         <td> ns </td>
         <td> 26 </td>
-        <td> 4 </td>
+        <td> 5 </td>
         <td>  </td>
         <td>  </td>
         <td> 0 </td>
-        <td> 87 </td>
+        <td> 204 </td>
         <td>  </td>
     </tr>
     <tr>
@@ -1207,16 +1218,16 @@ Resetting rng
     </tr>
     <tr>
         <th> ns </th>
-        <td> 18.3 </td>
-        <td style="background-color:rgb(250,250,250);color:black"> 0.00243 </td>
+        <td> 22.7 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0.00138 </td>
         <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
         <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
         <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
     </tr>
     <tr>
         <th> index </th>
-        <td style="background-color:rgb(250,250,250);color:black"> 0.00243 </td>
-        <td> 0.0361 </td>
+        <td style="background-color:rgb(250,250,250);color:black"> 0.00138 </td>
+        <td> 0.036 </td>
         <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
         <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
         <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
@@ -1296,15 +1307,15 @@ Resetting rng
         <th colspan="5" style="text-align:center" title="Minimizer"> Migrad </th>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:left" title="Minimum value of function"> FCN = 84.14 </td>
-        <td colspan="3" style="text-align:center" title="Total number of function and (optional) gradient evaluations"> Nfcn = 20 </td>
+        <td colspan="2" style="text-align:left" title="Minimum value of function"> FCN = 470.2 </td>
+        <td colspan="3" style="text-align:center" title="Total number of function and (optional) gradient evaluations"> Nfcn = 76 </td>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:left" title="Estimated distance to minimum and goal"> EDM = 1.49e-07 (Goal: 0.0001) </td>
+        <td colspan="2" style="text-align:left" title="Estimated distance to minimum and goal"> EDM = 0 (Goal: 0.0001) </td>
         <td colspan="3" style="text-align:center" title="Total run time of algorithms">  </td>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:center;background-color:#92CCA6;color:black"> Valid Minimum </td>
+        <td colspan="2" style="text-align:center;background-color:#c15ef7;color:black"> INVALID Minimum </td>
         <td colspan="3" style="text-align:center;background-color:#92CCA6;color:black"> No Parameters at limit </td>
     </tr>
     <tr>
@@ -1313,9 +1324,9 @@ Resetting rng
     </tr>
     <tr>
         <td style="text-align:center;background-color:#92CCA6;color:black"> Covariance </td>
-        <td style="text-align:center;background-color:#92CCA6;color:black"> Hesse ok </td>
-        <td style="text-align:center;background-color:#92CCA6;color:black" title="Is covariance matrix accurate?"> Accurate </td>
-        <td style="text-align:center;background-color:#92CCA6;color:black" title="Is covariance matrix positive definite?"> Pos. def. </td>
+        <td style="text-align:center;background-color:#c15ef7;color:black"> Hesse FAILED </td>
+        <td style="text-align:center;background-color:#FFF79A;color:black" title="Is covariance matrix accurate?"> APPROXIMATE </td>
+        <td style="text-align:center;background-color:#c15ef7;color:black" title="Is covariance matrix positive definite?"> NOT pos. def. </td>
         <td style="text-align:center;background-color:#92CCA6;color:black" title="Was positive definiteness enforced by Minuit?"> Not forced </td>
     </tr>
 </table><table>
@@ -1355,38 +1366,13 @@ Resetting rng
     <tr>
         <th> 2 </th>
         <td> index_atmo </td>
-        <td> 2.78 </td>
-        <td> 0.13 </td>
+        <td> 3.3 </td>
+        <td> 0.0 </td>
         <td>  </td>
         <td>  </td>
         <td> 1.5 </td>
         <td> 5 </td>
         <td>  </td>
-    </tr>
-</table><table>
-    <tr>
-        <td></td>
-        <th> weight </th>
-        <th> index_astro </th>
-        <th> index_atmo </th>
-    </tr>
-    <tr>
-        <th> weight </th>
-        <td> 0 </td>
-        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
-        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
-    </tr>
-    <tr>
-        <th> index_astro </th>
-        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
-        <td> 0 </td>
-        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
-    </tr>
-    <tr>
-        <th> index_atmo </th>
-        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
-        <td style="background-color:rgb(250,250,250);color:black"> 0 </td>
-        <td> 0.018 </td>
     </tr>
 </table></div>
 </div>

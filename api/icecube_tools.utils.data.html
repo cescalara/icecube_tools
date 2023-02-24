@@ -133,8 +133,18 @@ For single period event files, the properties return not a dictionary but a sing
 <dd></dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Events.data_periods">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data_periods</span></span><a class="headerlink" href="#icecube_tools.utils.data.Events.data_periods" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="icecube_tools.utils.data.Events.dec">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dec</span></span><a class="headerlink" href="#icecube_tools.utils.data.Events.dec" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Events.irf_periods">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">irf_periods</span></span><a class="headerlink" href="#icecube_tools.utils.data.Events.irf_periods" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -164,7 +174,7 @@ For single period event files, the properties return not a dictionary but a sing
 
 <dl class="py method">
 <dt class="sig sig-object py" id="icecube_tools.utils.data.Events.restrict">
-<span class="sig-name descname"><span class="pre">restrict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dec_low</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1.5707963267948966</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec_high</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.5707963267948966</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ereco_low</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Events.restrict" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">restrict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dec_low</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1.5707963267948966</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec_high</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.5707963267948966</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ra_low</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ra_high</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.283185307179586</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ereco_low</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Events.restrict" title="Permalink to this definition"></a></dt>
 <dd><p>Restrict declination to given range, if None provided respective bound is ignored.
 For fancier restrictions use <cite>self.mask</cite>.
 :param dec_low: Lower declination bound, in rad.
@@ -245,7 +255,7 @@ releases hosted on their website.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="icecube_tools.utils.data.RealEvents">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.utils.data.</span></span><span class="sig-name descname"><span class="pre">RealEvents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1234</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.RealEvents" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.utils.data.</span></span><span class="sig-name descname"><span class="pre">RealEvents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">data_periods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1234</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.RealEvents" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#icecube_tools.utils.data.Events" title="icecube_tools.utils.data.Events"><code class="xref py py-class docutils literal notranslate"><span class="pre">Events</span></code></a></p>
 <p>Class to handle reading real event files of 2021 release.</p>
 <dl class="py attribute">
@@ -260,11 +270,13 @@ releases hosted on their website.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="icecube_tools.utils.data.RealEvents.from_event_files">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_event_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">periods</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1234</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.RealEvents.from_event_files" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_event_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">periods</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1234</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IRF</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_all</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.RealEvents.from_event_files" title="Permalink to this definition"></a></dt>
 <dd><p>Load from files provided by data release,
 if belonging to IC86_II or later, add to IC86_II keyword
 because the same IRF is used
-:param periods: Arbitrary number of period identifiers</p>
+:param periods: Arbitrary number of period identifiers
+:param seed: int, seed for rng
+:param IRF: bool, true if IC86_II should be translated to all data periods with this detector configuration</p>
 </dd></dl>
 
 <dl class="py method">
@@ -344,6 +356,11 @@ Fake data is excluded s.t. inserted point sources are not accidentally washed ou
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.SimEvents.ic86_ii_data_periods">
+<span class="sig-name descname"><span class="pre">ic86_ii_data_periods</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['IC86_II',</span> <span class="pre">'IC86_III',</span> <span class="pre">'IC86_IV',</span> <span class="pre">'IC86_V',</span> <span class="pre">'IC86_VI',</span> <span class="pre">'IC86_VII']</span></em><a class="headerlink" href="#icecube_tools.utils.data.SimEvents.ic86_ii_data_periods" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="icecube_tools.utils.data.SimEvents.keys">
 <span class="sig-name descname"><span class="pre">keys</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['true_energy',</span> <span class="pre">'arrival_energy',</span> <span class="pre">'reco_energy',</span> <span class="pre">'ra',</span> <span class="pre">'dec',</span> <span class="pre">'ang_err',</span> <span class="pre">'source_label']</span></em><a class="headerlink" href="#icecube_tools.utils.data.SimEvents.keys" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -392,9 +409,26 @@ If a mask is supplied, only unmasked events are scrambled to save time on sampli
 
 <dl class="py class">
 <dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.utils.data.</span></span><span class="sig-name descname"><span class="pre">Uptime</span></span><a class="headerlink" href="#icecube_tools.utils.data.Uptime" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.utils.data.</span></span><span class="sig-name descname"><span class="pre">Uptime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">periods</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Uptime" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Class to handle calculations of detector live time.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime.cumulative_time_obs">
+<span class="sig-name descname"><span class="pre">cumulative_time_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IRF</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.cumulative_time_obs" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>periods</strong> – Strings of data periods.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Return total observation time of each queried data period in years (without unit)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime.data_periods">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data_periods</span></span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.data_periods" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime.find_obs_time">
 <span class="sig-name descname"><span class="pre">find_obs_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IRF</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.find_obs_time" title="Permalink to this definition"></a></dt>
@@ -409,22 +443,14 @@ If a mask is supplied, only unmasked events are scrambled to save time on sampli
 <p>Duration should be in float in years.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime.time_obs">
-<span class="sig-name descname"><span class="pre">time_obs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">periods</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IRF</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.time_obs" title="Permalink to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>periods</strong> – Strings of data periods.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Return total observation time of each queried data period in years (without unit)</p>
-</dd>
-</dl>
-</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime.irf_periods">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">irf_periods</span></span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.irf_periods" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="icecube_tools.utils.data.Uptime.time_span">
-<span class="sig-name descname"><span class="pre">time_span</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">periods</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IRF</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.time_span" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">time_span</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IRF</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.utils.data.Uptime.time_span" title="Permalink to this definition"></a></dt>
 <dd><p>Return dictionary (keys are data or irf periods) with good time intervals of observations.
 :param periods: Strings of data/irf periods.
 :param IRF: bool, if true observation time of IC86_III and later is counted towards IC86_II.
