@@ -1,4 +1,4 @@
-from icecube_tools.utils.data import IceCubeData, Uptime
+from icecube_tools.utils.data import IceCubeData, Uptime, available_data_periods
 
 my_data = IceCubeData()
 
@@ -16,7 +16,7 @@ def test_file_download(output_directory):
 
 
 def test_uptime():
-    uptime = Uptime()
-    live_time = uptime.time_span("IC40")
-    obs_time = uptime.time_obs("IC40")
-    assert obs_time["IC40"] <= live_time["IC40"]
+    uptime = Uptime(*available_data_periods)
+    live_time = uptime._time_span("IC40")
+    obs_time = uptime.cumulative_time_obs()
+    assert obs_time["IC40"] <= live_time

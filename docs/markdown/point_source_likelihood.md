@@ -5,9 +5,9 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.14.0
+      jupytext_version: 1.14.4
   kernelspec:
-    display_name: Python 3.9.13 ('icecube_dev')
+    display_name: icecube_dev
     language: python
     name: python3
 ---
@@ -87,7 +87,7 @@ irf = R2021IRF.from_period("IC86_II")
 #new_reco_bins = irf.reco_energy_bins[12, 2]
 new_reco_bins = np.linspace(1, 9, num=25)
 detector = IceCube.from_period("IC86_II")
-energy_likelihood = MarginalisedIntegratedEnergyLikelihood(detector, new_reco_bins, max_index=4.5)
+energy_likelihood = MarginalisedIntegratedEnergyLikelihood("IC86_II", new_reco_bins, max_index=4.5)
 #energy_likelihood = MarginalisedEnergyLikelihood2021([1.5, 2.0, 2.5, 3.0, 3.5, 3.7, 4.0], 'data', 'sim_output', np.pi/4,)
 # the likelihood class is backwardscompatible with the "older" simulation-based energy likelihood
 ```

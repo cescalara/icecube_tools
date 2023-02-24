@@ -2,7 +2,7 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 import h5py
-from scipy.stats import uniform, bernoulli
+from scipy.stats import uniform, bernoulli, truncnorm
 import logging
 import sys
 from os.path import join
@@ -24,6 +24,7 @@ from .detector.angular_resolution import FixedAngularResolution, AngularResoluti
 from .detector.r2021 import R2021IRF, K, EMIN, EBREAK, EMAX, INDEX1, INDEX2
 from .utils.data import SimEvents, available_irf_periods
 from .utils.bpl_sampling import bpl, sample_bpl
+from .point_source_likelihood.energy_likelihood import DataDrivenBackgroundEnergyLikelihood
 
 """
 Module for running neutrino production 
@@ -685,6 +686,53 @@ class Braun2008Simulator:
                 data=self.source.flux_model._normalisation_energy,
             )
     '''
+
+
+class BackgroundSimulator(SimEvents):
+    def __init__(self, period: str):
+        super().__init__()
+        self._period = period
+        self._periods = [period]
+        self.likelihood = DataDrivenBackgroundEnergyLikelihood(period)
+        self._ang_err_low = 0.2
+        self._ang_err_high = 10.
+        self._ang_err_loc = 0.8
+        self._ang_err_sigma = 1.
+        a, b = (self._ang_err_low - self._ang_err_loc) / self._ang_err_sigma, (self._ang_err_high - self._ang_err_loc) / self._ang_err_sigma
+        self._truncnorm  = truncnorm(a, b, loc=self._ang_err_loc, scale=self._ang_err_sigma)
+
+
+    def run(self, n: int, seed: int=42):
+        
+        # first sample ra's and decs
+        ra, _ = sphere_sample(N=n)
+        cos_theta = self.likelihood._costheta_rv_histogram.rvs(size=n, random_state=seed)
+        ra, dec = spherical_to_icrs(np.arccos(cos_theta), ra)
+        log_ereco = self.likelihood.sample(dec, seed)
+        
+        self._ra[self._period] = ra
+        self._dec[self._period] = dec
+        self._reco_energy[self._period] = np.power(10, log_ereco)
+        self._ang_err[self._period] = self._truncnorm.rvs(size=n, random_state=seed)
+
+        
+
+
+
+class TimeDependentBackgroundSimulator(SimEvents):
+    def __init__(self, *periods: str):
+        super().__init__()
+        self._periods = periods
+        self.simulators = {}
+        for p in periods:
+            self.simulators[p] = BackgroundSimulator(p)
+
+
+
+    def run(self):
+        raise NotImplementedError
+
+        
 
 class TimeDependentSimulator(SimEvents):
     """

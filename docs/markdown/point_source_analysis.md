@@ -5,7 +5,7 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.14.1
+      jupytext_version: 1.14.4
   kernelspec:
     display_name: Python 3 (ipykernel)
     language: python
@@ -32,8 +32,8 @@ Then we create a MapScan() object with some configuration `config.yaml` in which
 ```python
 scan = MapScan(
     "config.yaml",
-    events,
-    "test_output.hdf5"
+    "test_output.hdf5",
+    events
 )
 ```
 

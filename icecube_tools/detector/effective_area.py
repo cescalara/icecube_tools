@@ -7,7 +7,9 @@ from icecube_tools.utils.data import (
     find_files,
     find_folders,
     data_directory,
-    available_irf_periods
+    available_irf_periods,
+    available_data_periods,
+    RealEvents
 )
 
 """
@@ -415,7 +417,7 @@ class EffectiveArea(object):
 
         self._reader = self.get_reader(**kwargs)
 
-        self.values = self._reader.effective_area_values
+        self.values = self._reader.effective_area_values.copy()
 
         self.true_energy_bins = self._reader.true_energy_bins
 
@@ -580,10 +582,9 @@ class EffectiveArea(object):
                 raise ValueError(f"Period {period} is not supported.")
 
             files = find_files(dataset_dir, R2021_AEFF_FILENAME)
-            # Pick one at random?
             for f in files:
                 if "_".join((period, R2021_AEFF_FILENAME)) in f:
                     aeff_file_name = f
                     break
+        return cls(aeff_file_name, period=period, **kwargs)
 
-        return cls(aeff_file_name, **kwargs)
