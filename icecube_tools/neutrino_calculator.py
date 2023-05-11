@@ -188,10 +188,11 @@ class NeutrinoCalculator:
             src_min_energy = source.flux_model._lower_energy
             src_max_energy = source.flux_model._upper_energy
 
-            self._selected_effective_area_values[
+            self._selected_aeff = self._selected_effective_area_values.copy()
+            self._selected_aeff[
                 self.effective_area.true_energy_bins[1:] < src_min_energy
             ] = 0
-            self._selected_effective_area_values[
+            self._selected_aeff[
                 self.effective_area.true_energy_bins[:-1] > src_max_energy
             ] = 0
 
