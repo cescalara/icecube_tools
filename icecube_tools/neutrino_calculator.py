@@ -100,7 +100,7 @@ class NeutrinoCalculator:
                 for c_c in range(czm.size):
                     p_det_above_thr[c_e, c_c] = self._energy_resolution.p_det_above_threshold(np.exp(bin_c[c_e]), dec_c[c_c])
 
-        aeff = self._selected_effective_area_values * M_TO_CM ** 2   # 1st index is energy, 2nd is cosz
+        aeff = self._selected_aeff * M_TO_CM ** 2   # 1st index is energy, 2nd is cosz
         dN_dt = integrated_spectrum.dot(aeff * p_det_above_thr).dot(integrated_direction)
 
         return dN_dt * self._time * source.redshift_factor
@@ -134,7 +134,7 @@ class NeutrinoCalculator:
             for c in range(bin_c.size):
                 p_det_above_thr[c] = self._energy_resolution.p_det_above_threshold(np.exp(bin_c[c]), source.coord[1])
 
-        aeff = self._selected_effective_area_values.T[selected_bin_index] * M_TO_CM ** 2
+        aeff = self._selected_aeff.T[selected_bin_index] * M_TO_CM ** 2
         # need to multiply with p(E detected above threshold)
         # threshold given by data releas
 
