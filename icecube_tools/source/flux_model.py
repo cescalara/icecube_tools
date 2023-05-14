@@ -1,8 +1,10 @@
 import numpy as np
+import mpmath as mp
 from abc import ABC, abstractmethod
 
 from .power_law import BoundedPowerLaw
 from .power_law import BrokenBoundedPowerLaw
+from .power_law import BoundedPowerLawExpCutoff
 
 """
 Module for simple flux models used in 
@@ -337,4 +339,110 @@ class BrokenPowerLawFlux(FluxModel):
         :param N: Number of samples.
         """
 
+        return self.power_law.samples(N)
+
+
+class PowerLawExpCutoffFlux(FluxModel):
+    """
+    Power law flux models with an exponential cutoff.
+    """
+
+    def __init__(
+            self,
+            normalisation,
+            norm_energy,
+            index,
+            cutoff_energy,
+            lower_energy=1e2,
+            upper_energy=1e8
+    ):
+        """
+        Power law flux models with an exponential cutoff.
+
+        :param normalisation: Flux normalisation [GeV^-1 cm^-2 s^-1 sr^-1] or [GeV^-1 cm^-2 s^-1] for point sources.
+        :param norm_energy: Energy at which the spectrum is normalised [GeV].
+        :param index: Spectral index of the power law.
+        :param cutoff_energy: Cutoff energy [GeV].
+        :param lower_energy: Lower energy bound [GeV].
+        :param upper_energy: Upper energy bound [GeV].
+        """
+
+        super().__init__()
+
+        self._normalisation = normalisation
+
+        self._norm_energy = norm_energy
+
+        self._index = index
+
+        self._cutoff_energy = cutoff_energy
+
+        self._lower_energy = lower_energy
+
+        self._upper_energy = upper_energy
+
+        self.power_law = BoundedPowerLawExpCutoff(self._index, self._cutoff_energy, self._lower_energy, self._upper_energy)
+
+    def spectrum(self, energy):
+        """
+        dN/dEdAdt or dN/dEdAdtdO.
+        """
+        output = self._normalisation * (energy/self._norm_energy)**(-self._index) * np.exp(-energy/self._cutoff_energy)
+
+        if isinstance(energy, np.ndarray):
+            idx = np.logical_or(energy < self._lower_energy, energy > self._upper_energy)
+            output[idx] = np.zeros(len(output[idx]))
+            return output
+
+        else:
+            if energy < self._lower_energy or energy > self._upper_energy:
+                return 0.0
+            else:
+                return output
+
+    def integrated_spectrum(self, lower_energy_bound, upper_energy_bound):
+        """
+        Integrates the spectrum with respect to E over a finite energy interval.
+        :param lower_energy_bound: in GeV
+        :param upper_energy_bound: in GeV
+        """
+        norm = self._normalisation
+        E0 = self._norm_energy
+        Ecut = self._cutoff_energy
+        gam = self._index
+
+        E1 = lower_energy_bound
+        E2 = upper_energy_bound
+        incGamma = np.frompyfunc(mp.gammainc, 3, 1)
+
+        # Emin = self._lower_energy
+        # Emax = self._upper_energy
+        # if E1 <= Emin and E2 <= Emin:
+        #     return 0.0
+        # elif E1 <= Emin and E2 <= Emax:
+        #     return norm * Ecut**(1-gam) * float(incGamma(1-gam, Emin/Ecut, E2/Ecut))
+        # elif E1 > Emin and E2 <= Emax:
+        #     return norm * Ecut**(1-gam) * float(incGamma(1-gam, E1/Ecut, E2/Ecut))
+        # elif E1 > Emin and E2 > Emax:
+        #     return norm * Ecut**(1-gam) * float(incGamma(1-gam, E1/Ecut, Emax/Ecut))
+        # elif E1 <= Emin and E2 > Emax:
+        #     return norm * Ecut**(1-gam) * float(incGamma(1-gam, Emin/Ecut, Emax/Ecut))
+        # else:
+        #     return 0.0
+
+        if isinstance(lower_energy_bound, np.ndarray) or isinstance(upper_energy_bound, np.ndarray):
+            return norm/E0**(-gam) * Ecut**(1-gam) * incGamma(1-gam, E1/Ecut, E2/Ecut).astype('float64')
+
+        else:
+            return norm/E0**(-gam) * Ecut**(1-gam) * float(incGamma(1-gam, E1/Ecut, E2/Ecut))
+
+    def redshift_factor(self, z: float):
+        return 1.0
+
+    def sample(self, N):
+        """
+        Samples energies from the spectrum using inverse transform sampling.
+        Works only if index < 1.
+        :param N: Number of samples.
+        """
         return self.power_law.samples(N)

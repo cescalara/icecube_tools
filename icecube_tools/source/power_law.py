@@ -1,4 +1,6 @@
 import numpy as np
+import mpmath as mp
+import scipy.special as sc
 from scipy.stats import bernoulli, uniform
 
 
@@ -197,3 +199,82 @@ class BrokenBoundedPowerLaw:
         )
 
         return output
+
+
+class BoundedPowerLawExpCutoff:
+    """
+    Definition of a bounded power law with an exponential cutoff.
+    """
+
+    def __init__(self, gamma, xcut, xmin, xmax):
+        """
+        Definition of a bounded power law with an exponential cutoff.
+        """
+        self.gamma = gamma
+        self.xcut = xcut
+        self.xmin = xmin
+        self.xmax = xmax
+
+        # calculate the normalisation
+        self.norm = 1. / float(
+            self.xcut ** (1 - self.gamma) * mp.gammainc(1 - self.gamma, self.xmin / self.xcut, self.xmax / self.xcut))
+
+    def pdf(self, x):
+        """
+        Evaluates the probability density function (PDF) at x.
+        """
+        val = self.norm * x ** (-self.gamma) * np.exp(-x / self.xcut)
+
+        if not isinstance(x, np.ndarray):
+            if x < self.xmin or x > self.xmax:
+                return 0.0
+            else:
+                return val
+
+        else:
+            idx = np.logical_or(x < self.xmin, x > self.xmax)
+            val[idx] = np.zeros(len(val[idx]))
+            return val
+
+    def cdf(self, x):
+        """
+        Evaluates the cumulative distribution function (CDF) at x.
+        """
+        incGamma = np.frompyfunc(mp.gammainc, 3, 1)
+        val = self.norm * self.xcut ** (1 - self.gamma) * incGamma(1 - self.gamma, self.xmin / self.xcut,
+                                                                   x / self.xcut).astype('float64')
+
+        if not isinstance(x, np.ndarray):
+            if x < self.xmin:
+                return 0.0
+            elif x > self.xmax:
+                return 0.0
+            else:
+                return val
+
+        else:
+            idx = x < self.xmin
+            val[idx] = np.zeros(len(val[idx]))
+            idx = x > self.xmax
+            val[idx] = np.ones(len(val[idx]))
+            return val
+
+    def inv_cdf(self, x):
+        """
+        Evaluates the inverse cumulative distribution function at x.
+        Only defined for gamma < 1.
+        """
+        if self.gamma < 1:
+            a = sc.gammaincc(1 - self.gamma, self.xmin / self.xcut)
+            b = x / (self.norm * self.xcut ** (1 - self.gamma) * sc.gamma(1 - self.gamma))
+            return self.xcut * sc.gammainccinv(1 - self.gamma, a - b)
+        else:
+            raise ValueError('Inverse CDF can only be calculated for gamma < 1.')
+
+    def samples(self, nsamples):
+        """
+        Inverse transform sampling from the bounded power law distribution
+        with exponential cutoff. Works only for gamma < 1.
+        """
+        u = np.random.uniform(0, 1, size=nsamples)
+        return self.inv_cdf(u)
