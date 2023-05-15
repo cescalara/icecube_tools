@@ -114,6 +114,12 @@ class PowerLawFlux(FluxModel):
         """
         #works with np.ndarrays!
 
+        lower_energy_bound = np.atleast_1d(lower_energy_bound)
+        upper_energy_bound = np.atleast_1d(upper_energy_bound)
+
+        lower_energy_bound[lower_energy_bound < self._lower_energy] = self._lower_energy
+        upper_energy_bound[upper_energy_bound > self._upper_energy] = self._upper_energy
+        
         norm = self._normalisation / (
             np.power(self._normalisation_energy, -self._index) * (1 - self._index)
         )
