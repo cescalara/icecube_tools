@@ -116,6 +116,8 @@ class PowerLawFlux(FluxModel):
 
         lower_energy_bound = np.atleast_1d(lower_energy_bound)
         upper_energy_bound = np.atleast_1d(upper_energy_bound)
+        # check for bounds being sensible
+        assert np.all(upper_energy_bound - lower_energy_bound >= 0.)
 
         lower_energy_bound[lower_energy_bound < self._lower_energy] = self._lower_energy
         upper_energy_bound[upper_energy_bound > self._upper_energy] = self._upper_energy
@@ -124,10 +126,15 @@ class PowerLawFlux(FluxModel):
             np.power(self._normalisation_energy, -self._index) * (1 - self._index)
         )
 
-        return norm * (
+        output = norm * (
             np.power(upper_energy_bound, 1 - self._index)
             - np.power(lower_energy_bound, 1 - self._index)
         )
+
+        output[upper_energy_bound <= self._lower_energy] = 0.
+        output[lower_energy_bound >= self._upper_energy] = 0.
+
+        return output
 
     def total_flux_density(self):
         """
