@@ -244,6 +244,7 @@ class R2021AeffReader(IceCubeAeffReader):
     def read(self):
 
         import pandas as pd
+        from .r2021 import EMAX
 
         self.nu_type = "nu_mu"    # all entries valid for muons
 
@@ -295,29 +296,33 @@ class R2021AeffReader(IceCubeAeffReader):
         self.mask = mask
         for period in faulty.keys():
             if period+"_" in os.path.basename(self._filename):
-                break
-        else:
-            return
-        #print(period)
-        for (etrue, dec) in faulty[period]:
-            #print(etrue, dec)
-            if etrue != -1:
-                etrue_min, etrue_max = true_energy_bins[etrue], true_energy_bins[etrue+1]
-                aeff_etrue_min = np.digitize(etrue_min, self.true_energy_bins) - 1
-                aeff_etrue_max = np.digitize(etrue_max, self.true_energy_bins) - 1
-                aeff_etrue_max += 1 if self.true_energy_bins[aeff_etrue_max] < true_energy_bins[etrue+1] else 0
-            else:
-                etrue_min = true_energy_bins[-1]
-                aeff_etrue_min = np.digitize(etrue_min, self.true_energy_bins) - 1
-                aeff_etrue_max = self.true_energy_bins.size - 1
-            cosz_max, cosz_min = -np.sin(declination_bins[dec]), -np.sin(declination_bins[dec+1])
+ 
 
-            aeff_cosz_min = np.digitize(cosz_min, self.cos_zenith_bins) - 1
-            aeff_cosz_max = np.digitize(cosz_max, self.cos_zenith_bins) - 1
-            for (e, c) in product(range(aeff_etrue_min, aeff_etrue_max), range(aeff_cosz_min, aeff_cosz_max)):
-                #print(e, c)
-                self.mask[e, c] = 0.
-        self.effective_area_values = np.multiply(self.effective_area_values, mask)
+                #print(period)
+                for (etrue, dec) in faulty[period]:
+                    #print(etrue, dec)
+                    if etrue != -1:
+                        etrue_min, etrue_max = true_energy_bins[etrue], true_energy_bins[etrue+1]
+                        aeff_etrue_min = np.digitize(etrue_min, self.true_energy_bins) - 1
+                        aeff_etrue_max = np.digitize(etrue_max, self.true_energy_bins) - 1
+                        aeff_etrue_max += 1 if self.true_energy_bins[aeff_etrue_max] < true_energy_bins[etrue+1] else 0
+                    else:
+                        etrue_min = true_energy_bins[-1]
+                        aeff_etrue_min = np.digitize(etrue_min, self.true_energy_bins) - 1
+                        aeff_etrue_max = self.true_energy_bins.size - 1
+                    cosz_max, cosz_min = -np.sin(declination_bins[dec]), -np.sin(declination_bins[dec+1])
+
+                    aeff_cosz_min = np.digitize(cosz_min, self.cos_zenith_bins) - 1
+                    aeff_cosz_max = np.digitize(cosz_max, self.cos_zenith_bins) - 1
+                    for (e, c) in product(range(aeff_etrue_min, aeff_etrue_max), range(aeff_cosz_min, aeff_cosz_max)):
+                        #print(e, c)
+                        self.mask[e, c] = 0.
+                self.effective_area_values = np.multiply(self.effective_area_values, mask)
+                break
+        # Mask all entries which are beyond the IRF defined energy (relevant only beyond 1e9GeV)
+        idx = np.digitize(EMAX, self.true_energy_bins) - 1
+        self.effective_area_values = self.effective_area_values[:idx, :]
+        self.true_energy_bins = self.true_energy_bins[:idx+1]
         
 
 
