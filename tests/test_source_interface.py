@@ -1,14 +1,15 @@
 import numpy as np
 
-from icecube_tools.source.flux_model import PowerLawFlux, BrokenPowerLawFlux
+from icecube_tools.source.flux_model import PowerLawFlux, BrokenPowerLawFlux, PowerLawExpCutoffFlux
 from icecube_tools.source.source_model import PointSource, DiffuseSource
 
 
 pl_params = (1e-18, 1e5, 2.2, 1e4, 1e8)
 bpl_params = (1e-18, 1e5, 2.2, 3.0, 1e4, 1e8)
+plec_params = (1e-13, 1e3, -2., 1e3, 1e4, 1e8)
 
-flux_models = [PowerLawFlux, BrokenPowerLawFlux]
-params_list = [pl_params, bpl_params]
+flux_models = [PowerLawFlux, BrokenPowerLawFlux, PowerLawExpCutoffFlux]
+params_list = [pl_params, bpl_params, plec_params]
 
 
 def test_flux_models():
@@ -25,11 +26,17 @@ def test_flux_models():
         assert flux.spectrum(1e9) == 0.
 
         # Check integration
-        int_low = flux.integrated_spectrum(1e4, 1e5)
+        if flux_model == PowerLawFlux or flux_model == BrokenPowerLawFlux:
+            int_low = flux.integrated_spectrum(1e4, 1e5)
 
-        int_high = flux.integrated_spectrum(1e5, 1e6)
+            int_high = flux.integrated_spectrum(1e5, 1e6)
 
-        assert int_low > int_high
+            assert int_low > int_high
+
+        elif flux_model == PowerLawExpCutoffFlux:
+            integral = flux.integrated_spectrum(1e4, 1e6)
+
+            assert integral > 0
 
         # Check total flux density
         if flux_model == PowerLawFlux:
