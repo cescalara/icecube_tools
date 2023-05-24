@@ -11,6 +11,8 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
@@ -115,6 +117,39 @@
 <dt class="sig sig-object py" id="icecube_tools.source.power_law.BoundedPowerLaw.samples">
 <span class="sig-name descname"><span class="pre">samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsamples</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.source.power_law.BoundedPowerLaw.samples" title="Permalink to this definition"></a></dt>
 <dd><p>Inverse CDF sample from the bounded power law distribution.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="icecube_tools.source.power_law.BoundedPowerLawExpCutoff">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.source.power_law.</span></span><span class="sig-name descname"><span class="pre">BoundedPowerLawExpCutoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xcut</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.source.power_law.BoundedPowerLawExpCutoff" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Definition of a bounded power law with an exponential cutoff.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.source.power_law.BoundedPowerLawExpCutoff.cdf">
+<span class="sig-name descname"><span class="pre">cdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.source.power_law.BoundedPowerLawExpCutoff.cdf" title="Permalink to this definition"></a></dt>
+<dd><p>Evaluates the cumulative distribution function (CDF) at x.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.source.power_law.BoundedPowerLawExpCutoff.inv_cdf">
+<span class="sig-name descname"><span class="pre">inv_cdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.source.power_law.BoundedPowerLawExpCutoff.inv_cdf" title="Permalink to this definition"></a></dt>
+<dd><p>Evaluates the inverse cumulative distribution function at x.
+Only defined for gamma &lt; 1.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.source.power_law.BoundedPowerLawExpCutoff.pdf">
+<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.source.power_law.BoundedPowerLawExpCutoff.pdf" title="Permalink to this definition"></a></dt>
+<dd><p>Evaluates the probability density function (PDF) at x.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.source.power_law.BoundedPowerLawExpCutoff.samples">
+<span class="sig-name descname"><span class="pre">samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsamples</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.source.power_law.BoundedPowerLawExpCutoff.samples" title="Permalink to this definition"></a></dt>
+<dd><p>Inverse transform sampling from the bounded power law distribution
+with exponential cutoff. Works only for gamma &lt; 1.</p>
 </dd></dl>
 
 </dd></dl>

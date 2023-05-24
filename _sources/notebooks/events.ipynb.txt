@@ -3,13 +3,13 @@
   {
    "cell_type": "code",
    "execution_count": 1,
-   "id": "2eab4120",
+   "id": "3597ad3b",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-05-16T12:13:30.661138Z",
-     "iopub.status.busy": "2023-05-16T12:13:30.660770Z",
-     "iopub.status.idle": "2023-05-16T12:13:32.014774Z",
-     "shell.execute_reply": "2023-05-16T12:13:32.013871Z"
+     "iopub.execute_input": "2023-05-24T15:41:11.079105Z",
+     "iopub.status.busy": "2023-05-24T15:41:11.078652Z",
+     "iopub.status.idle": "2023-05-24T15:41:12.289800Z",
+     "shell.execute_reply": "2023-05-24T15:41:12.289027Z"
     }
    },
    "outputs": [],
@@ -22,7 +22,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "9350dbc2",
+   "id": "879f3bf2",
    "metadata": {},
    "source": [
     "## Event classes\n",
@@ -34,13 +34,13 @@
   {
    "cell_type": "code",
    "execution_count": 2,
-   "id": "a80ab53d",
+   "id": "7dd82596",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-05-16T12:13:32.019998Z",
-     "iopub.status.busy": "2023-05-16T12:13:32.019239Z",
-     "iopub.status.idle": "2023-05-16T12:13:32.030258Z",
-     "shell.execute_reply": "2023-05-16T12:13:32.029489Z"
+     "iopub.execute_input": "2023-05-24T15:41:12.294211Z",
+     "iopub.status.busy": "2023-05-24T15:41:12.293556Z",
+     "iopub.status.idle": "2023-05-24T15:41:12.304594Z",
+     "shell.execute_reply": "2023-05-24T15:41:12.303977Z"
     }
    },
    "outputs": [
@@ -58,7 +58,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "2fcef012",
+   "id": "3d54b080",
    "metadata": {},
    "source": [
     "Events can span multiple data seasons. For each season, one entry is stored in `periods`."
@@ -67,13 +67,13 @@
   {
    "cell_type": "code",
    "execution_count": 3,
-   "id": "d5d9f792",
+   "id": "69bcf8fe",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-05-16T12:13:32.034255Z",
-     "iopub.status.busy": "2023-05-16T12:13:32.033729Z",
-     "iopub.status.idle": "2023-05-16T12:13:32.041602Z",
-     "shell.execute_reply": "2023-05-16T12:13:32.040960Z"
+     "iopub.execute_input": "2023-05-24T15:41:12.307949Z",
+     "iopub.status.busy": "2023-05-24T15:41:12.307540Z",
+     "iopub.status.idle": "2023-05-24T15:41:12.314169Z",
+     "shell.execute_reply": "2023-05-24T15:41:12.313599Z"
     }
    },
    "outputs": [
@@ -94,7 +94,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "83efd2cb",
+   "id": "6e58f672",
    "metadata": {},
    "source": [
     "The properties of the event are stored as properties. A list of all data fields is accessible through"
@@ -103,13 +103,13 @@
   {
    "cell_type": "code",
    "execution_count": 4,
-   "id": "b045a913",
+   "id": "4c5192da",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-05-16T12:13:32.046420Z",
-     "iopub.status.busy": "2023-05-16T12:13:32.045662Z",
-     "iopub.status.idle": "2023-05-16T12:13:32.051968Z",
-     "shell.execute_reply": "2023-05-16T12:13:32.051134Z"
+     "iopub.execute_input": "2023-05-24T15:41:12.317109Z",
+     "iopub.status.busy": "2023-05-24T15:41:12.316676Z",
+     "iopub.status.idle": "2023-05-24T15:41:12.323160Z",
+     "shell.execute_reply": "2023-05-24T15:41:12.322566Z"
     }
    },
    "outputs": [
@@ -136,7 +136,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "609e1d66",
+   "id": "3663c60e",
    "metadata": {},
    "source": [
     "The entries differ for simulated and actual events.\n",
@@ -147,13 +147,13 @@
   {
    "cell_type": "code",
    "execution_count": 5,
-   "id": "c0a90604",
+   "id": "b63b18d8",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-05-16T12:13:32.056074Z",
-     "iopub.status.busy": "2023-05-16T12:13:32.055384Z",
-     "iopub.status.idle": "2023-05-16T12:13:32.077547Z",
-     "shell.execute_reply": "2023-05-16T12:13:32.076669Z"
+     "iopub.execute_input": "2023-05-24T15:41:12.326225Z",
+     "iopub.status.busy": "2023-05-24T15:41:12.325686Z",
+     "iopub.status.idle": "2023-05-24T15:41:12.345014Z",
+     "shell.execute_reply": "2023-05-24T15:41:12.344381Z"
     }
    },
    "outputs": [
@@ -617,7 +617,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "461c73eb",
+   "id": "cd0cf882",
    "metadata": {},
    "source": [
     "Through the method `apply_mask()` a mask is applied and a nested dictionary (1st key is period, 2nd key is name of the data field, as returned by `keys`) is returned containing the selected events. The order of entries in mask needs to be the same as the periods in `events.periods`. For application, see the notebook on point source analysis."

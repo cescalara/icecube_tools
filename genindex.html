@@ -10,6 +10,8 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
@@ -142,6 +144,8 @@
 </li>
       <li><a href="api/icecube_tools.source.power_law.html#icecube_tools.source.power_law.BoundedPowerLaw">BoundedPowerLaw (class in icecube_tools.source.power_law)</a>
 </li>
+      <li><a href="api/icecube_tools.source.power_law.html#icecube_tools.source.power_law.BoundedPowerLawExpCutoff">BoundedPowerLawExpCutoff (class in icecube_tools.source.power_law)</a>
+</li>
       <li><a href="api/icecube_tools.utils.bpl_sampling.html#icecube_tools.utils.bpl_sampling.bpl">bpl() (in module icecube_tools.utils.bpl_sampling)</a>
 </li>
   </ul></td>
@@ -166,6 +170,8 @@
 
       <ul>
         <li><a href="api/icecube_tools.source.power_law.html#icecube_tools.source.power_law.BoundedPowerLaw.cdf">(icecube_tools.source.power_law.BoundedPowerLaw method)</a>
+</li>
+        <li><a href="api/icecube_tools.source.power_law.html#icecube_tools.source.power_law.BoundedPowerLawExpCutoff.cdf">(icecube_tools.source.power_law.BoundedPowerLawExpCutoff method)</a>
 </li>
       </ul></li>
       <li><a href="api/icecube_tools.point_source_analysis.point_source_analysis.html#icecube_tools.point_source_analysis.point_source_analysis.MapScan.combine_outputs">combine_outputs() (icecube_tools.point_source_analysis.point_source_analysis.MapScan class method)</a>
@@ -483,8 +489,6 @@
         <li><a href="api/icecube_tools.point_source_likelihood.prior.html#module-icecube_tools.point_source_likelihood.prior">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     icecube_tools.point_source_likelihood.spatial_likelihood
 
@@ -492,6 +496,8 @@
         <li><a href="api/icecube_tools.point_source_likelihood.spatial_likelihood.html#module-icecube_tools.point_source_likelihood.spatial_likelihood">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     icecube_tools.simulator
 
@@ -583,11 +589,17 @@
       <ul>
         <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.FluxModel.integrated_spectrum">(icecube_tools.source.flux_model.FluxModel method)</a>
 </li>
+        <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.PowerLawExpCutoffFlux.integrated_spectrum">(icecube_tools.source.flux_model.PowerLawExpCutoffFlux method)</a>
+</li>
         <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.PowerLawFlux.integrated_spectrum">(icecube_tools.source.flux_model.PowerLawFlux method)</a>
 </li>
       </ul></li>
       <li><a href="api/icecube_tools.source.power_law.html#icecube_tools.source.power_law.BoundedPowerLaw.inv_cdf">inv_cdf() (icecube_tools.source.power_law.BoundedPowerLaw method)</a>
+
+      <ul>
+        <li><a href="api/icecube_tools.source.power_law.html#icecube_tools.source.power_law.BoundedPowerLawExpCutoff.inv_cdf">(icecube_tools.source.power_law.BoundedPowerLawExpCutoff method)</a>
 </li>
+      </ul></li>
       <li><a href="api/icecube_tools.utils.data.html#icecube_tools.utils.data.Events.irf_periods">irf_periods (icecube_tools.utils.data.Events property)</a>
 
       <ul>
@@ -788,6 +800,8 @@
       <ul>
         <li><a href="api/icecube_tools.source.power_law.html#icecube_tools.source.power_law.BoundedPowerLaw.pdf">(icecube_tools.source.power_law.BoundedPowerLaw method)</a>
 </li>
+        <li><a href="api/icecube_tools.source.power_law.html#icecube_tools.source.power_law.BoundedPowerLawExpCutoff.pdf">(icecube_tools.source.power_law.BoundedPowerLawExpCutoff method)</a>
+</li>
       </ul></li>
       <li><a href="api/icecube_tools.point_source_analysis.point_source_analysis.html#icecube_tools.point_source_analysis.point_source_analysis.PointSourceAnalysis.peek">peek() (icecube_tools.point_source_analysis.point_source_analysis.PointSourceAnalysis class method)</a>
 </li>
@@ -828,6 +842,8 @@
       <li><a href="api/icecube_tools.point_source_likelihood.point_source_likelihood.html#icecube_tools.point_source_likelihood.point_source_likelihood.PointSourceLikelihood">PointSourceLikelihood (class in icecube_tools.point_source_likelihood.point_source_likelihood)</a>
 </li>
       <li><a href="api/icecube_tools.point_source_likelihood.energy_likelihood.html#icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedIntegratedEnergyLikelihood.power_law_loge">power_law_loge() (icecube_tools.point_source_likelihood.energy_likelihood.MarginalisedIntegratedEnergyLikelihood static method)</a>
+</li>
+      <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.PowerLawExpCutoffFlux">PowerLawExpCutoffFlux (class in icecube_tools.source.flux_model)</a>
 </li>
       <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.PowerLawFlux">PowerLawFlux (class in icecube_tools.source.flux_model)</a>
 </li>
@@ -881,10 +897,10 @@
       </ul></li>
       <li><a href="api/icecube_tools.point_source_likelihood.energy_likelihood.html#icecube_tools.point_source_likelihood.energy_likelihood.read_input_from_file">read_input_from_file() (in module icecube_tools.point_source_likelihood.energy_likelihood)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/icecube_tools.utils.data.html#icecube_tools.utils.data.RealEvents">RealEvents (class in icecube_tools.utils.data)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/icecube_tools.utils.data.html#icecube_tools.utils.data.Events.reco_energy">reco_energy (icecube_tools.utils.data.Events property)</a>
 </li>
       <li><a href="api/icecube_tools.utils.data.html#icecube_tools.utils.data.RealEvents.reco_energy_">reco_energy_ (icecube_tools.utils.data.RealEvents attribute)</a>
@@ -899,6 +915,8 @@
 
       <ul>
         <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.FluxModel.redshift_factor">(icecube_tools.source.flux_model.FluxModel method)</a>
+</li>
+        <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.PowerLawExpCutoffFlux.redshift_factor">(icecube_tools.source.flux_model.PowerLawExpCutoffFlux method)</a>
 </li>
         <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.PowerLawFlux.redshift_factor">(icecube_tools.source.flux_model.PowerLawFlux method)</a>
 </li>
@@ -952,6 +970,8 @@
 </li>
         <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.BrokenPowerLawFlux.sample">(icecube_tools.source.flux_model.BrokenPowerLawFlux method)</a>
 </li>
+        <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.PowerLawExpCutoffFlux.sample">(icecube_tools.source.flux_model.PowerLawExpCutoffFlux method)</a>
+</li>
         <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.PowerLawFlux.sample">(icecube_tools.source.flux_model.PowerLawFlux method)</a>
 </li>
       </ul></li>
@@ -962,6 +982,8 @@
       <li><a href="api/icecube_tools.source.power_law.html#icecube_tools.source.power_law.BoundedPowerLaw.samples">samples() (icecube_tools.source.power_law.BoundedPowerLaw method)</a>
 
       <ul>
+        <li><a href="api/icecube_tools.source.power_law.html#icecube_tools.source.power_law.BoundedPowerLawExpCutoff.samples">(icecube_tools.source.power_law.BoundedPowerLawExpCutoff method)</a>
+</li>
         <li><a href="api/icecube_tools.source.power_law.html#icecube_tools.source.power_law.BrokenBoundedPowerLaw.samples">(icecube_tools.source.power_law.BrokenBoundedPowerLaw method)</a>
 </li>
       </ul></li>
@@ -1027,6 +1049,8 @@
 
       <ul>
         <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.FluxModel.spectrum">(icecube_tools.source.flux_model.FluxModel method)</a>
+</li>
+        <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.PowerLawExpCutoffFlux.spectrum">(icecube_tools.source.flux_model.PowerLawExpCutoffFlux method)</a>
 </li>
         <li><a href="api/icecube_tools.source.flux_model.html#icecube_tools.source.flux_model.PowerLawFlux.spectrum">(icecube_tools.source.flux_model.PowerLawFlux method)</a>
 </li>
