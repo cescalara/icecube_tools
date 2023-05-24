@@ -6,7 +6,7 @@ from icecube_tools.detector.energy_resolution import EnergyResolution
 from icecube_tools.detector.angular_resolution import AngularResolution
 from icecube_tools.detector.r2021 import R2021IRF
 from icecube_tools.detector.detector import IceCube
-from icecube_tools.source.flux_model import PowerLawFlux
+from icecube_tools.source.flux_model import PowerLawFlux, PowerLawExpCutoffFlux
 from icecube_tools.source.source_model import DiffuseSource, PointSource
 from icecube_tools.neutrino_calculator import NeutrinoCalculator, PhiSolver
 from icecube_tools.simulator import Simulator, TimeDependentSimulator
@@ -22,12 +22,18 @@ pl_params = (1e-18, 1e5, 2.2, 1e4, 1e8)
 pl_flux = PowerLawFlux(*pl_params)
 point_source = PointSource(pl_flux, z=0.3)
 diffuse_source = DiffuseSource(pl_flux)
-sources = [point_source, diffuse_source]
+
+plec_params = (1e-13, 1e3, -2., 1e3, 1e4, 1e8)
+plec_flux = PowerLawExpCutoffFlux(*plec_params)
+point_source_plec = PointSource(plec_flux, z=0.0)
+diffuse_source_plec = DiffuseSource(plec_flux)
+
+sources = [point_source, diffuse_source, point_source_plec, diffuse_source_plec]
 
 
 def test_nu_calc():
 
-    nu_calc = NeutrinoCalculator([point_source], aeff)
+    nu_calc = NeutrinoCalculator([point_source, point_source_plec], aeff)
 
     Nnu = nu_calc(
         time=1,
@@ -35,15 +41,15 @@ def test_nu_calc():
         max_energy=1e8,
         min_cosz=-1,
         max_cosz=1,
-    )[0]
+    )
 
-    assert Nnu > 0
+    assert all(n > 0 for n in Nnu)
 
-    assert ~np.isnan(Nnu)
+    assert all(~np.isnan(n) for n in Nnu)
 
     phi_solver = PhiSolver(aeff, 1e5, 1e4, 1e8, time=1, min_cosz=-1, max_cosz=1)
 
-    phi_norm = phi_solver(Nnu=Nnu, dec=0.0, index=2.2)
+    phi_norm = phi_solver(Nnu=Nnu[0], dec=0.0, index=2.2)
 
     assert phi_norm == approx(1e-18, rel=0.01)
 
@@ -56,7 +62,6 @@ def test_simulation():
     simulator.run(seed=42)
 
     assert min(simulator._true_energy["IC86_II"]) >= 1e4
-
 
 
 def test_new_simulation():
