@@ -274,7 +274,13 @@ class Uptime():
     _available_data_periods = available_data_periods
     _available_irf_periods = available_irf_periods
 
-    def __init__(self, *periods):
+    def __init__(self, *periods, **kwargs):
+
+        if kwargs.get("fetch", True):
+            data_interface = IceCubeData()
+            dataset = data_interface.find("20210126")
+            data_interface.fetch(dataset)
+
         self._irf_periods = []
         self._data_periods = []
         for p in periods:
@@ -448,169 +454,6 @@ class Uptime():
         return self._data_periods
 
 
-
-'''
-class Uptime():
-    """
-    Class to handle calculations of detector live time.
-    """
-
-    def __init__(self):
-        self.data = {}
-        #Store start and end times of each period separately
-        self.times = np.zeros((len(available_data_periods), 2))
-        for c, p in enumerate(available_data_periods):
-            self.data[p] = np.loadtxt(os.path.join(
-                data_directory,
-                "20210126_PS-IC40-IC86_VII", 
-                "icecube_10year_ps",
-                "uptime",
-                f"{p}_exp.csv")
-            )
-            self.times[c, 0] = self.data[p][0, 0]
-            self.times[c, 1] = self.data[p][-1, -1]
-
-
-    def time_span(self, *periods: str, IRF: bool=True):
-        """
-        Return dictionary (keys are data or irf periods) with good time intervals of observations.
-        :param periods: Strings of data/irf periods.
-        :param IRF: bool, if true observation time of IC86_III and later is counted towards IC86_II.
-        :return: Dict of total times in years (without unit) between start and end of each queried data period.
-        """
-
-        output = {}
-        for p in periods:
-            time = self._time_span(p)
-            if IRF and p in available_data_periods and not p in available_irf_periods:
-                try:
-                    output["IC86_II"] += time
-                except KeyError:
-                    output["IC86_II"] = time
-            else:
-                output[p] = time
-        return output
-
-
-    def _time_span(self, period: str):
-        time = self.data[period][-1, -1] - self.data[period][0, 0]
-        time = time * u.d
-        return time.to("year").value
-
-
-    def time_obs(self, *periods: str, IRF: bool=True):
-        """
-        :param periods: Strings of data periods.
-        :return: Return total observation time of each queried data period in years (without unit)
-        """
-
-        output = {}
-        for p in periods:
-            time = self._time_obs(p)
-            if IRF and p in available_data_periods and p not in available_irf_periods:
-                try:
-                    output["IC86_II"] += time
-                except KeyError:
-                    output["IC86_II"] = time
-            else:
-                output[p] = time
-        return output
-
-
-    def _time_obs(self, period: str):
-        intervals = self.data[period][:, 1] - self.data[period][:, 0]
-        time = np.sum(intervals) * u.d
-        return time.to("year").value
-
-
-    def find_obs_time(self, IRF: bool=True, **kwargs):
-        """
-        Calculate the amounts of time in each period covered for either:
-         - given start and end time (should be MJD)
-         - duration and end date
-         - duration and start date
-        Duration should be in float in years.
-        """
-
-        start = kwargs.get("start", False)
-        end = kwargs.get("end", False)
-        duration = kwargs.get("duration", False)
-
-        if start and end and not duration:
-            duration = (end - start) * u.day
-            duration = duration.to("year")
-        elif start and duration and not end:
-            duration = duration * u.year
-            duration = duration.to("day")
-            end = start + duration.value
-            duration = duration.to("year")
-        elif end and duration and not start:
-            duration = duration * u.year
-            duration = duration.to("day")
-            start = end - duration.value
-            duration = duration.to("year")
-        else:
-            raise ValueError("Not a supported combination of arguments.")
-
-        if start < self.times[0, 0]:
-            logger.warning("Start time outside of running experiment, setting to earliest possible time.")
-            start = self.times[0, 0]
-
-        p_start = np.searchsorted(self.times[:, 0], start)
-
-        if end > self.times[-1, -1]:
-            logger.info("End time outside of provided data set, sending an owl to Professor Trelawney")
-            # Set to highest allowed value
-            p_end = len(available_data_periods) - 1
-            future = True
-            
-        else:    
-            p_end = np.searchsorted(self.times[:, 1], end)
-            future = False
-
-        # repeat searchsorted procedure for the periods containing start/end:
-        # add up all the detector uptime in those to get the resulting obs time
-        # or... just go for 'reasonable approximation':
-        # weigh the uptime in one period with the amount of time covered in that period
-        # assumes downtime is distributed uniformly
-        # since time_obs/time_span \approx 1, doesn't really matter anyway
-
-        obs_times = {}
-        if p_start == p_end and not future:
-            fraction = duration / self._time_span(available_data_periods[p_start])
-            t_obs = fraction * self._time_obs(available_data_periods[p_start])
-            obs_times[available_data_periods[p_start]] = t_obs.value
-        else:
-            # find duration in start period:
-            duration = ((self.times[p_start, 1] - start) * u.day).to("year")
-            fraction = duration / self._time_span(available_data_periods[p_start])
-            t_obs_start = fraction * self._time_obs(available_data_periods[p_start])
-            obs_times[available_data_periods[p_start]] = t_obs_start.value
-                        
-            # now for the middle periods:
-            for c_p in range(p_start+1, p_end):
-                obs_times[available_data_periods[c_p]] = self._time_obs(available_data_periods[c_p])
-            
-            # end
-            duration = ((end - self.times[p_end, 0]) * u.day).to("year")
-            fraction = duration / self._time_span(available_data_periods[p_end])
-            t_obs_end = fraction * self._time_obs(available_data_periods[p_end])
-            obs_times[available_data_periods[p_end]] = t_obs_end.value
-
-        if IRF:
-            new_obs_times = {}
-            for p, t in obs_times.items():
-                if p in available_data_periods and p not in available_irf_periods:
-                    try:
-                        new_obs_times["IC86_II"] += t
-                    except KeyError:
-                        new_obs_times["IC86_II"] = t
-                else:
-                    new_obs_times[p] = t
-            return new_obs_times
-        else:
-            return obs_times
-'''
 
 class dddict(dict):
 
@@ -1017,15 +860,21 @@ class RealEvents(Events):
 
 
     @classmethod
-    def from_event_files(cls, *periods: str, seed: int=1234, IRF: bool=True, use_all: bool=False):
+    def from_event_files(cls, *periods: str, seed: int=1234, use_all: bool=False, **kwargs):
         """
         Load from files provided by data release,
         if belonging to IC86_II or later, add to IC86_II keyword
         because the same IRF is used
         :param periods: Arbitrary number of period identifiers
         :param seed: int, seed for rng
-        :param IRF: bool, true if IC86_II should be translated to all data periods with this detector configuration
+        :param use_all: bool, true if IC86_II should be translated to all data periods with this detector configuration
         """
+
+        if kwargs.get("fetch", True):
+            data_interface = IceCubeData()
+            dataset = data_interface.find("20210126")
+            data_interface.fetch(dataset)
+            dataset_dir = data_interface.get_path_to(dataset[0])
 
         if periods:
             pass
