@@ -292,53 +292,72 @@ class BrokenPowerLawFlux(FluxModel):
         :param lower_energy_bound: [GeV]
         :param upper_energy_bound: [GeV]
         """
+        if isinstance(lower_energy_bound, np.ndarray) and isinstance(upper_energy_bound, np.ndarray):
+            norm = self._normalisation
+            E_break = self._break_energy
+            g1 = self._index1
+            g2 = self._index2
 
-        norm = self._normalisation
+            val = np.zeros_like(lower_energy_bound)
 
-        if (lower_energy_bound < self._break_energy) and (
-            upper_energy_bound <= self._break_energy
-        ):
+            idx1 = np.logical_and(lower_energy_bound < E_break, upper_energy_bound <= E_break)
+            idx2 = np.logical_and(lower_energy_bound < E_break, upper_energy_bound > E_break)
+            idx3 = np.logical_and(lower_energy_bound >= E_break, upper_energy_bound > E_break)
 
-            # Integrate over lower segment
-            output = (
-                norm
-                * (
-                    np.power(upper_energy_bound, self._index1 + 1.0)
-                    - np.power(lower_energy_bound, self._index1 + 1.0)
+            val[idx1] = norm * (np.power(upper_energy_bound[idx1], g1 + 1.0) - np.power(lower_energy_bound[idx1], g1 + 1.0))/ ((g1 + 1.0) * np.power(E_break, g1))
+            val[idx2] = norm * ((np.power(E_break, g1 + 1.0) - np.power(lower_energy_bound[idx2], g1 + 1.0)) / ((g1 + 1.0) * np.power(E_break, g1)) + (np.power(upper_energy_bound[idx2], g2 + 1.0) - np.power(E_break, g2 + 1.0)) / ((g2 + 1.0) * np.power(E_break, g2)))
+            val[idx3] = norm * (np.power(upper_energy_bound[idx3], g2 + 1.0) - np.power(lower_energy_bound[idx3], g2 + 1.0)) / ((g2 + 1.0) * np.power(E_break, g2))
+
+            return val
+
+        else:
+            norm = self._normalisation
+
+            if (lower_energy_bound < self._break_energy) and (
+                upper_energy_bound <= self._break_energy
+            ):
+
+                # Integrate over lower segment
+                output = (
+                    norm
+                    * (
+                        np.power(upper_energy_bound, self._index1 + 1.0)
+                        - np.power(lower_energy_bound, self._index1 + 1.0)
+                    )
+                    / ((self._index1 + 1.0) * np.power(self._break_energy, self._index1))
                 )
-                / ((self._index1 + 1.0) * np.power(self._break_energy, self._index1))
-            )
 
-        elif (lower_energy_bound < self._break_energy) and (
-            upper_energy_bound > self._break_energy
-        ):
+            elif (lower_energy_bound < self._break_energy) and (
+                upper_energy_bound > self._break_energy
+            ):
 
-            # Integrate across break
-            lower = (
-                np.power(self._break_energy, self._index1 + 1.0)
-                - np.power(lower_energy_bound, self._index1 + 1.0)
-            ) / ((self._index1 + 1.0) * np.power(self._break_energy, self._index1))
+                # Integrate across break
+                lower = (
+                    np.power(self._break_energy, self._index1 + 1.0)
+                    - np.power(lower_energy_bound, self._index1 + 1.0)
+                ) / ((self._index1 + 1.0) * np.power(self._break_energy, self._index1))
 
-            upper = (
-                np.power(upper_energy_bound, self._index2 + 1.0)
-                - np.power(self._break_energy, self._index2 + 1.0)
-            ) / ((self._index2 + 1.0) * np.power(self._break_energy, self._index2))
+                upper = (
+                    np.power(upper_energy_bound, self._index2 + 1.0)
+                    - np.power(self._break_energy, self._index2 + 1.0)
+                ) / ((self._index2 + 1.0) * np.power(self._break_energy, self._index2))
 
-            output = norm * (lower + upper)
+                output = norm * (lower + upper)
 
-        elif (lower_energy_bound >= self._break_energy) and (
-            upper_energy_bound > self._break_energy
-        ):
+            elif (lower_energy_bound >= self._break_energy) and (
+                upper_energy_bound > self._break_energy
+            ):
 
-            # Integrate over upper segment
-            upper = (
-                np.power(upper_energy_bound, self._index2 + 1.0)
-                - np.power(lower_energy_bound, self._index2 + 1.0)
-            ) / ((self._index2 + 1.0) * np.power(self._break_energy, self._index2))
+                # Integrate over upper segment
+                upper = (
+                    np.power(upper_energy_bound, self._index2 + 1.0)
+                    - np.power(lower_energy_bound, self._index2 + 1.0)
+                ) / ((self._index2 + 1.0) * np.power(self._break_energy, self._index2))
 
-            output = norm * upper
+                output = norm * upper
 
-        return output
+            return output
+        
 
     def redshift_factor(self, z: float):
 
