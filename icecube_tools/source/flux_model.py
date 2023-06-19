@@ -292,7 +292,7 @@ class BrokenPowerLawFlux(FluxModel):
         :param lower_energy_bound: [GeV]
         :param upper_energy_bound: [GeV]
         """
-        if isinstance(lower_energy_bound, np.ndarray) and isinstance(upper_energy_bound, np.ndarray):
+        if isinstance(lower_energy_bound, np.ndarray) or isinstance(upper_energy_bound, np.ndarray):
             norm = self._normalisation
             E_break = self._break_energy
             g1 = self._index1
