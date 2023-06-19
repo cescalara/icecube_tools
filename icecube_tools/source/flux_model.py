@@ -247,7 +247,7 @@ class BrokenPowerLawFlux(FluxModel):
             norm = self._normalisation
             nans = np.nonzero(((energy < self._lower_energy) | (energy > self._upper_energy)))
 
-            output = norm = self._normalisation
+            output = np.zeros_like(energy)
 
             below = np.nonzero((energy < self._break_energy))
             output[below] = norm * np.power(energy[below] / self._break_energy, self._index1)
@@ -360,8 +360,7 @@ class BrokenPowerLawFlux(FluxModel):
         
 
     def redshift_factor(self, z: float):
-
-        raise NotImplementedError()
+        return 1.0
 
     def sample(self, N):
         """
