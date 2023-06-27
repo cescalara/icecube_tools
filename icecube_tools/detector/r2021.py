@@ -110,15 +110,6 @@ class R2021IRF(EnergyResolution, AngularResolution):
                         self.faulty.append((c, c_d))
             if self.faulty:
                 logger.warning(f"Empty true energy bins at: {self.faulty}")
-
-            """
-                #find all entries for a given dec bin
-                reduced = self.data[np.nonzero(np.isclose(self.data[:, 2], np.rad2deg(d_l)))]
-                #find all true energy bins for dec bin
-                pre_bins = np.union1d(reduced[:, 0], reduced[:, 1])
-            """
-
-
             
             self.ang_res_values = 1    # placeholder, isn't used anyway
 
@@ -153,28 +144,12 @@ class R2021IRF(EnergyResolution, AngularResolution):
                             except:
                                 # this is really sloppy, sorry
                                 idx += 1
-            # for now assume that all etrue ereco thingies have the same size
-            self.reco_energy_bin_cen = np.empty((self.true_energy_bins.size-1, self.reco_energy_bins[0, 0].shape[0]-1))      
-            """
-            for c_d, (d_l, d_h) in enumerate(zip(self.declination_bins[:-1], self.declination_bins[1:])):
-                self.true_energy_bin_cen
-                self.reco_energy_bins  
-                self.reco_energy_splines[c_d] = griddata(
-
-                )
-            """
-
 
             self._values = []
             logger.debug('Creating empty dicts for kinematic angle dists and angerr dists')
 
             self._marginal_pdf_psf = ddict()
             self._marginal_pdf_angerr = ddict()
-
-            #self.kinematic_angle_bin_list = []
-            #self.etrue_bin_list = []
-            #self.ereco_bin_list = []
-            #self.dec_bin_list = []
 
             R2021IRF.__STACK[period] = self
         

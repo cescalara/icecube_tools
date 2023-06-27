@@ -580,7 +580,7 @@ class MapScan(PointSourceAnalysis):
         else:
             config_path = input["config_path"]
             output_path = os.path.join(os.path.dirname(config_path), "_output.hdf5")
-            instance = cls(config_path, events, output_path)
+            instance = cls(config_path, output_path, events)
             instance.ra_test = np.hstack(ra_test)
             instance.dec_test = np.hstack(dec_test)
             instance.ts = np.hstack(ts)
