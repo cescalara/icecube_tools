@@ -803,6 +803,15 @@ class RealEvents(Events):
     ra_ = 3
     dec_ = 4
 
+    # TODO:
+    #create stack with keywords being period
+    #for IC86_II append some string like "all" or similar
+    #to indicate that all following data seasons are included
+    #also do one keyword for the entirety of events in one class
+    #upon instantiation load all the stuff using the __dict__ method
+    #see hnu.source.parameter as guide
+    __STACK = {}
+
     keys = ["reco_energy", "ra", "dec", "ang_err", "mjd"]
 
     def __init__(self, *data_periods, seed=1234):
@@ -882,29 +891,38 @@ class RealEvents(Events):
             #use all periods if none are specified
             periods = ("IC40", "IC59", "IC79", "IC86_I", "IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII")
         inst = cls(seed=seed)
+        #TODO add a try: access some data field, if it works, return finished instance
+        #except: proceed with the following lines
         inst.events = {}
         add = []
 
         if use_all and periods == ("IC86_II",):
             periods = ("IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII")
  
-        for p in periods:
-            if p in ["IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII"]:
-                add.append(p)
-            else:
-                inst.events[p]= np.loadtxt(
-                    join(data_directory, f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv")
-                )
-                inst._periods.append(p)
-        if add:
-            logging.info("Appending IC86_II and later events")
-            inst.events["IC86_II"] = inst._add_events(*add)
-            inst._periods.append("IC86_II")
-        inst._sort()
-        inst._uptime = Uptime(*periods)
-        inst._data_periods = inst._uptime.data_periods
-        inst._irf_periods = inst._uptime.irf_periods
-        return inst
+        key = "".join(periods)
+        if key in RealEvents.__STACK:
+            inst.__dict__ = RealEvents.__STACK[key].__dict__
+            return inst
+        
+        else:
+            for p in periods:
+                if p in ["IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII"]:
+                    add.append(p)
+                else:
+                    inst.events[p]= np.loadtxt(
+                        join(data_directory, f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv")
+                    )
+                    inst._periods.append(p)
+            if add:
+                logging.info("Appending IC86_II and later events")
+                inst.events["IC86_II"] = inst._add_events(*add)
+                inst._periods.append("IC86_II")
+            inst._sort()
+            inst._uptime = Uptime(*periods)
+            inst._data_periods = inst._uptime.data_periods
+            inst._irf_periods = inst._uptime.irf_periods
+            RealEvents.__STACK["".join(periods)] = inst
+            return inst
 
 
     @classmethod

@@ -1,6 +1,7 @@
 from asyncio.log import logger
 import numpy as np
 from scipy.stats import rv_histogram, uniform, norm
+from scipy.interpolate import RectBivariateSpline, griddata
 from scipy.spatial.transform import Rotation as R
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -60,106 +61,122 @@ class R2021IRF(EnergyResolution, AngularResolution):
     2) kinematic angle, what the readme calls "PSF"
     3) misreconstruction of tracks, what the readme calls "AngErr"
     """
+
+    __STACK = {}
     
-    def __init__(self, filename, **kwargs):
+    def __init__(self, filename, period, **kwargs):
         """
         Special class to handle smearing effects given in the 2021 data release.
         """
 
-        #self.read(fetch)        
-        self._filename = filename
-        self.ret_ang_err_p = kwargs.get("ret_ang_err_p", 0.68)
-        self.prob_contained = 0.68
-        self.year = 2012    # subject to change
-        self.nu_type = "nu_mu"
+        if period in R2021IRF.__STACK:
+            self.__dict__ = self.__STACK[period].__dict__
+        else:
+            #self.read(fetch)        
+            self._filename = filename
+            self.ret_ang_err_p = kwargs.get("ret_ang_err_p", 0.68)
+            self.prob_contained = 0.68
+            self.year = 2012    # subject to change
+            self.nu_type = "nu_mu"
 
-        self.uniform = uniform(0, 2*np.pi)
+            self.uniform = uniform(0, 2*np.pi)
 
-        self.output = np.loadtxt(self._filename, comments="#")
-        self.dataset = self.output
+            self.output = np.loadtxt(self._filename, comments="#")
+            self.dataset = self.output
 
-        #convert PSF and AngErr values to log(angle/degree)
-        self.dataset[:, 6:-1] = np.log10(self.dataset[:, 6:-1])
+            #convert PSF and AngErr values to log(angle/degree)
+            self.dataset[:, 6:-1] = np.log10(self.dataset[:, 6:-1])
 
-        true_energy_lower = np.array(list(set(self.output[:, 0])))
-        true_energy_upper = np.array(list(set(self.output[:, 1])))
+            true_energy_lower = np.array(list(set(self.output[:, 0])))
+            true_energy_upper = np.array(list(set(self.output[:, 1])))
 
-        self.true_energy_bins = np.union1d(true_energy_lower, true_energy_upper)
-        self.true_energy_bins.sort()
+            self.true_energy_bins = np.union1d(true_energy_lower, true_energy_upper)
+            self.true_energy_bins.sort()
 
-        dec_lower = np.array(list(set(self.output[:, 2])))
-        dec_higher = np.array(list(set(self.output[:, 3])))
+            dec_lower = np.array(list(set(self.output[:, 2])))
+            dec_higher = np.array(list(set(self.output[:, 3])))
 
-        self.declination_bins = np.radians(np.union1d(dec_lower, dec_higher))
-        self.declination_bins.sort()
+            self.declination_bins = np.radians(np.union1d(dec_lower, dec_higher))
+            self.declination_bins.sort()
 
-        self.faulty = []
+            self.faulty = []
 
-        for c_d, (d_l, d_h) in enumerate(zip(self.declination_bins[:-1], self.declination_bins[1:])):
-            for c, tE in enumerate(self.true_energy_bins[:-1]):
-                reduced = self.dataset[np.nonzero((np.isclose(self.dataset[:, 0], tE)) & 
-                    np.isclose(self.dataset[:, 2], np.rad2deg(d_l)))
-                ]
-                if np.all(np.isclose(reduced[:, -1], np.zeros_like(reduced[:, -1]))):
-                    self.faulty.append((c, c_d))
-        if self.faulty:
-            logger.warning(f"Empty true energy bins at: {self.faulty}")
+            for c_d, (d_l, d_h) in enumerate(zip(self.declination_bins[:-1], self.declination_bins[1:])):
+                for c, tE in enumerate(self.true_energy_bins[:-1]):
+                    reduced = self.dataset[np.nonzero((np.isclose(self.dataset[:, 0], tE)) & 
+                        np.isclose(self.dataset[:, 2], np.rad2deg(d_l)))
+                    ]
+                    if np.all(np.isclose(reduced[:, -1], np.zeros_like(reduced[:, -1]))):
+                        self.faulty.append((c, c_d))
+            if self.faulty:
+                logger.warning(f"Empty true energy bins at: {self.faulty}")
 
-        """
-            #find all entries for a given dec bin
-            reduced = self.data[np.nonzero(np.isclose(self.data[:, 2], np.rad2deg(d_l)))]
-            #find all true energy bins for dec bin
-            pre_bins = np.union1d(reduced[:, 0], reduced[:, 1])
-        """
+            """
+                #find all entries for a given dec bin
+                reduced = self.data[np.nonzero(np.isclose(self.data[:, 2], np.rad2deg(d_l)))]
+                #find all true energy bins for dec bin
+                pre_bins = np.union1d(reduced[:, 0], reduced[:, 1])
+            """
 
 
-        
-        self.ang_res_values = 1    # placeholder, isn't used anyway
+            
+            self.ang_res_values = 1    # placeholder, isn't used anyway
 
-        self.true_energy_values = (
-            self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins) / 2
-        )
+            self.true_energy_values = (
+                self.true_energy_bins[0:-1] + np.diff(self.true_energy_bins) / 2
+            )
 
-        logger.debug('Creating Ereco distributions')
-        #Reco energy is handled without ddict() because it's not that much calculation
-        #and has no parts with zero-entries
-        # ^ this aged like milk
-        self.reco_energy = np.empty((self.true_energy_bins.size-1, self.declination_bins.size-1), dtype=rv_histogram)
-        self.reco_energy_bins = np.empty((self.true_energy_bins.size-1, self.declination_bins.size-1), dtype=np.ndarray)
-        for c_e, e in enumerate(self.true_energy_bins[:-1]):
-            for c_d, d in enumerate(self.declination_bins[:-1]):
-                if not (c_e, c_d) in self.faulty:
-                    n, bins = self._marginalisation(c_e, c_d)
-                    self.reco_energy[c_e, c_d] = rv_histogram((n, bins), density=False)
-                    self.reco_energy_bins[c_e, c_d] = bins
-                    
-                else:
-                    # workaround for true energy bins completely empty
-                    idx = c_e-1
-                    while True:
-                        try:
-                            _, bins = self._marginalisation(idx, c_d)
-                            n = np.zeros(bins.size - 1)
-                            self.reco_energy[c_e, c_d] = DummyPDF()
-                            self.reco_energy_bins[c_e, c_d] = bins
-                            break
-                        except:
-                            # this is really sloppy, sorry
-                            idx += 1
-                            
+            logger.debug('Creating Ereco distributions')
+            #Reco energy is handled without ddict() because it's not that much calculation
+            #and has no parts with zero-entries
+            # ^ this aged like milk
+            self.reco_energy = np.empty((self.true_energy_bins.size-1, self.declination_bins.size-1), dtype=rv_histogram)
+            # self.reco_energy_splines = np.empty((self.declination_bins.size-1), dtype=RectBivariateSpline)
+            self.reco_energy_bins = np.empty((self.true_energy_bins.size-1, self.declination_bins.size-1), dtype=np.ndarray)
+            for c_e, e in enumerate(self.true_energy_bins[:-1]):
+                for c_d, d in enumerate(self.declination_bins[:-1]):
+                    if not (c_e, c_d) in self.faulty:
+                        n, bins = self._marginalisation(c_e, c_d)
+                        self.reco_energy[c_e, c_d] = rv_histogram((n, bins), density=False)
+                        self.reco_energy_bins[c_e, c_d] = bins
                         
-                
+                    else:
+                        # workaround for true energy bins completely empty
+                        idx = c_e-1
+                        while True:
+                            try:
+                                _, bins = self._marginalisation(idx, c_d)
+                                n = np.zeros(bins.size - 1)
+                                self.reco_energy[c_e, c_d] = DummyPDF()
+                                self.reco_energy_bins[c_e, c_d] = bins
+                                break
+                            except:
+                                # this is really sloppy, sorry
+                                idx += 1
+            # for now assume that all etrue ereco thingies have the same size
+            self.reco_energy_bin_cen = np.empty((self.true_energy_bins.size-1, self.reco_energy_bins[0, 0].shape[0]-1))      
+            """
+            for c_d, (d_l, d_h) in enumerate(zip(self.declination_bins[:-1], self.declination_bins[1:])):
+                self.true_energy_bin_cen
+                self.reco_energy_bins  
+                self.reco_energy_splines[c_d] = griddata(
 
-        self._values = []
-        logger.debug('Creating empty dicts for kinematic angle dists and angerr dists')
+                )
+            """
 
-        self._marginal_pdf_psf = ddict()
-        self._marginal_pdf_angerr = ddict()
 
-        self.kinematic_angle_bin_list = []
-        self.etrue_bin_list = []
-        self.ereco_bin_list = []
-        self.dec_bin_list = []
+            self._values = []
+            logger.debug('Creating empty dicts for kinematic angle dists and angerr dists')
+
+            self._marginal_pdf_psf = ddict()
+            self._marginal_pdf_angerr = ddict()
+
+            #self.kinematic_angle_bin_list = []
+            #self.etrue_bin_list = []
+            #self.ereco_bin_list = []
+            #self.dec_bin_list = []
+
+            R2021IRF.__STACK[period] = self
         
 
     @staticmethod
@@ -406,7 +423,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         files = find_files(dataset_dir, R2021_IRF_FILENAME)
         for f in files:
                 if "_".join((period, R2021_IRF_FILENAME)) in f:
-                    return cls(f, **kwargs)
+                    return cls(f, period, **kwargs)
 
 
     def _get_angerr_dist(self, c_e, c_d, c_e_r, c_psf):
