@@ -28,7 +28,18 @@ data_directory = os.path.abspath(os.path.join(os.path.expanduser("~"), ".icecube
 
 available_irf_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
 
-available_data_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII"]
+available_data_periods = [
+    "IC40",
+    "IC59",
+    "IC79",
+    "IC86_I",
+    "IC86_II",
+    "IC86_III",
+    "IC86_IV",
+    "IC86_V",
+    "IC86_VI",
+    "IC86_VII",
+]
 
 
 class IceCubeData:
@@ -80,23 +91,19 @@ class IceCubeData:
         self.datasets = []
 
         if update:
-
             requests_cache.clear()
 
         response = requests.get(self.base_url)
 
         if response.ok:
-
             soup = BeautifulSoup(response.content, "html.parser")
 
             links = soup.find_all("a")
 
             for link in links:
-
                 href = link.get("href")
 
                 if ".zip" in href:
-
                     self.datasets.append(href)
 
                     if verbose:
@@ -110,9 +117,7 @@ class IceCubeData:
         found_datasets = []
 
         for dataset in self.datasets:
-
             if search_string in dataset:
-
                 found_datasets.append(dataset)
 
         return found_datasets
@@ -127,15 +132,12 @@ class IceCubeData:
         """
 
         if write_to:
-
             old_dir = self.data_directory
 
             self.data_directory = write_to
 
         for dataset in datasets:
-
             if dataset not in self.datasets:
-
                 raise ValueError(
                     "Dataset %s is not in list of known datasets" % dataset
                 )
@@ -146,14 +148,11 @@ class IceCubeData:
 
             # Only fetch if not already there!
             if not os.path.exists(os.path.splitext(local_path)[0]) or overwrite:
-
                 # Don't cache this as we want to stream
                 with requests_cache.disabled():
-
                     response = requests.get(url, stream=True)
 
                     if response.ok:
-
                         total = int(response.headers["content-length"])
 
                         # For progress bar description
@@ -165,16 +164,13 @@ class IceCubeData:
                         with open(local_path, "wb") as f, tqdm(
                             desc=short_name, total=total
                         ) as bar:
-
                             for chunk in response.iter_content(chunk_size=1024 * 1024):
-
                                 size = f.write(chunk)
                                 bar.update(size)
 
                         # Unzip
                         dataset_dir = os.path.splitext(local_path)[0]
                         with ZipFile(local_path, "r") as zip_ref:
-
                             zip_ref.extractall(dataset_dir)
 
                         # Delete zipfile
@@ -186,20 +182,16 @@ class IceCubeData:
                         zip_files = find_files(dataset_dir, ".zip")
 
                         for tf in tar_files:
-
                             tar = tarfile.open(tf)
                             tar.extractall(os.path.splitext(tf)[0])
 
                         for zf in zip_files:
-
                             with ZipFile(zf, "r") as zip_ref:
-
                                 zip_ref.extractall(zf[:-4])
 
                 crawl_delay()
 
         if write_to:
-
             self.data_directory = old_dir
 
     def fetch_all_to(self, write_to, overwrite=False):
@@ -215,7 +207,6 @@ class IceCubeData:
         """
 
         if dataset not in self.datasets:
-
             raise ValueError("Dataset is not available")
 
         local_zip_loc = os.path.join(self.data_directory, dataset)
@@ -223,7 +214,6 @@ class IceCubeData:
         local_path = os.path.splitext(local_zip_loc)[0]
 
         return local_path
-
 
 
 class ddict(dict):
@@ -235,7 +225,6 @@ class ddict(dict):
     def __init__(self):
         super().__init__()
 
-
     def add(self, value, *keys):
         """
         Add value to chain of keys.
@@ -243,7 +232,7 @@ class ddict(dict):
         :param value: Value to be added
         :param keys: Tuple containing ordered keys behind which the value should be added.
         """
-        #TODO: protect from overwriting
+        # TODO: protect from overwriting
 
         temp = self
         for key in keys[:-1]:
@@ -254,7 +243,6 @@ class ddict(dict):
             finally:
                 temp = temp[key]
         temp[keys[-1]] = value
-
 
     def __call__(self, *keys):
         """
@@ -269,13 +257,11 @@ class ddict(dict):
         return temp
 
 
-
-class Uptime():
+class Uptime:
     _available_data_periods = available_data_periods
     _available_irf_periods = available_irf_periods
 
     def __init__(self, *periods, **kwargs):
-
         if kwargs.get("fetch", True):
             data_interface = IceCubeData()
             dataset = data_interface.find("20210126")
@@ -289,21 +275,22 @@ class Uptime():
                 self._irf_periods.append(p)
 
         self._data = {}
-        #Store start and end times of each period separately
+        # Store start and end times of each period separately
         self._times = np.zeros((len(self._available_data_periods), 2))
         for c, p in enumerate(self._available_data_periods):
-            self._data[p] = np.loadtxt(os.path.join(
-                data_directory,
-                "20210126_PS-IC40-IC86_VII", 
-                "icecube_10year_ps",
-                "uptime",
-                f"{p}_exp.csv")
+            self._data[p] = np.loadtxt(
+                os.path.join(
+                    data_directory,
+                    "20210126_PS-IC40-IC86_VII",
+                    "icecube_10year_ps",
+                    "uptime",
+                    f"{p}_exp.csv",
+                )
             )
             self._times[c, 0] = self._data[p][0, 0]
             self._times[c, 1] = self._data[p][-1, -1]
 
-
-    def time_span(self, IRF: bool=True):
+    def time_span(self, IRF: bool = True):
         """
         Return dictionary (keys are data or irf periods) with good time intervals of observations.
         :param periods: Strings of data/irf periods.
@@ -323,14 +310,12 @@ class Uptime():
                 output[p] = time
         return output
 
-
     def _time_span(self, period: str):
         time = self._data[period][-1, -1] - self._data[period][0, 0]
         time = time * u.d
         return time.to("year").value
 
-
-    def cumulative_time_obs(self, IRF: bool=True):
+    def cumulative_time_obs(self, IRF: bool = True):
         """
         :param periods: Strings of data periods.
         :return: Return total observation time of each queried data period in years (without unit)
@@ -348,14 +333,12 @@ class Uptime():
                 output[p] = time
         return output
 
-
     def _time_obs(self, period: str):
         intervals = self._data[period][:, 1] - self._data[period][:, 0]
         time = np.sum(intervals) * u.d
         return time.to("year").value
 
-
-    def find_obs_time(self, IRF: bool=True, **kwargs):
+    def find_obs_time(self, IRF: bool = True, **kwargs):
         """
         Calculate the amounts of time in each period covered for either:
          - given start and end time (should be MJD)
@@ -385,27 +368,28 @@ class Uptime():
             raise ValueError("Not a supported combination of arguments.")
 
         if start < self._times[0, 0]:
-            logger.warning("Start time outside of running experiment, setting to earliest possible time.")
+            logger.warning(
+                "Start time outside of running experiment, setting to earliest possible time."
+            )
             start = self._times[0, 0]
 
-        p_start = np.searchsorted(self._times[:, 0], start)
+        p_start = np.digitize(start, self._times[:, 0]) - 1
 
         if end > self._times[-1, -1]:
-            logger.info("End time outside of provided data set, sending an owl to Professor Trelawney")
+            logger.info(
+                "End time outside of provided data set, sending an owl to Professor Trelawney"
+            )
             # Set to highest allowed value
             p_end = len(available_data_periods) - 1
             future = True
-            
-        else:    
-            p_end = np.searchsorted(self._times[:, 1], end)
+
+        else:
+            # Do not subtract one because we need the entry after the digitized one
+            p_end = np.digitize(end, self._times[:, 1])
             future = False
 
         # repeat searchsorted procedure for the periods containing start/end:
         # add up all the detector uptime in those to get the resulting obs time
-        # or... just go for 'reasonable approximation':
-        # weigh the uptime in one period with the amount of time covered in that period
-        # assumes downtime is distributed uniformly
-        # since time_obs/time_span \approx 1, doesn't really matter anyway
 
         obs_times = {}
         if p_start == p_end and not future:
@@ -418,11 +402,13 @@ class Uptime():
             fraction = duration / self._time_span(available_data_periods[p_start])
             t_obs_start = fraction * self._time_obs(available_data_periods[p_start])
             obs_times[available_data_periods[p_start]] = t_obs_start.value
-                        
+
             # now for the middle periods:
-            for c_p in range(p_start+1, p_end):
-                obs_times[available_data_periods[c_p]] = self._time_obs(available_data_periods[c_p])
-            
+            for c_p in range(p_start + 1, p_end):
+                obs_times[available_data_periods[c_p]] = self._time_obs(
+                    available_data_periods[c_p]
+                )
+
             # end
             duration = ((end - self._times[p_end, 0]) * u.day).to("year")
             fraction = duration / self._time_span(available_data_periods[p_end])
@@ -442,24 +428,19 @@ class Uptime():
             return new_obs_times
         else:
             return obs_times
-        
 
     @property
     def irf_periods(self):
         return self._irf_periods
-    
 
     @property
     def data_periods(self):
         return self._data_periods
 
 
-
 class dddict(dict):
-
     def __init__(self):
         super().__init__()
-
 
     def min(self):
         for key, value in self.items():
@@ -467,9 +448,8 @@ class dddict(dict):
                 if value < minimum:
                     minimum = value
             except NameError:
-                    minimum = value
+                minimum = value
         return minimum
-
 
     def max(self):
         for key, value in self.items():
@@ -477,9 +457,8 @@ class dddict(dict):
                 if value > maximum:
                     maximum = value
             except NameError:
-                    maximum = value
+                maximum = value
         return maximum
-
 
 
 class Events(ABC):
@@ -488,12 +467,11 @@ class Events(ABC):
     For single period event files, the properties return not a dictionary but a single array of data.
     """
 
-    def __init__(self, seed: int=1234):
+    def __init__(self, seed: int = 1234):
         self._create_dicts()
         self._periods = []
         self.mask = None
         self.seed = seed
-
 
     def _create_dicts(self):
         self._reco_energy = dddict()
@@ -501,47 +479,38 @@ class Events(ABC):
         self._ra = dddict()
         self._dec = dddict()
 
-
     def __len__(self):
         return len(self._periods)
-
 
     @abstractmethod
     def period(self):
         pass
-
 
     @classmethod
     @abstractmethod
     def load_from_h5(cls):
         pass
 
-
     @abstractmethod
     def write_to_h5(self):
         pass
-
 
     @abstractmethod
     def scramble_ra(self):
         pass
 
-
     @property
     def periods(self):
         return self._irf_periods
-
 
     @property
     def irf_periods(self):
         return self._irf_periods
 
-
     @property
     def data_periods(self):
         return self._data_periods
 
-    
     @property
     def reco_energy(self):
         if self.mask:
@@ -549,14 +518,12 @@ class Events(ABC):
         else:
             return self._reco_energy
 
-    
     @property
     def ra(self):
         if self.mask:
             return {p: self._ra[p][self.mask[p]] for p in self.periods}
         else:
             return self._ra
-
 
     @property
     def dec(self):
@@ -565,7 +532,6 @@ class Events(ABC):
         else:
             return self._dec
 
-
     @property
     def ang_err(self):
         if self.mask:
@@ -573,24 +539,27 @@ class Events(ABC):
         else:
             return self._ang_err
 
-
     @property
     def seed(self):
         return self._seed
 
-    
     @seed.setter
     def seed(self, s: int):
         logger.warning("Resetting rng")
         self._seed = s
         self.rng = np.random.default_rng(seed=s)
 
-
     def _return_single_period(self, data):
         return data[self._periods[0]]
 
-
-    def restrict(self, dec_low: float=-np.pi/2, dec_high: float=np.pi/2, ra_low=0., ra_high=2*np.pi, ereco_low: float=1.):
+    def restrict(
+        self,
+        dec_low: float = -np.pi / 2,
+        dec_high: float = np.pi / 2,
+        ra_low=0.0,
+        ra_high=2 * np.pi,
+        ereco_low: float = 1.0,
+    ):
         """
         Restrict declination to given range, if None provided respective bound is ignored.
         For fancier restrictions use `self.mask`.
@@ -600,18 +569,19 @@ class Events(ABC):
 
         if dec_low >= dec_high:
             raise ValueError("dec_low is greater than or equal to dec_high!")
-        
+
         mask = {}
         for p in self.periods:
-            mask[p] = np.nonzero((
-                (self._dec[p] >= dec_low)
-                & (self._dec[p] <= dec_high)
-                & (self._reco_energy[p] >= ereco_low)
-                & (self._ra[p] >= ra_low)
-                & (self._ra[p] <= ra_high)
-            ))
+            mask[p] = np.nonzero(
+                (
+                    (self._dec[p] >= dec_low)
+                    & (self._dec[p] <= dec_high)
+                    & (self._reco_energy[p] >= ereco_low)
+                    & (self._ra[p] >= ra_low)
+                    & (self._ra[p] <= ra_high)
+                )
+            )
         self.mask = mask
-
 
     @property
     def N(self) -> Dict:
@@ -619,7 +589,6 @@ class Events(ABC):
         for p in self.periods:
             output[p] = self._ra[p].size
         return output
-
 
     @property
     def N_restricted(self) -> Dict:
@@ -630,26 +599,38 @@ class Events(ABC):
         return output
 
 
-
 class SimEvents(Events):
     """
     Class to store simulated events.
     """
 
-    ic86_ii_data_periods = ["IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII"]
+    ic86_ii_data_periods = [
+        "IC86_II",
+        "IC86_III",
+        "IC86_IV",
+        "IC86_V",
+        "IC86_VI",
+        "IC86_VII",
+    ]
 
-    keys = ["true_energy", "arrival_energy", "reco_energy",
-        "ra", "dec", "ang_err", "source_label"]
+    keys = [
+        "true_energy",
+        "arrival_energy",
+        "reco_energy",
+        "ra",
+        "dec",
+        "ang_err",
+        "source_label",
+    ]
 
-    def __init__(self, seed: int=1234):
+    def __init__(self, seed: int = 1234):
         super().__init__(seed=seed)
         self._true_energy = dddict()
         self._arrival_energy = dddict()
         self._source_label = {}
-        
-    
+
     @classmethod
-    def load_from_h5(cls, path: str, seed: int=1234):
+    def load_from_h5(cls, path: str, seed: int = 1234):
         """
         Load events from hdf5 file.
         :param path: Path to file
@@ -661,7 +642,7 @@ class SimEvents(Events):
         inst.path = path
         inst.sources = {}
         with h5py.File(inst.path, "r") as f:
-            #TODO load source data too!
+            # TODO load source data too!
             for p, data in f.items():
                 if not "source" in p:
                     inst._periods.append(p)
@@ -684,7 +665,6 @@ class SimEvents(Events):
                 inst._data_periods = list(inst._reco_energy.keys())
         return inst
 
-
     def write_to_h5(self, path: str, sources: List[Source]):
         """
         Write events to hdf5 file.
@@ -702,7 +682,7 @@ class SimEvents(Events):
                 group.create_dataset("ra", data=self._ra[p])
                 group.create_dataset("dec", data=self._dec[p])
                 group.create_dataset("source_label", data=self._source_label[p])
-                
+
             for i, source in enumerate(sources):
                 s = f.create_group("source_{}".format(str(i)))
                 if isinstance(source.flux_model, PowerLawFlux):
@@ -721,7 +701,6 @@ class SimEvents(Events):
                 s.create_dataset("normalisation", data=source.flux_model._normalisation)
                 if source.source_type == POINT:
                     s.create_dataset("source_coord", data=source.coord)
-
 
     def period(self, p: str):
         """
@@ -748,7 +727,6 @@ class SimEvents(Events):
             out["source_label"] = self._source_label[p]
         return out
 
-
     def scramble_ra(self):
         """
         Srcambles RA of all events, no distinction between source and background is made.
@@ -759,13 +737,18 @@ class SimEvents(Events):
         for p in self.periods:
             num_of_events += self._ra[p].size
             if self.mask:
-                self._ra[p][self.mask[p]] = self.rng.uniform(low=0., high=2*np.pi, size=self.mask[p].size)
+                self._ra[p][self.mask[p]] = self.rng.uniform(
+                    low=0.0, high=2 * np.pi, size=self.mask[p].size
+                )
             else:
-                self._ra[p] = self.rng.uniform(low=0., high=2*np.pi, size=self._ra[p].size)
-                
-        if num_of_events < 10000:
-            logger.warning(f"Shuffling RA with low ({num_of_events} events) statistics. Proceed with caution.")
+                self._ra[p] = self.rng.uniform(
+                    low=0.0, high=2 * np.pi, size=self._ra[p].size
+                )
 
+        if num_of_events < 10000:
+            logger.warning(
+                f"Shuffling RA with low ({num_of_events} events) statistics. Proceed with caution."
+            )
 
     @property
     def true_energy(self):
@@ -774,7 +757,6 @@ class SimEvents(Events):
         else:
             return self._true_energy
 
-    
     @property
     def arrival_energy(self):
         if self.mask:
@@ -782,7 +764,6 @@ class SimEvents(Events):
         else:
             return self._arrival_energy
 
-    
     @property
     def source_label(self):
         if self.mask:
@@ -791,7 +772,6 @@ class SimEvents(Events):
             return self._source_label
 
 
-        
 class RealEvents(Events):
     """
     Class to handle reading real event files of 2021 release.
@@ -808,7 +788,6 @@ class RealEvents(Events):
     def __init__(self, *data_periods, seed=1234):
         super().__init__(*data_periods, seed=seed)
         self._mjd = {}
-
 
     def period(self, p: str):
         """
@@ -831,7 +810,6 @@ class RealEvents(Events):
             out["mjd"] = self._mjd[p]
         return out
 
-
     def _sort(self):
         """
         Sort event information in dictionaries by season,
@@ -842,11 +820,12 @@ class RealEvents(Events):
 
         for p in self._periods:
             self._reco_energy[p] = np.power(10, self.events[p][:, self.reco_energy_])
-            self._ang_err[p] = get_theta_p(get_kappa(self.events[p][:, self.ang_err_], 0.5))
+            self._ang_err[p] = get_theta_p(
+                get_kappa(self.events[p][:, self.ang_err_], 0.5)
+            )
             self._ra[p] = np.deg2rad(self.events[p][:, self.ra_])
             self._dec[p] = np.deg2rad(self.events[p][:, self.dec_])
             self._mjd[p] = self.events[p][:, self.mjd_]
-
 
     def _add_events(self, *periods: str):
         """
@@ -855,12 +834,20 @@ class RealEvents(Events):
         """
         events = []
         for p in periods:
-            events.append(np.loadtxt(join(data_directory, f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv")))
+            events.append(
+                np.loadtxt(
+                    join(
+                        data_directory,
+                        f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv",
+                    )
+                )
+            )
         return np.concatenate(tuple(events))
 
-
     @classmethod
-    def from_event_files(cls, *periods: str, seed: int=1234, use_all: bool=False, **kwargs):
+    def from_event_files(
+        cls, *periods: str, seed: int = 1234, use_all: bool = False, **kwargs
+    ):
         """
         Load from files provided by data release,
         if belonging to IC86_II or later, add to IC86_II keyword
@@ -879,21 +866,42 @@ class RealEvents(Events):
         if periods:
             pass
         else:
-            #use all periods if none are specified
-            periods = ("IC40", "IC59", "IC79", "IC86_I", "IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII")
+            # use all periods if none are specified
+            periods = (
+                "IC40",
+                "IC59",
+                "IC79",
+                "IC86_I",
+                "IC86_II",
+                "IC86_III",
+                "IC86_IV",
+                "IC86_V",
+                "IC86_VI",
+                "IC86_VII",
+            )
         inst = cls(seed=seed)
         inst.events = {}
         add = []
 
         if use_all and periods == ("IC86_II",):
-            periods = ("IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII")
- 
+            periods = (
+                "IC86_II",
+                "IC86_III",
+                "IC86_IV",
+                "IC86_V",
+                "IC86_VI",
+                "IC86_VII",
+            )
+
         for p in periods:
             if p in ["IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII"]:
                 add.append(p)
             else:
-                inst.events[p]= np.loadtxt(
-                    join(data_directory, f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv")
+                inst.events[p] = np.loadtxt(
+                    join(
+                        data_directory,
+                        f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv",
+                    )
                 )
                 inst._periods.append(p)
         if add:
@@ -905,7 +913,6 @@ class RealEvents(Events):
         inst._data_periods = inst._uptime.data_periods
         inst._irf_periods = inst._uptime.irf_periods
         return inst
-
 
     @classmethod
     def load_from_h5(cls, path: str):
@@ -926,7 +933,6 @@ class RealEvents(Events):
                 inst._mjd[p] = data["time"][()]
         return inst
 
-
     def write_to_h5(self, path):
         """
         Write selected events to hdf5 file.
@@ -942,14 +948,12 @@ class RealEvents(Events):
                 group.create_dataset("dec", data=self._dec[p])
                 group.create_dataset("mjd", data=self._time[p])
 
-
     @property
     def mjd(self):
         if self.mask:
             return {p: self._mjd[p][self.mask[p]] for p in self.periods}
         else:
             return self._mjd
-
 
     def insert_fake_data(self, data: SimEvents):
         """
@@ -960,11 +964,12 @@ class RealEvents(Events):
         """
 
         for p in data.periods:
-            self._reco_energy[p] = np.hstack((self._reco_energy[p], data._reco_energy[p]))
+            self._reco_energy[p] = np.hstack(
+                (self._reco_energy[p], data._reco_energy[p])
+            )
             self._ra[p] = np.hstack((self._ra[p], data._ra[p]))
             self._dec[p] = np.hstack((self._dec[p], data._dec[p]))
             self._ang_err[p] = np.hstack((self._ang_err[p], data._ang_err[p]))
-
 
     def scramble_ra(self):
         """
@@ -976,16 +981,18 @@ class RealEvents(Events):
         num_of_events = 0
         logger.info("Scrambling RAs.")
         for p in self.periods:
-            self._ra[p] = self.rng.uniform(low=0., high=2*np.pi, size=self._mjd[p].size)
-            #self._ra[p] = np.hstack((
+            self._ra[p] = self.rng.uniform(
+                low=0.0, high=2 * np.pi, size=self._mjd[p].size
+            )
+            # self._ra[p] = np.hstack((
             #    self.rng.uniform(low=0., high=2*np.pi, size=self._mjd[p].size),
             #    self._ra[p][self._mjd[p].size:]
             #    ))
             num_of_events += self._mjd[p].size
         if num_of_events < 10000:
-            logger.warning(f"Shuffling RA with low ({num_of_events} events) statistics. Proceed with caution.")
-
-    
+            logger.warning(
+                f"Shuffling RA with low ({num_of_events} events) statistics. Proceed with caution."
+            )
 
 
 def crawl_delay():
@@ -1005,13 +1012,9 @@ def find_files(directory, keyword):
     found_files = []
 
     for root, dirs, files in os.walk(directory):
-
         if files:
-
             for f in files:
-
                 if keyword in f:
-
                     found_files.append(os.path.join(root, f))
 
     return found_files
@@ -1026,13 +1029,9 @@ def find_folders(directory, keyword):
     found_folders = []
 
     for root, dirs, files in os.walk(directory):
-
         if dirs:
-
             for d in dirs:
-
                 if keyword in d:
-
                     found_folders.append(os.path.join(root, d))
 
     return found_folders
