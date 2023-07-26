@@ -167,7 +167,7 @@ Also, there may be a temporal dependence added, but this is not yet implemented 
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7ff7c5b36e80&gt;
+&lt;matplotlib.legend.Legend at 0x7fc3714b0d60&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -257,7 +257,7 @@ array([1.        , 1.33333333, 1.66666667, 2.        , 2.33333333,
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7ff7bfba3a60&gt;
+&lt;matplotlib.legend.Legend at 0x7fc3ac58aca0&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -513,14 +513,14 @@ True
 │                                Migrad                                   │
 ├──────────────────────────────────┬──────────────────────────────────────┤
 │ FCN = -176.6                     │              Nfcn = 44               │
-│ EDM = 1.92e-05 (Goal: 0.0001)    │            time = 0.2 sec            │
+│ EDM = 1.92e-05 (Goal: 0.0001)    │            time = 0.1 sec            │
 ├──────────────────────────────────┼──────────────────────────────────────┤
-│          Valid Minimum           │        No Parameters at limit        │
+│          Valid Minimum           │   Below EDM threshold (goal x 10)    │
 ├──────────────────────────────────┼──────────────────────────────────────┤
-│ Below EDM threshold (goal x 10)  │           Below call limit           │
-├───────────────┬──────────────────┼───────────┬─────────────┬────────────┤
-│  Covariance   │     Hesse ok     │ Accurate  │  Pos. def.  │ Not forced │
-└───────────────┴──────────────────┴───────────┴─────────────┴────────────┘
+│      No parameters at limit      │           Below call limit           │
+├──────────────────────────────────┼──────────────────────────────────────┤
+│             Hesse ok             │         Covariance accurate          │
+└──────────────────────────────────┴──────────────────────────────────────┘
 ┌───┬─────────────┬───────────┬───────────┬────────────┬────────────┬─────────┬─────────┬───────┐
 │   │ Name        │   Value   │ Hesse Err │ Minos Err- │ Minos Err+ │ Limit-  │ Limit+  │ Fixed │
 ├───┼─────────────┼───────────┼───────────┼────────────┼────────────┼─────────┼─────────┼───────┤
@@ -838,30 +838,27 @@ WARNING:icecube_tools.utils.data:Resetting rng
 <div class="output_area rendered_html docutils container">
 <table>
     <tr>
-        <th colspan="5" style="text-align:center" title="Minimizer"> Migrad </th>
+        <th colspan="2" style="text-align:center" title="Minimizer"> Migrad </th>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:left" title="Minimum value of function"> FCN = -165.1 </td>
-        <td colspan="3" style="text-align:center" title="Total number of function and (optional) gradient evaluations"> Nfcn = 68 </td>
+        <td style="text-align:left" title="Minimum value of function"> FCN = -165.1 </td>
+        <td style="text-align:center" title="Total number of function and (optional) gradient evaluations"> Nfcn = 68 </td>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:left" title="Estimated distance to minimum and goal"> EDM = 3.27e-06 (Goal: 0.0001) </td>
-        <td colspan="3" style="text-align:center" title="Total run time of algorithms"> time = 0.3 sec </td>
+        <td style="text-align:left" title="Estimated distance to minimum and goal"> EDM = 3.27e-06 (Goal: 0.0001) </td>
+        <td style="text-align:center" title="Total run time of algorithms"> time = 0.2 sec </td>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:center;background-color:#92CCA6;color:black"> Valid Minimum </td>
-        <td colspan="3" style="text-align:center;background-color:#92CCA6;color:black"> No Parameters at limit </td>
+        <td style="text-align:center;background-color:#92CCA6;color:black"> Valid Minimum </td>
+        <td style="text-align:center;background-color:#92CCA6;color:black"> Below EDM threshold (goal x 10) </td>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:center;background-color:#92CCA6;color:black"> Below EDM threshold (goal x 10) </td>
-        <td colspan="3" style="text-align:center;background-color:#92CCA6;color:black"> Below call limit </td>
+        <td style="text-align:center;background-color:#92CCA6;color:black"> No parameters at limit </td>
+        <td style="text-align:center;background-color:#92CCA6;color:black"> Below call limit </td>
     </tr>
     <tr>
-        <td style="text-align:center;background-color:#92CCA6;color:black"> Covariance </td>
         <td style="text-align:center;background-color:#92CCA6;color:black"> Hesse ok </td>
-        <td style="text-align:center;background-color:#92CCA6;color:black" title="Is covariance matrix accurate?"> Accurate </td>
-        <td style="text-align:center;background-color:#92CCA6;color:black" title="Is covariance matrix positive definite?"> Pos. def. </td>
-        <td style="text-align:center;background-color:#92CCA6;color:black" title="Was positive definiteness enforced by Minuit?"> Not forced </td>
+        <td style="text-align:center;background-color:#92CCA6;color:black"> Covariance accurate </td>
     </tr>
 </table><table>
     <tr>
@@ -1027,30 +1024,27 @@ WARNING:icecube_tools.utils.data:Resetting rng
 <div class="output_area rendered_html docutils container">
 <table>
     <tr>
-        <th colspan="5" style="text-align:center" title="Minimizer"> Migrad </th>
+        <th colspan="2" style="text-align:center" title="Minimizer"> Migrad </th>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:left" title="Minimum value of function"> FCN = 470.2 </td>
-        <td colspan="3" style="text-align:center" title="Total number of function and (optional) gradient evaluations"> Nfcn = 76 </td>
+        <td style="text-align:left" title="Minimum value of function"> FCN = 470.2 </td>
+        <td style="text-align:center" title="Total number of function and (optional) gradient evaluations"> Nfcn = 76 </td>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:left" title="Estimated distance to minimum and goal"> EDM = 0 (Goal: 0.0001) </td>
-        <td colspan="3" style="text-align:center" title="Total run time of algorithms">  </td>
+        <td style="text-align:left" title="Estimated distance to minimum and goal"> EDM = 0 (Goal: 0.0001) </td>
+        <td style="text-align:center" title="Total run time of algorithms">  </td>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:center;background-color:#c15ef7;color:black"> INVALID Minimum </td>
-        <td colspan="3" style="text-align:center;background-color:#92CCA6;color:black"> No Parameters at limit </td>
+        <td style="text-align:center;background-color:#c15ef7;color:black"> INVALID Minimum </td>
+        <td style="text-align:center;background-color:#92CCA6;color:black"> Below EDM threshold (goal x 10) </td>
     </tr>
     <tr>
-        <td colspan="2" style="text-align:center;background-color:#92CCA6;color:black"> Below EDM threshold (goal x 10) </td>
-        <td colspan="3" style="text-align:center;background-color:#92CCA6;color:black"> Below call limit </td>
+        <td style="text-align:center;background-color:#92CCA6;color:black"> No parameters at limit </td>
+        <td style="text-align:center;background-color:#92CCA6;color:black"> Below call limit </td>
     </tr>
     <tr>
-        <td style="text-align:center;background-color:#92CCA6;color:black"> Covariance </td>
         <td style="text-align:center;background-color:#c15ef7;color:black"> Hesse FAILED </td>
-        <td style="text-align:center;background-color:#FFF79A;color:black" title="Is covariance matrix accurate?"> APPROXIMATE </td>
-        <td style="text-align:center;background-color:#c15ef7;color:black" title="Is covariance matrix positive definite?"> NOT pos. def. </td>
-        <td style="text-align:center;background-color:#92CCA6;color:black" title="Was positive definiteness enforced by Minuit?"> Not forced </td>
+        <td style="text-align:center;background-color:#c15ef7;color:black"> Covariance NOT pos. def. </td>
     </tr>
 </table><table>
     <tr>
