@@ -589,7 +589,6 @@ class Events(ABC):
     
     @seed.setter
     def seed(self, s: int):
-        logger.warning("Resetting rng")
         self._seed = s
         self.rng = np.random.default_rng(seed=s)
 

@@ -62,15 +62,15 @@ class R2021IRF(EnergyResolution, AngularResolution):
     3) misreconstruction of tracks, what the readme calls "AngErr"
     """
 
-    __STACK = {}
+    STACK = {}
     
     def __init__(self, filename, period, **kwargs):
         """
         Special class to handle smearing effects given in the 2021 data release.
         """
 
-        if period in R2021IRF.__STACK:
-            self.__dict__ = self.__STACK[period].__dict__
+        if period in R2021IRF.STACK:
+            self.__dict__ = self.STACK[period].__dict__
         else:
             #self.read(fetch)        
             self._filename = filename
@@ -151,7 +151,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
             self._marginal_pdf_psf = ddict()
             self._marginal_pdf_angerr = ddict()
 
-            R2021IRF.__STACK[period] = self
+            R2021IRF.STACK[period] = self
         
 
     @staticmethod
