@@ -328,26 +328,7 @@ class Simulator(SimEvents):
                     ra_, dec_ = np.full(num, self.sources[i].coord[0]), np.full(num, self.sources[i].coord[1])
 
                 cosz = -np.sin(dec_)
-
-
-                # Earr_ = Etrue_ / (1 + self.sources[i].z)
-                u = uniform.rvs(size=num)
-                Earr_ = sample_bpl(u, EMIN, EBREAK, max_energy[i], INDEX1, INDEX2)
-                detection_prob = self.sources[i].flux_model.spectrum(Earr_) * self.detector.effective_area.detection_probability(
-                        Earr_, cosz, max_energy[i]
-                ).astype(float)
-                # print("Eprelim:", Eprelim)
-                # print("unscaled detection prob:", detection_prob)
-                bpl_values = bpl(Earr_, EMIN, EBREAK, max_energy[i], INDEX1, INDEX2)
-                # print("bpl_values:", bpl_values)
-                prob = detection_prob / bpl_values
-                # print("relative prob max:", prob.max())
-                prob /= prob.max()
-                # print("prob:", prob, prob.max())
-
-                accepted_ = bernoulli.rvs(prob).astype(bool)
-
-                # Earr_ = Eprelim[accepted_]
+=                # Earr_ = Eprelim[accepted_]
                 Etrue_ = Earr_ * (1 + self.sources[i].z)
                 #samples = uniform.rvs(size=num, random_state=seed)
                 #accepted_ = samples <= detection_prob
