@@ -2,7 +2,7 @@
  "cells": [
   {
    "cell_type": "markdown",
-   "id": "4e67edd6",
+   "id": "a5dd0e89",
    "metadata": {},
    "source": [
     "# Simulation\n",
@@ -13,13 +13,13 @@
   {
    "cell_type": "code",
    "execution_count": 1,
-   "id": "ad5cd07b",
+   "id": "bc3a38a7",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:01.979683Z",
-     "iopub.status.busy": "2023-07-26T08:32:01.979290Z",
-     "iopub.status.idle": "2023-07-26T08:32:02.401568Z",
-     "shell.execute_reply": "2023-07-26T08:32:02.400908Z"
+     "iopub.execute_input": "2023-09-06T15:43:18.066039Z",
+     "iopub.status.busy": "2023-09-06T15:43:18.065796Z",
+     "iopub.status.idle": "2023-09-06T15:43:18.504204Z",
+     "shell.execute_reply": "2023-09-06T15:43:18.503497Z"
     }
    },
    "outputs": [],
@@ -33,7 +33,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "d9f71a9b",
+   "id": "62fd4591",
    "metadata": {},
    "source": [
     "## Defining a source and detector model"
@@ -42,13 +42,13 @@
   {
    "cell_type": "code",
    "execution_count": 2,
-   "id": "aa7aba70",
+   "id": "c1753fbd",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:02.405189Z",
-     "iopub.status.busy": "2023-07-26T08:32:02.404520Z",
-     "iopub.status.idle": "2023-07-26T08:32:03.361446Z",
-     "shell.execute_reply": "2023-07-26T08:32:03.360706Z"
+     "iopub.execute_input": "2023-09-06T15:43:18.508385Z",
+     "iopub.status.busy": "2023-09-06T15:43:18.507710Z",
+     "iopub.status.idle": "2023-09-06T15:43:19.508971Z",
+     "shell.execute_reply": "2023-09-06T15:43:19.508106Z"
     }
    },
    "outputs": [],
@@ -66,13 +66,13 @@
   {
    "cell_type": "code",
    "execution_count": 3,
-   "id": "efb0ca9f",
+   "id": "a98c6ea6",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:03.365042Z",
-     "iopub.status.busy": "2023-07-26T08:32:03.364577Z",
-     "iopub.status.idle": "2023-07-26T08:32:04.931644Z",
-     "shell.execute_reply": "2023-07-26T08:32:04.930964Z"
+     "iopub.execute_input": "2023-09-06T15:43:19.512827Z",
+     "iopub.status.busy": "2023-09-06T15:43:19.512270Z",
+     "iopub.status.idle": "2023-09-06T15:43:21.303732Z",
+     "shell.execute_reply": "2023-09-06T15:43:21.303052Z"
     }
    },
    "outputs": [],
@@ -90,13 +90,13 @@
   {
    "cell_type": "code",
    "execution_count": 4,
-   "id": "e7e7d2ea",
+   "id": "09bed36d",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:04.935480Z",
-     "iopub.status.busy": "2023-07-26T08:32:04.935108Z",
-     "iopub.status.idle": "2023-07-26T08:32:04.941428Z",
-     "shell.execute_reply": "2023-07-26T08:32:04.940835Z"
+     "iopub.execute_input": "2023-09-06T15:43:21.307136Z",
+     "iopub.status.busy": "2023-09-06T15:43:21.306765Z",
+     "iopub.status.idle": "2023-09-06T15:43:21.311870Z",
+     "shell.execute_reply": "2023-09-06T15:43:21.311213Z"
     }
    },
    "outputs": [],
@@ -120,7 +120,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "c99e3cc3",
+   "id": "8abead77",
    "metadata": {},
    "source": [
     "## Expected number of neutrino events\n",
@@ -131,13 +131,13 @@
   {
    "cell_type": "code",
    "execution_count": 5,
-   "id": "c059422d",
+   "id": "d0be9f19",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:04.944222Z",
-     "iopub.status.busy": "2023-07-26T08:32:04.943755Z",
-     "iopub.status.idle": "2023-07-26T08:32:04.949188Z",
-     "shell.execute_reply": "2023-07-26T08:32:04.948638Z"
+     "iopub.execute_input": "2023-09-06T15:43:21.314872Z",
+     "iopub.status.busy": "2023-09-06T15:43:21.314501Z",
+     "iopub.status.idle": "2023-09-06T15:43:21.319280Z",
+     "shell.execute_reply": "2023-09-06T15:43:21.318681Z"
     }
    },
    "outputs": [],
@@ -148,13 +148,13 @@
   {
    "cell_type": "code",
    "execution_count": 6,
-   "id": "ce95b728",
+   "id": "b3774210",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:04.951892Z",
-     "iopub.status.busy": "2023-07-26T08:32:04.951384Z",
-     "iopub.status.idle": "2023-07-26T08:32:04.958974Z",
-     "shell.execute_reply": "2023-07-26T08:32:04.958365Z"
+     "iopub.execute_input": "2023-09-06T15:43:21.322256Z",
+     "iopub.status.busy": "2023-09-06T15:43:21.321718Z",
+     "iopub.status.idle": "2023-09-06T15:43:21.329774Z",
+     "shell.execute_reply": "2023-09-06T15:43:21.329135Z"
     }
    },
    "outputs": [
@@ -182,7 +182,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "3b10b2ef",
+   "id": "515c83cd",
    "metadata": {},
    "source": [
     "The calculator returns a list of expected neutrino event numbers, one for each source.\n",
@@ -193,13 +193,13 @@
   {
    "cell_type": "code",
    "execution_count": 7,
-   "id": "ab8d97e3",
+   "id": "4a3bc204",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:04.962126Z",
-     "iopub.status.busy": "2023-07-26T08:32:04.961733Z",
-     "iopub.status.idle": "2023-07-26T08:32:04.970837Z",
-     "shell.execute_reply": "2023-07-26T08:32:04.970225Z"
+     "iopub.execute_input": "2023-09-06T15:43:21.333344Z",
+     "iopub.status.busy": "2023-09-06T15:43:21.332971Z",
+     "iopub.status.idle": "2023-09-06T15:43:21.341904Z",
+     "shell.execute_reply": "2023-09-06T15:43:21.341238Z"
     }
    },
    "outputs": [
@@ -233,7 +233,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "351d382c",
+   "id": "5196161e",
    "metadata": {},
    "source": [
     "## Set up and run simulation"
@@ -242,13 +242,13 @@
   {
    "cell_type": "code",
    "execution_count": 8,
-   "id": "4f5913c7",
+   "id": "cd983183",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:04.974123Z",
-     "iopub.status.busy": "2023-07-26T08:32:04.973917Z",
-     "iopub.status.idle": "2023-07-26T08:32:04.978010Z",
-     "shell.execute_reply": "2023-07-26T08:32:04.977397Z"
+     "iopub.execute_input": "2023-09-06T15:43:21.345543Z",
+     "iopub.status.busy": "2023-09-06T15:43:21.345107Z",
+     "iopub.status.idle": "2023-09-06T15:43:21.349344Z",
+     "shell.execute_reply": "2023-09-06T15:43:21.348716Z"
     }
    },
    "outputs": [],
@@ -259,23 +259,16 @@
   {
    "cell_type": "code",
    "execution_count": 9,
-   "id": "9f2cf169",
+   "id": "3a2253a9",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:04.980943Z",
-     "iopub.status.busy": "2023-07-26T08:32:04.980387Z",
-     "iopub.status.idle": "2023-07-26T08:32:06.088848Z",
-     "shell.execute_reply": "2023-07-26T08:32:06.088276Z"
+     "iopub.execute_input": "2023-09-06T15:43:21.352102Z",
+     "iopub.status.busy": "2023-09-06T15:43:21.351765Z",
+     "iopub.status.idle": "2023-09-06T15:43:22.667279Z",
+     "shell.execute_reply": "2023-09-06T15:43:22.666704Z"
     }
    },
    "outputs": [
-    {
-     "name": "stderr",
-     "output_type": "stream",
-     "text": [
-      "Resetting rng\n"
-     ]
-    },
     {
      "name": "stderr",
      "output_type": "stream",
@@ -289,7 +282,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:   7%|▋         | 15/204 [00:00<00:03, 59.90it/s]"
+      "Sampling:   7%|▋         | 15/204 [00:00<00:03, 49.09it/s]"
      ]
     },
     {
@@ -297,7 +290,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:  13%|█▎        | 26/204 [00:00<00:02, 74.31it/s]"
+      "Sampling:  13%|█▎        | 26/204 [00:00<00:02, 61.38it/s]"
      ]
     },
     {
@@ -305,7 +298,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:  34%|███▍      | 70/204 [00:00<00:00, 189.83it/s]"
+      "Sampling:  34%|███▍      | 70/204 [00:00<00:00, 159.89it/s]"
      ]
     },
     {
@@ -313,7 +306,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:  49%|████▊     | 99/204 [00:00<00:00, 216.96it/s]"
+      "Sampling:  46%|████▌     | 94/204 [00:00<00:00, 176.12it/s]"
      ]
     },
     {
@@ -321,7 +314,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:  81%|████████▏ | 166/204 [00:00<00:00, 295.95it/s]"
+      "Sampling:  81%|████████▏ | 166/204 [00:00<00:00, 256.95it/s]"
      ]
     },
     {
@@ -329,7 +322,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling: 100%|██████████| 204/204 [00:01<00:00, 185.68it/s]"
+      "Sampling: 100%|██████████| 204/204 [00:01<00:00, 156.23it/s]"
      ]
     },
     {
@@ -351,7 +344,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "ee0d52bf",
+   "id": "663b93d0",
    "metadata": {},
    "source": [
     "This way, the simulator calculates the expected number of neutrinos from these sources given the observation period, effective area and relevant source properties. We note that we could also run a simulation for a fixed number of neutrinos if we want, simply by passing the optional argument `N` to `simulator.run()`."
@@ -360,13 +353,13 @@
   {
    "cell_type": "code",
    "execution_count": 10,
-   "id": "c72ab5ae",
+   "id": "b4b820c9",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:06.092126Z",
-     "iopub.status.busy": "2023-07-26T08:32:06.091768Z",
-     "iopub.status.idle": "2023-07-26T08:32:06.098218Z",
-     "shell.execute_reply": "2023-07-26T08:32:06.097634Z"
+     "iopub.execute_input": "2023-09-06T15:43:22.670965Z",
+     "iopub.status.busy": "2023-09-06T15:43:22.670549Z",
+     "iopub.status.idle": "2023-09-06T15:43:22.678383Z",
+     "shell.execute_reply": "2023-09-06T15:43:22.677747Z"
     }
    },
    "outputs": [],
@@ -377,13 +370,13 @@
   {
    "cell_type": "code",
    "execution_count": 11,
-   "id": "6823fb23",
+   "id": "7805ed15",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:06.101724Z",
-     "iopub.status.busy": "2023-07-26T08:32:06.100476Z",
-     "iopub.status.idle": "2023-07-26T08:32:06.108339Z",
-     "shell.execute_reply": "2023-07-26T08:32:06.107735Z"
+     "iopub.execute_input": "2023-09-06T15:43:22.682655Z",
+     "iopub.status.busy": "2023-09-06T15:43:22.681332Z",
+     "iopub.status.idle": "2023-09-06T15:43:22.689927Z",
+     "shell.execute_reply": "2023-09-06T15:43:22.689327Z"
     }
    },
    "outputs": [
@@ -455,24 +448,16 @@
   {
    "cell_type": "code",
    "execution_count": 12,
-   "id": "87c2ba8d",
+   "id": "8bff1c7e",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:06.110938Z",
-     "iopub.status.busy": "2023-07-26T08:32:06.110735Z",
-     "iopub.status.idle": "2023-07-26T08:32:06.118413Z",
-     "shell.execute_reply": "2023-07-26T08:32:06.117839Z"
+     "iopub.execute_input": "2023-09-06T15:43:22.693205Z",
+     "iopub.status.busy": "2023-09-06T15:43:22.692828Z",
+     "iopub.status.idle": "2023-09-06T15:43:22.700101Z",
+     "shell.execute_reply": "2023-09-06T15:43:22.699457Z"
     }
    },
-   "outputs": [
-    {
-     "name": "stderr",
-     "output_type": "stream",
-     "text": [
-      "Resetting rng\n"
-     ]
-    }
-   ],
+   "outputs": [],
    "source": [
     "events = SimEvents.load_from_h5(\"h5_test.hdf5\")"
    ]
@@ -480,13 +465,13 @@
   {
    "cell_type": "code",
    "execution_count": 13,
-   "id": "f36d784c",
+   "id": "16554efa",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:06.121338Z",
-     "iopub.status.busy": "2023-07-26T08:32:06.121012Z",
-     "iopub.status.idle": "2023-07-26T08:32:06.126937Z",
-     "shell.execute_reply": "2023-07-26T08:32:06.126377Z"
+     "iopub.execute_input": "2023-09-06T15:43:22.703391Z",
+     "iopub.status.busy": "2023-09-06T15:43:22.703029Z",
+     "iopub.status.idle": "2023-09-06T15:43:22.711013Z",
+     "shell.execute_reply": "2023-09-06T15:43:22.710398Z"
     }
    },
    "outputs": [
@@ -508,13 +493,13 @@
   {
    "cell_type": "code",
    "execution_count": 14,
-   "id": "124eac33",
+   "id": "20010b94",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:06.129826Z",
-     "iopub.status.busy": "2023-07-26T08:32:06.129513Z",
-     "iopub.status.idle": "2023-07-26T08:32:06.135293Z",
-     "shell.execute_reply": "2023-07-26T08:32:06.134717Z"
+     "iopub.execute_input": "2023-09-06T15:43:22.715129Z",
+     "iopub.status.busy": "2023-09-06T15:43:22.713857Z",
+     "iopub.status.idle": "2023-09-06T15:43:22.720536Z",
+     "shell.execute_reply": "2023-09-06T15:43:22.719914Z"
     }
    },
    "outputs": [
@@ -536,13 +521,13 @@
   {
    "cell_type": "code",
    "execution_count": 15,
-   "id": "d2b47986",
+   "id": "c9995cd3",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:06.138271Z",
-     "iopub.status.busy": "2023-07-26T08:32:06.137809Z",
-     "iopub.status.idle": "2023-07-26T08:32:06.144926Z",
-     "shell.execute_reply": "2023-07-26T08:32:06.143798Z"
+     "iopub.execute_input": "2023-09-06T15:43:22.724609Z",
+     "iopub.status.busy": "2023-09-06T15:43:22.723292Z",
+     "iopub.status.idle": "2023-09-06T15:43:22.730875Z",
+     "shell.execute_reply": "2023-09-06T15:43:22.730236Z"
     }
    },
    "outputs": [
@@ -585,20 +570,20 @@
   {
    "cell_type": "code",
    "execution_count": 16,
-   "id": "cd486964",
+   "id": "199fcc71",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:06.147789Z",
-     "iopub.status.busy": "2023-07-26T08:32:06.147569Z",
-     "iopub.status.idle": "2023-07-26T08:32:07.020364Z",
-     "shell.execute_reply": "2023-07-26T08:32:07.019608Z"
+     "iopub.execute_input": "2023-09-06T15:43:22.734063Z",
+     "iopub.status.busy": "2023-09-06T15:43:22.733693Z",
+     "iopub.status.idle": "2023-09-06T15:43:23.629064Z",
+     "shell.execute_reply": "2023-09-06T15:43:23.628379Z"
     }
    },
    "outputs": [
     {
      "data": {
       "text/plain": [
-       "<matplotlib.legend.Legend at 0x7f02f8b6c880>"
+       "<matplotlib.legend.Legend at 0x7f4e9a5bf760>"
       ]
      },
      "execution_count": 16,
@@ -631,13 +616,13 @@
   {
    "cell_type": "code",
    "execution_count": 17,
-   "id": "897d65e3",
+   "id": "c6779682",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:07.023487Z",
-     "iopub.status.busy": "2023-07-26T08:32:07.022911Z",
-     "iopub.status.idle": "2023-07-26T08:32:07.844358Z",
-     "shell.execute_reply": "2023-07-26T08:32:07.843789Z"
+     "iopub.execute_input": "2023-09-06T15:43:23.632272Z",
+     "iopub.status.busy": "2023-09-06T15:43:23.631684Z",
+     "iopub.status.idle": "2023-09-06T15:43:24.466489Z",
+     "shell.execute_reply": "2023-09-06T15:43:24.465892Z"
     }
    },
    "outputs": [
@@ -688,7 +673,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "053592c0",
+   "id": "97b2ef8d",
    "metadata": {},
    "source": [
     "# Time dependent simulation\n",
@@ -699,13 +684,13 @@
   {
    "cell_type": "code",
    "execution_count": 18,
-   "id": "929599ae",
+   "id": "dd9f53d6",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:07.847070Z",
-     "iopub.status.busy": "2023-07-26T08:32:07.846824Z",
-     "iopub.status.idle": "2023-07-26T08:32:10.581947Z",
-     "shell.execute_reply": "2023-07-26T08:32:10.581330Z"
+     "iopub.execute_input": "2023-09-06T15:43:24.470952Z",
+     "iopub.status.busy": "2023-09-06T15:43:24.470447Z",
+     "iopub.status.idle": "2023-09-06T15:43:26.034086Z",
+     "shell.execute_reply": "2023-09-06T15:43:26.033318Z"
     }
    },
    "outputs": [
@@ -713,14 +698,7 @@
      "name": "stderr",
      "output_type": "stream",
      "text": [
-      "Resetting rng\n"
-     ]
-    },
-    {
-     "name": "stderr",
-     "output_type": "stream",
-     "text": [
-      "/opt/hostedtoolcache/Python/3.9.17/x64/lib/python3.9/site-packages/icecube_tools/detector/r2021.py:82: RuntimeWarning: divide by zero encountered in log10\n",
+      "/opt/hostedtoolcache/Python/3.9.17/x64/lib/python3.9/site-packages/icecube_tools/detector/r2021.py:88: RuntimeWarning: divide by zero encountered in log10\n",
       "  self.dataset[:, 6:-1] = np.log10(self.dataset[:, 6:-1])\n"
      ]
     },
@@ -729,20 +707,6 @@
      "output_type": "stream",
      "text": [
       "Empty true energy bins at: [(0, 0), (1, 0)]\n"
-     ]
-    },
-    {
-     "name": "stderr",
-     "output_type": "stream",
-     "text": [
-      "Resetting rng\n"
-     ]
-    },
-    {
-     "name": "stderr",
-     "output_type": "stream",
-     "text": [
-      "Resetting rng\n"
      ]
     },
     {
@@ -759,7 +723,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "fe2afc4c",
+   "id": "05cee56a",
    "metadata": {},
    "source": [
     "We need to set simulation times for all periods. Since for past periods the simulation time shouldn't be larger than the actual observation time (that is time span - down time of the detector) we need to take care, or rather, we let the class `Uptime` take care:"
@@ -768,13 +732,13 @@
   {
    "cell_type": "code",
    "execution_count": 19,
-   "id": "ff116332",
+   "id": "47343d13",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:10.585186Z",
-     "iopub.status.busy": "2023-07-26T08:32:10.584507Z",
-     "iopub.status.idle": "2023-07-26T08:32:10.587912Z",
-     "shell.execute_reply": "2023-07-26T08:32:10.587298Z"
+     "iopub.execute_input": "2023-09-06T15:43:26.037439Z",
+     "iopub.status.busy": "2023-09-06T15:43:26.036940Z",
+     "iopub.status.idle": "2023-09-06T15:43:26.040456Z",
+     "shell.execute_reply": "2023-09-06T15:43:26.039765Z"
     }
    },
    "outputs": [],
@@ -784,7 +748,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "983c6389",
+   "id": "bfc33ce7",
    "metadata": {},
    "source": [
     "It lets us calculate the actual observation time through, e.g. IC86_II, vs the time covered:"
@@ -793,13 +757,13 @@
   {
    "cell_type": "code",
    "execution_count": 20,
-   "id": "a2d51d70",
+   "id": "071acb56",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:10.590622Z",
-     "iopub.status.busy": "2023-07-26T08:32:10.590279Z",
-     "iopub.status.idle": "2023-07-26T08:32:10.613642Z",
-     "shell.execute_reply": "2023-07-26T08:32:10.613002Z"
+     "iopub.execute_input": "2023-09-06T15:43:26.043489Z",
+     "iopub.status.busy": "2023-09-06T15:43:26.043035Z",
+     "iopub.status.idle": "2023-09-06T15:43:26.053445Z",
+     "shell.execute_reply": "2023-09-06T15:43:26.052781Z"
     }
    },
    "outputs": [
@@ -821,7 +785,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "56ec55d1",
+   "id": "1aa3eff5",
    "metadata": {},
    "source": [
     "We can further define a start and end time of an observation and let it calculate the observation time in each period. Viable possible options are\n",
@@ -839,13 +803,13 @@
   {
    "cell_type": "code",
    "execution_count": 21,
-   "id": "0d4dcc3d",
+   "id": "315698cf",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:10.616472Z",
-     "iopub.status.busy": "2023-07-26T08:32:10.616058Z",
-     "iopub.status.idle": "2023-07-26T08:32:10.621305Z",
-     "shell.execute_reply": "2023-07-26T08:32:10.620702Z"
+     "iopub.execute_input": "2023-09-06T15:43:26.056723Z",
+     "iopub.status.busy": "2023-09-06T15:43:26.056046Z",
+     "iopub.status.idle": "2023-09-06T15:43:26.061988Z",
+     "shell.execute_reply": "2023-09-06T15:43:26.061270Z"
     }
    },
    "outputs": [
@@ -867,7 +831,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "74e4444b",
+   "id": "192e902c",
    "metadata": {},
    "source": [
     "The returned dictionary can be used to set the simulation times for an instance of `TimeDependentSimulator`:"
@@ -876,13 +840,13 @@
   {
    "cell_type": "code",
    "execution_count": 22,
-   "id": "998168e4",
+   "id": "93fa44d0",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:10.624533Z",
-     "iopub.status.busy": "2023-07-26T08:32:10.623964Z",
-     "iopub.status.idle": "2023-07-26T08:32:10.627108Z",
-     "shell.execute_reply": "2023-07-26T08:32:10.626502Z"
+     "iopub.execute_input": "2023-09-06T15:43:26.065411Z",
+     "iopub.status.busy": "2023-09-06T15:43:26.064913Z",
+     "iopub.status.idle": "2023-09-06T15:43:26.068456Z",
+     "shell.execute_reply": "2023-09-06T15:43:26.067750Z"
     }
    },
    "outputs": [],
@@ -892,7 +856,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "4117b23f",
+   "id": "2036f1be",
    "metadata": {},
    "source": [
     "The simulation is started by calling `run()`, results can be saved by `save(file_prefix)`, with the filename being `{file_prefix}_{p}.h5` with period `p`."
@@ -901,13 +865,13 @@
   {
    "cell_type": "code",
    "execution_count": 23,
-   "id": "6ad54165",
+   "id": "435b7d8f",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:10.629625Z",
-     "iopub.status.busy": "2023-07-26T08:32:10.629298Z",
-     "iopub.status.idle": "2023-07-26T08:32:13.253554Z",
-     "shell.execute_reply": "2023-07-26T08:32:13.252761Z"
+     "iopub.execute_input": "2023-09-06T15:43:26.071441Z",
+     "iopub.status.busy": "2023-09-06T15:43:26.071056Z",
+     "iopub.status.idle": "2023-09-06T15:43:28.658080Z",
+     "shell.execute_reply": "2023-09-06T15:43:28.657347Z"
     },
     "lines_to_next_cell": 2
    },
@@ -925,7 +889,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:   6%|▋         | 6/94 [00:00<00:01, 45.31it/s]"
+      "Sampling:   6%|▋         | 6/94 [00:00<00:02, 35.69it/s]"
      ]
     },
     {
@@ -933,7 +897,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:  17%|█▋        | 16/94 [00:00<00:01, 73.19it/s]"
+      "Sampling:  17%|█▋        | 16/94 [00:00<00:01, 60.86it/s]"
      ]
     },
     {
@@ -941,7 +905,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:  45%|████▍     | 42/94 [00:00<00:00, 138.30it/s]"
+      "Sampling:  38%|███▊      | 36/94 [00:00<00:00, 113.69it/s]"
      ]
     },
     {
@@ -949,7 +913,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:  72%|███████▏  | 68/94 [00:00<00:00, 155.70it/s]"
+      "Sampling:  63%|██████▎   | 59/94 [00:00<00:00, 152.74it/s]"
      ]
     },
     {
@@ -957,7 +921,15 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling: 100%|██████████| 94/94 [00:00<00:00, 125.06it/s]"
+      "Sampling:  85%|████████▌ | 80/94 [00:00<00:00, 162.86it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "Sampling: 100%|██████████| 94/94 [00:00<00:00, 105.59it/s]"
      ]
     },
     {
@@ -980,7 +952,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:   3%|▎         | 16/486 [00:00<00:03, 145.07it/s]"
+      "Sampling:   6%|▌         | 27/486 [00:00<00:02, 197.66it/s]"
      ]
     },
     {
@@ -988,7 +960,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:   8%|▊         | 41/486 [00:00<00:03, 130.85it/s]"
+      "Sampling:  10%|▉         | 47/486 [00:00<00:02, 170.44it/s]"
      ]
     },
     {
@@ -996,7 +968,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:  12%|█▏        | 60/486 [00:00<00:02, 147.10it/s]"
+      "Sampling:  19%|█▊        | 91/486 [00:00<00:01, 252.96it/s]"
      ]
     },
     {
@@ -1004,7 +976,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:  19%|█▊        | 91/486 [00:00<00:02, 191.32it/s]"
+      "Sampling:  34%|███▍      | 166/486 [00:00<00:00, 416.54it/s]"
      ]
     },
     {
@@ -1012,7 +984,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:  37%|███▋      | 178/486 [00:00<00:00, 390.12it/s]"
+      "Sampling:  49%|████▉     | 237/486 [00:00<00:00, 433.09it/s]"
      ]
     },
     {
@@ -1020,7 +992,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:  49%|████▉     | 237/486 [00:00<00:00, 400.73it/s]"
+      "Sampling:  67%|██████▋   | 324/486 [00:00<00:00, 476.05it/s]"
      ]
     },
     {
@@ -1028,7 +1000,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling:  67%|██████▋   | 324/486 [00:00<00:00, 434.56it/s]"
+      "Sampling: 100%|██████████| 486/486 [00:00<00:00, 760.74it/s]"
      ]
     },
     {
@@ -1036,15 +1008,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "Sampling: 100%|██████████| 486/486 [00:01<00:00, 721.24it/s]"
-     ]
-    },
-    {
-     "name": "stderr",
-     "output_type": "stream",
-     "text": [
-      "\r",
-      "Sampling: 100%|██████████| 486/486 [00:01<00:00, 261.06it/s]"
+      "Sampling: 100%|██████████| 486/486 [00:01<00:00, 288.52it/s]"
      ]
     },
     {
@@ -1062,13 +1026,13 @@
   {
    "cell_type": "code",
    "execution_count": 24,
-   "id": "871aea5e",
+   "id": "c54e68b7",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:13.256458Z",
-     "iopub.status.busy": "2023-07-26T08:32:13.255948Z",
-     "iopub.status.idle": "2023-07-26T08:32:13.265701Z",
-     "shell.execute_reply": "2023-07-26T08:32:13.265044Z"
+     "iopub.execute_input": "2023-09-06T15:43:28.662085Z",
+     "iopub.status.busy": "2023-09-06T15:43:28.661517Z",
+     "iopub.status.idle": "2023-09-06T15:43:28.670484Z",
+     "shell.execute_reply": "2023-09-06T15:43:28.669783Z"
     }
    },
    "outputs": [
@@ -1235,13 +1199,13 @@
   {
    "cell_type": "code",
    "execution_count": 25,
-   "id": "574ba135",
+   "id": "b70ec4d7",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:13.268369Z",
-     "iopub.status.busy": "2023-07-26T08:32:13.268022Z",
-     "iopub.status.idle": "2023-07-26T08:32:13.274937Z",
-     "shell.execute_reply": "2023-07-26T08:32:13.274365Z"
+     "iopub.execute_input": "2023-09-06T15:43:28.673925Z",
+     "iopub.status.busy": "2023-09-06T15:43:28.673545Z",
+     "iopub.status.idle": "2023-09-06T15:43:28.681031Z",
+     "shell.execute_reply": "2023-09-06T15:43:28.680412Z"
     }
    },
    "outputs": [],
@@ -1252,13 +1216,13 @@
   {
    "cell_type": "code",
    "execution_count": 26,
-   "id": "16c45944",
+   "id": "0cecf52e",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:13.277904Z",
-     "iopub.status.busy": "2023-07-26T08:32:13.277402Z",
-     "iopub.status.idle": "2023-07-26T08:32:13.285640Z",
-     "shell.execute_reply": "2023-07-26T08:32:13.285029Z"
+     "iopub.execute_input": "2023-09-06T15:43:28.684304Z",
+     "iopub.status.busy": "2023-09-06T15:43:28.683570Z",
+     "iopub.status.idle": "2023-09-06T15:43:28.692906Z",
+     "shell.execute_reply": "2023-09-06T15:43:28.692199Z"
     }
    },
    "outputs": [
@@ -1425,24 +1389,16 @@
   {
    "cell_type": "code",
    "execution_count": 27,
-   "id": "c190e829",
+   "id": "cb9c54d9",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:13.289282Z",
-     "iopub.status.busy": "2023-07-26T08:32:13.288722Z",
-     "iopub.status.idle": "2023-07-26T08:32:13.295618Z",
-     "shell.execute_reply": "2023-07-26T08:32:13.295069Z"
+     "iopub.execute_input": "2023-09-06T15:43:28.696135Z",
+     "iopub.status.busy": "2023-09-06T15:43:28.695673Z",
+     "iopub.status.idle": "2023-09-06T15:43:28.702691Z",
+     "shell.execute_reply": "2023-09-06T15:43:28.702067Z"
     }
    },
-   "outputs": [
-    {
-     "name": "stderr",
-     "output_type": "stream",
-     "text": [
-      "Resetting rng\n"
-     ]
-    }
-   ],
+   "outputs": [],
    "source": [
     "events = SimEvents.load_from_h5(\"multi_test.hdf5\")"
    ]
@@ -1450,13 +1406,13 @@
   {
    "cell_type": "code",
    "execution_count": 28,
-   "id": "64b2dd6d",
+   "id": "d5baf41a",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:13.298237Z",
-     "iopub.status.busy": "2023-07-26T08:32:13.297838Z",
-     "iopub.status.idle": "2023-07-26T08:32:13.305889Z",
-     "shell.execute_reply": "2023-07-26T08:32:13.305296Z"
+     "iopub.execute_input": "2023-09-06T15:43:28.705657Z",
+     "iopub.status.busy": "2023-09-06T15:43:28.705106Z",
+     "iopub.status.idle": "2023-09-06T15:43:28.714043Z",
+     "shell.execute_reply": "2023-09-06T15:43:28.713379Z"
     },
     "lines_to_next_cell": 2
    },
@@ -1624,13 +1580,13 @@
   {
    "cell_type": "code",
    "execution_count": 29,
-   "id": "3dd2d3fe",
+   "id": "af293827",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-07-26T08:32:13.309265Z",
-     "iopub.status.busy": "2023-07-26T08:32:13.308858Z",
-     "iopub.status.idle": "2023-07-26T08:32:13.313269Z",
-     "shell.execute_reply": "2023-07-26T08:32:13.312686Z"
+     "iopub.execute_input": "2023-09-06T15:43:28.717489Z",
+     "iopub.status.busy": "2023-09-06T15:43:28.717043Z",
+     "iopub.status.idle": "2023-09-06T15:43:28.721764Z",
+     "shell.execute_reply": "2023-09-06T15:43:28.721129Z"
     }
    },
    "outputs": [
@@ -1672,7 +1628,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "d2e610ac",
+   "id": "e1683e30",
    "metadata": {},
    "outputs": [],
    "source": []

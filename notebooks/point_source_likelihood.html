@@ -12,11 +12,11 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=914a23ff"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -93,7 +93,7 @@
            <div itemprop="articleBody">
              
   <section id="Point-source-likelihood">
-<h1>Point source likelihood<a class="headerlink" href="#Point-source-likelihood" title="Permalink to this heading"></a></h1>
+<h1>Point source likelihood<a class="headerlink" href="#Point-source-likelihood" title="Link to this heading"></a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">icecube_tools</span></code> also provides an interface to the likelihoods often used in point source searches of the neutrino data (see <a class="reference external" href="https://arxiv.org/abs/0801.1604">this paper</a> by Braun et al.).</p>
 <div class="math notranslate nohighlight">
 \[\mathcal{L} = \prod_{i=1}^N \Bigg[ \frac{n_s}{N} \mathcal{S}(\theta_i, E_i, \gamma) + (1-\frac{n_s}{N}) \mathcal{B}(\theta_i, E_i) \Bigg],\]</div>
@@ -130,7 +130,7 @@ Also, there may be a temporal dependence added, but this is not yet implemented 
 </div>
 </div>
 <section id="Spatial-likelihood">
-<h2>Spatial likelihood<a class="headerlink" href="#Spatial-likelihood" title="Permalink to this heading"></a></h2>
+<h2>Spatial likelihood<a class="headerlink" href="#Spatial-likelihood" title="Link to this heading"></a></h2>
 <p>We can start with the spatial/directional term. Let’s use the energy dependent spatial likelihood. It is build from a Gaussian with an event-wise uncertainty sampled from the IRF data. The background case will simply be an isotropic distribution on the sphere.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
@@ -167,7 +167,7 @@ Also, there may be a temporal dependence added, but this is not yet implemented 
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7fc3714b0d60&gt;
+&lt;matplotlib.legend.Legend at 0x7fd70b8f8df0&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -179,11 +179,11 @@ Also, there may be a temporal dependence added, but this is not yet implemented 
 </div>
 </section>
 <section id="Energy-likelihood">
-<h2>Energy likelihood<a class="headerlink" href="#Energy-likelihood" title="Permalink to this heading"></a></h2>
+<h2>Energy likelihood<a class="headerlink" href="#Energy-likelihood" title="Link to this heading"></a></h2>
 <p>Now let’s think about the energy-dependent term. The way this is handled is to marginalise over the true neutrino energies, to directly connect the reconstructed neutrino energies to the spectral index of a simple power-law source model.</p>
 <p>Doing this properly requires a knowledge of the relationship between the true and reconstructed energies as well as the details of the power law model. The most straightforward way to implement this is to simulate the a large number of events using the <code class="docutils literal notranslate"><span class="pre">Simulator</span></code> and build a likelihood using the output of this simulation and <code class="docutils literal notranslate"><span class="pre">MarginalisedEnergyLikelihoodFromSim</span></code>. We do exactly this with pre-computed lists of events, to be found in the data subdirectory: <code class="docutils literal notranslate"><span class="pre">sim_output_{index}.h5</span></code>. These were
 simulated using point sources with spectral index <code class="docutils literal notranslate"><span class="pre">index</span></code> at 45 degrees declination. The likelihood is restricted to a small band of declination around the assumed source. Using the same declination for our test source, this is fine. For different source declinations further simulations would be needed to account for the declination dependence of the detector acceptance.</p>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
@@ -199,14 +199,6 @@ simulated using point sources with spectral index <code class="docutils literal 
 <span class="c1"># the likelihood class is backwardscompatible with the &quot;older&quot; simulation-based energy likelihood</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-Resetting rng
-</pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
@@ -257,7 +249,7 @@ array([1.        , 1.33333333, 1.66666667, 2.        , 2.33333333,
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7fc3ac58aca0&gt;
+&lt;matplotlib.legend.Legend at 0x7fd705909a30&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -269,23 +261,15 @@ array([1.        , 1.33333333, 1.66666667, 2.        , 2.33333333,
 </div>
 </section>
 <section id="id1">
-<h2>Point source likelihood<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
+<h2>Point source likelihood<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
 <p>Now we can bring together the spatial and energy terms to build a full <code class="docutils literal notranslate"><span class="pre">PointSourceLikelihood</span></code>. First, let’s load some data from the simulation notebook to allow us to demonstrate.</p>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">events</span> <span class="o">=</span> <span class="n">SimEvents</span><span class="o">.</span><span class="n">load_from_h5</span><span class="p">(</span><span class="s2">&quot;h5_test.hdf5&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:icecube_tools.utils.data:Resetting rng
-</pre></div></div>
 </div>
 <p>Now lets put our likelihood structure and data in together, along with a proposed source location:</p>
 <div class="nbinput nblast docutils container">
@@ -360,7 +344,7 @@ Text(0, 0.5, &#39;Background likelihood&#39;)
 </div>
 </section>
 <section id="Point-source-search">
-<h2>Point source search<a class="headerlink" href="#Point-source-search" title="Permalink to this heading"></a></h2>
+<h2>Point source search<a class="headerlink" href="#Point-source-search" title="Link to this heading"></a></h2>
 <p>A point source search is usually carried out by defining the likelihood ratio of source and background hypotheses, then maximising this ratio as a function of <span class="math notranslate nohighlight">\(n_s\)</span> and <span class="math notranslate nohighlight">\(\gamma\)</span>. The log likelihood ratio evaluated at the maximum likelihood values is then reffered to as the <em>test statistic</em>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">icecube_tools</span></code> includes calculation of the test statistic, with optimisation performed by <code class="docutils literal notranslate"><span class="pre">iminuit</span></code>.</p>
 <div class="nbinput docutils container">
@@ -791,7 +775,7 @@ Text(0.5, 1.0, &#39;index = 2.3 - 0.2 + 0.2&#39;)
 </section>
 </section>
 <section id="Time-dependent-point-source-analysis">
-<h1>Time dependent point source analysis<a class="headerlink" href="#Time-dependent-point-source-analysis" title="Permalink to this heading"></a></h1>
+<h1>Time dependent point source analysis<a class="headerlink" href="#Time-dependent-point-source-analysis" title="Link to this heading"></a></h1>
 <p>Encompassing multiple data seasons, although shown only for one (the same as above), uses a single <code class="docutils literal notranslate"><span class="pre">ns</span></code>, which is distributed among the seasons with the number of expected events for <code class="docutils literal notranslate"><span class="pre">gamma</span></code> and the provided observational times (<code class="docutils literal notranslate"><span class="pre">times</span></code>) as relative weight.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
@@ -819,17 +803,6 @@ Text(0.5, 1.0, &#39;index = 2.3 - 0.2 + 0.2&#39;)
 <span class="n">m</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:icecube_tools.utils.data:Resetting rng
-WARNING:icecube_tools.utils.data:Resetting rng
-WARNING:icecube_tools.utils.data:Resetting rng
-WARNING:icecube_tools.utils.data:Resetting rng
-</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:

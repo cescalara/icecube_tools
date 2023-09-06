@@ -12,11 +12,11 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=914a23ff"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -91,7 +91,7 @@
            <div itemprop="articleBody">
              
   <section id="Source-model-interface">
-<h1>Source model interface<a class="headerlink" href="#Source-model-interface" title="Permalink to this heading"></a></h1>
+<h1>Source model interface<a class="headerlink" href="#Source-model-interface" title="Link to this heading"></a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">icecube_tools</span></code> has a simple source modelling interface built in that we demonstrate here.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -106,7 +106,7 @@
 </div>
 </div>
 <section id="Spectral-shape">
-<h2>Spectral shape<a class="headerlink" href="#Spectral-shape" title="Permalink to this heading"></a></h2>
+<h2>Spectral shape<a class="headerlink" href="#Spectral-shape" title="Link to this heading"></a></h2>
 <p>We start by defining a spectral shape, such as a power law or broken power law. Let’s start with the definition of a simple power law flux.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
@@ -217,7 +217,7 @@ array([9.999e-13])
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7fa129ce6b20&gt;
+&lt;matplotlib.legend.Legend at 0x7fd00adab3d0&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -230,7 +230,7 @@ array([9.999e-13])
 <p>The <code class="docutils literal notranslate"><span class="pre">BrokenPowerLaw</span></code> class is also available and behaves in a very similar way.</p>
 </section>
 <section id="Diffuse-and-point-sources">
-<h2>Diffuse and point sources<a class="headerlink" href="#Diffuse-and-point-sources" title="Permalink to this heading"></a></h2>
+<h2>Diffuse and point sources<a class="headerlink" href="#Diffuse-and-point-sources" title="Link to this heading"></a></h2>
 <p>Once the spectral shape is defined, we can specify either a <code class="docutils literal notranslate"><span class="pre">DiffuseSource</span></code> or a <code class="docutils literal notranslate"><span class="pre">PointSource</span></code>. It is assumed that diffuse sources are isotropic and the flux model describes the per-steradian flux over the entire <span class="math notranslate nohighlight">\(4\pi\)</span> sky. We also specify a redshift of the source such that adiabatic neutrino energy losses can be accounted for. Naturally, <code class="docutils literal notranslate"><span class="pre">PointSource</span></code> objects also have a direction specified in (ra, dec) coordinates.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
@@ -259,7 +259,7 @@ array([9.999e-13])
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;icecube_tools.source.flux_model.PowerLawFlux at 0x7fa12c06b100&gt;
+&lt;icecube_tools.source.flux_model.PowerLawFlux at 0x7fd00aec7790&gt;
 </pre></div></div>
 </div>
 <p>Sources and lists of sources can be used as input to simulations, as demonstrated in the simulation notebook.</p>
