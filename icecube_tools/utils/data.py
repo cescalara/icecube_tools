@@ -263,12 +263,14 @@ class Uptime:
 
     def __init__(self, *periods, **kwargs):
         try:
-            np.loadtxt(os.path.join(
-                data_directory,
-                "20210126_PS-IC40-IC86_VII", 
-                "icecube_10year_ps",
-                "uptime",
-                "IC40_exp.csv")
+            np.loadtxt(
+                os.path.join(
+                    data_directory,
+                    "20210126_PS-IC40-IC86_VII",
+                    "icecube_10year_ps",
+                    "uptime",
+                    "IC40_exp.csv",
+                )
             )
         except FileNotFoundError:
             data_interface = IceCubeData()
@@ -859,12 +861,12 @@ class RealEvents(Events):
             del self._reco_energy[p]
             del self._ra[p]
             del self._dec[p]
-
-        self._ra["IC86_II"] = np.concatenate(ra)
-        self._dec["IC86_II"] = np.concatenate(dec)
-        self._ang_err["IC86_II"] = np.concatenate(ang_err)
-        self._reco_energy["IC86_II"] = np.concatenate(reco_energy)
-        self._mjd["IC86_II"] = np.concatenate(mjd)
+        if to_be_added:
+            self._ra["IC86_II"] = np.concatenate(ra)
+            self._dec["IC86_II"] = np.concatenate(dec)
+            self._ang_err["IC86_II"] = np.concatenate(ang_err)
+            self._reco_energy["IC86_II"] = np.concatenate(reco_energy)
+            self._mjd["IC86_II"] = np.concatenate(mjd)
 
     def _copy_data(self, other: Events, p: str):
         self._mjd[p] = other._mjd[p].copy()
@@ -874,7 +876,9 @@ class RealEvents(Events):
         self._dec[p] = other._dec[p].copy()
 
     @classmethod
-    def from_event_files(cls, *periods: str, seed: int=1234, use_all: bool=False, **kwargs):
+    def from_event_files(
+        cls, *periods: str, seed: int = 1234, use_all: bool = False, **kwargs
+    ):
         """
         Load from files provided by data release,
         if belonging to IC86_II or later, add to IC86_II keyword
@@ -885,12 +889,14 @@ class RealEvents(Events):
         """
 
         try:
-            np.loadtxt(os.path.join(
-                data_directory,
-                "20210126_PS-IC40-IC86_VII", 
-                "icecube_10year_ps",
-                "uptime",
-                "IC40_exp.csv")
+            np.loadtxt(
+                os.path.join(
+                    data_directory,
+                    "20210126_PS-IC40-IC86_VII",
+                    "icecube_10year_ps",
+                    "uptime",
+                    "IC40_exp.csv",
+                )
             )
         except FileNotFoundError:
             data_interface = IceCubeData()
@@ -899,12 +905,30 @@ class RealEvents(Events):
             dataset_dir = data_interface.get_path_to(dataset[0])
 
         if not periods:
-            #use all periods if none are specified
-            periods = ("IC40", "IC59", "IC79", "IC86_I", "IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII")
+            # use all periods if none are specified
+            periods = (
+                "IC40",
+                "IC59",
+                "IC79",
+                "IC86_I",
+                "IC86_II",
+                "IC86_III",
+                "IC86_IV",
+                "IC86_V",
+                "IC86_VI",
+                "IC86_VII",
+            )
 
         if use_all and periods == ("IC86_II",):
-            periods = ("IC86_II", "IC86_III", "IC86_IV", "IC86_V", "IC86_VI", "IC86_VII")
- 
+            periods = (
+                "IC86_II",
+                "IC86_III",
+                "IC86_IV",
+                "IC86_V",
+                "IC86_VI",
+                "IC86_VII",
+            )
+
         # Check in STACK if there is a singular period event instance
         # if not, create one from scratch
         # Then, copy data into a new instance encompassing all periods
@@ -916,25 +940,24 @@ class RealEvents(Events):
                 temp = cls(seed=42)
                 temp.events = {}
                 temp.events[p] = np.loadtxt(
-                        join(
-                            data_directory,
-                            f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv"
-                        )
+                    join(
+                        data_directory,
+                        f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv",
                     )
+                )
                 temp._periods.append(p)
                 temp._sort()
                 RealEvents.STACK[p] = temp
             inst._periods.append(p)
             # Copy stuff
             inst._copy_data(temp, p)
-        
+
         # Compress IC86_II and onwards into a single entry
         inst._add()
         inst._uptime = Uptime(*periods)
         inst._data_periods = inst._uptime.data_periods
         inst._irf_periods = inst._uptime.irf_periods
         return inst
-
 
     @classmethod
     def load_from_h5(cls, path: str):
