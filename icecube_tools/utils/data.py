@@ -903,10 +903,10 @@ class RealEvents(Events):
             dataset = data_interface.find("20210126")
             data_interface.fetch(dataset)
             dataset_dir = data_interface.get_path_to(dataset[0])
-
+        periods = list(periods)
         if not periods:
             # use all periods if none are specified
-            periods = (
+            periods = [
                 "IC40",
                 "IC59",
                 "IC79",
@@ -917,23 +917,28 @@ class RealEvents(Events):
                 "IC86_V",
                 "IC86_VI",
                 "IC86_VII",
-            )
+            ]
 
-        if use_all and periods == ("IC86_II",):
-            periods = (
+        if use_all and "IC86_II" in periods:
+            periods += [
                 "IC86_II",
                 "IC86_III",
                 "IC86_IV",
                 "IC86_V",
                 "IC86_VI",
                 "IC86_VII",
-            )
+            ]
+
+        # Get rid of possible double entries
+        periods = list(set(periods))
 
         # Check in STACK if there is a singular period event instance
         # if not, create one from scratch
         # Then, copy data into a new instance encompassing all periods
         inst = cls(seed=seed)
-        for p in periods:
+        for p in available_data_periods:
+            if not p in periods:
+                continue
             if p in RealEvents.STACK:
                 temp = RealEvents.STACK[p]
             else:
@@ -954,7 +959,7 @@ class RealEvents(Events):
 
         # Compress IC86_II and onwards into a single entry
         inst._add()
-        inst._uptime = Uptime(*periods)
+        inst._uptime = Uptime(*inst._periods)
         inst._data_periods = inst._uptime.data_periods
         inst._irf_periods = inst._uptime.irf_periods
         return inst
