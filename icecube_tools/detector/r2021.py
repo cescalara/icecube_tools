@@ -385,7 +385,7 @@ class R2021IRF(EnergyResolution, AngularResolution):
         """
 
         if period not in available_irf_periods:
-            raise ValueError("Period {period} is not supported.")
+            raise ValueError(f"Period {period} is not supported.")
 
         if kwargs.get("fetch", True):
             data_interface = IceCubeData()
