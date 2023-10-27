@@ -2,7 +2,7 @@
  "cells": [
   {
    "cell_type": "markdown",
-   "id": "5c961a55",
+   "id": "193160e7",
    "metadata": {},
    "source": [
     "# Data access\n",
@@ -13,13 +13,13 @@
   {
    "cell_type": "code",
    "execution_count": 1,
-   "id": "4988ec95",
+   "id": "826ed845",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-10-13T09:25:53.167225Z",
-     "iopub.status.busy": "2023-10-13T09:25:53.166628Z",
-     "iopub.status.idle": "2023-10-13T09:25:54.467881Z",
-     "shell.execute_reply": "2023-10-13T09:25:54.466908Z"
+     "iopub.execute_input": "2023-10-27T13:40:16.614205Z",
+     "iopub.status.busy": "2023-10-27T13:40:16.613769Z",
+     "iopub.status.idle": "2023-10-27T13:40:17.710357Z",
+     "shell.execute_reply": "2023-10-27T13:40:17.709214Z"
     }
    },
    "outputs": [],
@@ -29,7 +29,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "6a3448d0",
+   "id": "e5df4bf7",
    "metadata": {},
    "source": [
     "The `IceCubeData` class provides this functionality. Upon initialisation, `IceCubeData` queries the website using HTTP requests to check what datasets are currently available. By default, this request is cached to avoid spamming the IceCube website. However, you can use the keyword argument `update` to override this."
@@ -38,13 +38,13 @@
   {
    "cell_type": "code",
    "execution_count": 2,
-   "id": "7b09f019",
+   "id": "462c1178",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-10-13T09:25:54.472411Z",
-     "iopub.status.busy": "2023-10-13T09:25:54.471633Z",
-     "iopub.status.idle": "2023-10-13T09:25:55.222890Z",
-     "shell.execute_reply": "2023-10-13T09:25:55.222144Z"
+     "iopub.execute_input": "2023-10-27T13:40:17.714879Z",
+     "iopub.status.busy": "2023-10-27T13:40:17.714325Z",
+     "iopub.status.idle": "2023-10-27T13:40:18.147191Z",
+     "shell.execute_reply": "2023-10-27T13:40:18.146371Z"
     }
    },
    "outputs": [
@@ -100,7 +100,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "7511931e",
+   "id": "ce8acb38",
    "metadata": {},
    "source": [
     "You can use the `find` method to pick out datasets you are interested in."
@@ -109,13 +109,13 @@
   {
    "cell_type": "code",
    "execution_count": 3,
-   "id": "043b8b55",
+   "id": "593b1ba4",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-10-13T09:25:55.226718Z",
-     "iopub.status.busy": "2023-10-13T09:25:55.226065Z",
-     "iopub.status.idle": "2023-10-13T09:25:55.230901Z",
-     "shell.execute_reply": "2023-10-13T09:25:55.230139Z"
+     "iopub.execute_input": "2023-10-27T13:40:18.151179Z",
+     "iopub.status.busy": "2023-10-27T13:40:18.150488Z",
+     "iopub.status.idle": "2023-10-27T13:40:18.156191Z",
+     "shell.execute_reply": "2023-10-27T13:40:18.155505Z"
     }
    },
    "outputs": [
@@ -137,7 +137,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "f2e41d84",
+   "id": "3c2ec631",
    "metadata": {},
    "source": [
     "The `my_data` object has been inititalised to store data in the package's default location (\"~/.icecube_data\"). This is where other `icecube_tools` modules will look for stored data."
@@ -146,13 +146,13 @@
   {
    "cell_type": "code",
    "execution_count": 4,
-   "id": "677cbfae",
+   "id": "26a0dd39",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-10-13T09:25:55.234363Z",
-     "iopub.status.busy": "2023-10-13T09:25:55.233891Z",
-     "iopub.status.idle": "2023-10-13T09:25:55.238587Z",
-     "shell.execute_reply": "2023-10-13T09:25:55.237881Z"
+     "iopub.execute_input": "2023-10-27T13:40:18.159689Z",
+     "iopub.status.busy": "2023-10-27T13:40:18.159225Z",
+     "iopub.status.idle": "2023-10-27T13:40:18.166332Z",
+     "shell.execute_reply": "2023-10-27T13:40:18.165437Z"
     }
    },
    "outputs": [
@@ -173,7 +173,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "05b9bdf9",
+   "id": "f5299459",
    "metadata": {},
    "source": [
     "The `fetch` method will download this dataset to this default location for later use by `icecube_tools`. This method takes a list of names, so can also be used to download multiple datasets. `fetch` has a built in delay of a few seconds between HTTP requests to avoid spamming the website. `fetch` will not overwrite files by default, but this can be forced with `overwrite=True`."
@@ -182,13 +182,13 @@
   {
    "cell_type": "code",
    "execution_count": 5,
-   "id": "c257483c",
+   "id": "de75bf1b",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-10-13T09:25:55.243034Z",
-     "iopub.status.busy": "2023-10-13T09:25:55.242467Z",
-     "iopub.status.idle": "2023-10-13T09:26:06.972261Z",
-     "shell.execute_reply": "2023-10-13T09:26:06.971455Z"
+     "iopub.execute_input": "2023-10-27T13:40:18.169991Z",
+     "iopub.status.busy": "2023-10-27T13:40:18.169375Z",
+     "iopub.status.idle": "2023-10-27T13:40:26.319608Z",
+     "shell.execute_reply": "2023-10-27T13:40:26.318389Z"
     }
    },
    "outputs": [
@@ -205,7 +205,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:   9%|▉         | 1048576/11730609 [00:01<00:10, 991349.90it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:   9%|▉         | 1048576/11730609 [00:00<00:08, 1329633.25it/s]"
      ]
     },
     {
@@ -213,7 +213,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  18%|█▊        | 2097152/11730609 [00:01<00:05, 1640090.75it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  18%|█▊        | 2097152/11730609 [00:01<00:04, 2139215.33it/s]"
      ]
     },
     {
@@ -221,7 +221,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  27%|██▋       | 3145728/11730609 [00:01<00:03, 2465495.55it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  27%|██▋       | 3145728/11730609 [00:01<00:02, 3008168.57it/s]"
      ]
     },
     {
@@ -229,7 +229,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  36%|███▌      | 4194304/11730609 [00:01<00:02, 3324136.69it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  36%|███▌      | 4194304/11730609 [00:01<00:01, 3928936.42it/s]"
      ]
     },
     {
@@ -237,7 +237,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  45%|████▍     | 5242880/11730609 [00:01<00:01, 4234669.78it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  45%|████▍     | 5242880/11730609 [00:01<00:01, 5053261.37it/s]"
      ]
     },
     {
@@ -245,7 +245,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  63%|██████▎   | 7340032/11730609 [00:02<00:00, 6387482.85it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  63%|██████▎   | 7340032/11730609 [00:01<00:00, 7714426.91it/s]"
      ]
     },
     {
@@ -253,7 +253,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  89%|████████▉ | 10485760/11730609 [00:02<00:00, 9960794.91it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  80%|████████  | 9437184/11730609 [00:01<00:00, 10355691.59it/s]"
      ]
     },
     {
@@ -261,7 +261,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:02<00:00, 5237729.72it/s]"
+      "20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:01<00:00, 6433598.23it/s]"
      ]
     },
     {
@@ -278,7 +278,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "2a205e29",
+   "id": "37aab322",
    "metadata": {},
    "source": [
     "You may not want to use `icecube_tools` for other stuff, so you can also fetch to a specificed location with the keyword `write_to`."
@@ -287,13 +287,13 @@
   {
    "cell_type": "code",
    "execution_count": 6,
-   "id": "887eaa27",
+   "id": "54c96497",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-10-13T09:26:06.976415Z",
-     "iopub.status.busy": "2023-10-13T09:26:06.975781Z",
-     "iopub.status.idle": "2023-10-13T09:26:17.242475Z",
-     "shell.execute_reply": "2023-10-13T09:26:17.241680Z"
+     "iopub.execute_input": "2023-10-27T13:40:26.323987Z",
+     "iopub.status.busy": "2023-10-27T13:40:26.323292Z",
+     "iopub.status.idle": "2023-10-27T13:40:33.958673Z",
+     "shell.execute_reply": "2023-10-27T13:40:33.957768Z"
     }
    },
    "outputs": [
@@ -310,7 +310,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:   9%|▉         | 1048576/11730609 [00:01<00:10, 1010779.12it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:   9%|▉         | 1048576/11730609 [00:00<00:08, 1201316.60it/s]"
      ]
     },
     {
@@ -318,7 +318,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  18%|█▊        | 2097152/11730609 [00:01<00:05, 1746307.64it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  18%|█▊        | 2097152/11730609 [00:01<00:04, 2011164.30it/s]"
      ]
     },
     {
@@ -326,7 +326,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  27%|██▋       | 3145728/11730609 [00:01<00:03, 2459647.60it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  27%|██▋       | 3145728/11730609 [00:01<00:02, 2917394.14it/s]"
      ]
     },
     {
@@ -334,7 +334,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  36%|███▌      | 4194304/11730609 [00:01<00:02, 3325126.18it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  36%|███▌      | 4194304/11730609 [00:01<00:02, 3677211.66it/s]"
      ]
     },
     {
@@ -342,7 +342,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  54%|█████▎    | 6291456/11730609 [00:01<00:00, 5510219.45it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  54%|█████▎    | 6291456/11730609 [00:01<00:00, 5833389.52it/s]"
      ]
     },
     {
@@ -350,7 +350,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  72%|███████▏  | 8388608/11730609 [00:02<00:00, 7293353.00it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  72%|███████▏  | 8388608/11730609 [00:01<00:00, 7759140.86it/s]"
      ]
     },
     {
@@ -358,7 +358,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...:  89%|████████▉ | 10485760/11730609 [00:02<00:00, 9094464.66it/s]"
+      "20181018_All-sky_point-source_IceCube_da...:  89%|████████▉ | 10485760/11730609 [00:01<00:00, 10110714.66it/s]"
      ]
     },
     {
@@ -366,15 +366,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:02<00:00, 8697769.36it/s]"
-     ]
-    },
-    {
-     "name": "stderr",
-     "output_type": "stream",
-     "text": [
-      "\r",
-      "20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:02<00:00, 5053086.89it/s]"
+      "20181018_All-sky_point-source_IceCube_da...: 100%|██████████| 11730609/11730609 [00:01<00:00, 5957553.96it/s] "
      ]
     },
     {
@@ -391,7 +383,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "1b781496",
+   "id": "756118fa",
    "metadata": {},
    "source": [
     "For convenience, there is also the `fetch_all_to` method to download all the available data to a specified location. We comment this here as it can take a while to execute."
@@ -400,13 +392,13 @@
   {
    "cell_type": "code",
    "execution_count": 7,
-   "id": "b5dd0dad",
+   "id": "cff07fcc",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2023-10-13T09:26:17.246345Z",
-     "iopub.status.busy": "2023-10-13T09:26:17.245901Z",
-     "iopub.status.idle": "2023-10-13T09:26:17.250090Z",
-     "shell.execute_reply": "2023-10-13T09:26:17.249475Z"
+     "iopub.execute_input": "2023-10-27T13:40:33.963805Z",
+     "iopub.status.busy": "2023-10-27T13:40:33.963271Z",
+     "iopub.status.idle": "2023-10-27T13:40:33.967900Z",
+     "shell.execute_reply": "2023-10-27T13:40:33.967281Z"
     }
    },
    "outputs": [],
