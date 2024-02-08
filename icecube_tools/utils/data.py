@@ -831,9 +831,7 @@ class RealEvents(Events):
 
         for p in self._periods:
             self._reco_energy[p] = np.power(10, self.events[p][:, self.reco_energy_])
-            self._ang_err[p] = get_theta_p(
-                get_kappa(self.events[p][:, self.ang_err_], 0.5)
-            )
+            self._ang_err[p] = self.events[p][:, self.ang_err_]
             self._ra[p] = np.deg2rad(self.events[p][:, self.ra_])
             self._dec[p] = np.deg2rad(self.events[p][:, self.dec_])
             self._mjd[p] = self.events[p][:, self.mjd_]

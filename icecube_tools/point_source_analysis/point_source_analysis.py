@@ -582,7 +582,7 @@ class MapScan(PointSourceAnalysis):
             ns_merror.append(input["ns_merror"])
             fit_ok.append(input["fit_ok"])
             ntrials += int(np.sum(input["fit_ok"]))
-            if isinstance(cls, MapScanTSDistribution):
+            if cls == MapScanTSDistribution:
                 try:
                     assert np.isclose(declination, input["dec_test"])
                 except NameError:
@@ -604,7 +604,7 @@ class MapScan(PointSourceAnalysis):
             output["ns_merror"] = np.vstack(ns_merror)
             output["index_merror"] = np.vstack(index_merror)
             output["ntrials"] = ntrials
-            if isinstance(cls, MapScanTSDistribution):
+            if cls == MapScanTSDistribution:
                 output["ra_test"] = np.array([ra])
                 output["dec_test"] = np.array([declination])
             else:
