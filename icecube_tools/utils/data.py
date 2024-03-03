@@ -385,7 +385,7 @@ class Uptime:
 
         p_start = np.digitize(start, self._times[:, 0]) - 1
 
-        if end > self._times[-1, -1]:
+        if end >= self._times[-1, -1]:
             logger.info(
                 "End time outside of provided data set, sending an owl to Professor Trelawney"
             )
