@@ -169,7 +169,7 @@ Also, there may be a temporal dependence added, but this is not yet implemented 
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7fbdb4958fd0&gt;
+&lt;matplotlib.legend.Legend at 0x7f9a41352a90&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -185,7 +185,7 @@ Also, there may be a temporal dependence added, but this is not yet implemented 
 <p>Now let’s think about the energy-dependent term. The way this is handled is to marginalise over the true neutrino energies, to directly connect the reconstructed neutrino energies to the spectral index of a simple power-law source model.</p>
 <p>Doing this properly requires a knowledge of the relationship between the true and reconstructed energies as well as the details of the power law model. The most straightforward way to implement this is to simulate the a large number of events using the <code class="docutils literal notranslate"><span class="pre">Simulator</span></code> and build a likelihood using the output of this simulation and <code class="docutils literal notranslate"><span class="pre">MarginalisedEnergyLikelihoodFromSim</span></code>. We do exactly this with pre-computed lists of events, to be found in the data subdirectory: <code class="docutils literal notranslate"><span class="pre">sim_output_{index}.h5</span></code>. These were
 simulated using point sources with spectral index <code class="docutils literal notranslate"><span class="pre">index</span></code> at 45 degrees declination. The likelihood is restricted to a small band of declination around the assumed source. Using the same declination for our test source, this is fine. For different source declinations further simulations would be needed to account for the declination dependence of the detector acceptance.</p>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
@@ -201,26 +201,6 @@ simulated using point sources with spectral index <code class="docutils literal 
 <span class="c1"># the likelihood class is backwardscompatible with the &quot;older&quot; simulation-based energy likelihood</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/site-packages/icecube_tools/detector/effective_area.py:254: FutureWarning: The &#39;delim_whitespace&#39; keyword in pd.read_csv is deprecated and will be removed in a future version. Use ``sep=&#39;\s+&#39;`` instead
-  output = pd.read_csv(
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/site-packages/icecube_tools/detector/effective_area.py:254: FutureWarning: The &#39;delim_whitespace&#39; keyword in pd.read_csv is deprecated and will be removed in a future version. Use ``sep=&#39;\s+&#39;`` instead
-  output = pd.read_csv(
-/opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/site-packages/icecube_tools/detector/effective_area.py:254: FutureWarning: The &#39;delim_whitespace&#39; keyword in pd.read_csv is deprecated and will be removed in a future version. Use ``sep=&#39;\s+&#39;`` instead
-  output = pd.read_csv(
-</pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
@@ -271,7 +251,7 @@ array([1.        , 1.33333333, 1.66666667, 2.        , 2.33333333,
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7fbdf4786040&gt;
+&lt;matplotlib.legend.Legend at 0x7f9a399dcd90&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -826,35 +806,6 @@ Text(0.5, 1.0, &#39;index = 2.3 - 0.2 + 0.2&#39;)
 <span class="n">m</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/site-packages/icecube_tools/detector/effective_area.py:254: FutureWarning: The &#39;delim_whitespace&#39; keyword in pd.read_csv is deprecated and will be removed in a future version. Use ``sep=&#39;\s+&#39;`` instead
-  output = pd.read_csv(
-/opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/site-packages/icecube_tools/detector/effective_area.py:254: FutureWarning: The &#39;delim_whitespace&#39; keyword in pd.read_csv is deprecated and will be removed in a future version. Use ``sep=&#39;\s+&#39;`` instead
-  output = pd.read_csv(
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/site-packages/icecube_tools/detector/effective_area.py:254: FutureWarning: The &#39;delim_whitespace&#39; keyword in pd.read_csv is deprecated and will be removed in a future version. Use ``sep=&#39;\s+&#39;`` instead
-  output = pd.read_csv(
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/opt/hostedtoolcache/Python/3.9.18/x64/lib/python3.9/site-packages/icecube_tools/detector/effective_area.py:254: FutureWarning: The &#39;delim_whitespace&#39; keyword in pd.read_csv is deprecated and will be removed in a future version. Use ``sep=&#39;\s+&#39;`` instead
-  output = pd.read_csv(
-</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
