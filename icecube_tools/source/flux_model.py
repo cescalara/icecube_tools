@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from .power_law import BoundedPowerLaw
 from .power_law import BrokenBoundedPowerLaw
 from .power_law import BoundedPowerLawExpCutoff
+from .power_law import BoundedPowerLawSubexpCutoff
 
 """
 Module for simple flux models used in 
@@ -477,3 +478,91 @@ class PowerLawExpCutoffFlux(FluxModel):
         :param N: Number of samples.
         """
         return self.power_law.samples(N)
+    
+
+class PowerLawSubexpCutoffFlux(FluxModel):
+    """
+    Power law flux models with a subexponential cutoff.
+    """
+
+    def __init__(
+            self,
+            normalisation,
+            norm_energy,
+            index1,
+            cutoff_energy,
+            index2,
+            lower_energy=1e2,
+            upper_energy=1e8
+    ):
+        """
+        Power law flux models with a subexponential cutoff.
+
+        :param normalisation: Flux normalisation [GeV^-1 cm^-2 s^-1 sr^-1] or [GeV^-1 cm^-2 s^-1] for point sources.
+        :param norm_energy: Energy at which the spectrum is normalised [GeV].
+        :param index1: Spectral index of the power law.
+        :param cutoff_energy: Cutoff energy [GeV].
+        :param index2: Spectral index in the exponential function. 0 < index2 < 1.
+        :param lower_energy: Lower energy bound [GeV].
+        :param upper_energy: Upper energy bound [GeV].
+        """
+
+        super().__init__()
+
+        self._normalisation = normalisation
+
+        self._norm_energy = norm_energy
+
+        self._index1 = index1
+
+        self._cutoff_energy = cutoff_energy
+
+        self._index2 = index2
+
+        self._lower_energy = lower_energy
+
+        self._upper_energy = upper_energy
+
+        self.power_law = BoundedPowerLawSubexpCutoff(self._index1, self._cutoff_energy, self._index2, self._lower_energy, self._upper_energy)
+
+    def spectrum(self, energy):
+        """
+        dN/dEdAdt or dN/dEdAdtdO.
+        """
+        output = self._normalisation * (energy/self._norm_energy)**(-self._index1) * np.exp(-1 * (energy/self._cutoff_energy)**self._index2)
+
+        if isinstance(energy, np.ndarray):
+            idx = np.logical_or(energy < self._lower_energy, energy > self._upper_energy)
+            output[idx] = np.zeros(len(output[idx]))
+            return output
+        
+        else:
+            if energy < self._lower_energy or energy > self._upper_energy:
+                return 0.0
+            else:
+                return output
+            
+    def integrated_spectrum(self, lower_energy_bound, upper_energy_bound):
+        """
+        Integrates the spectrum with respect to E over a finite energy interval.
+        :param lower_energy_bound: in GeV
+        :param upper_energy_bound: in GeV
+        """
+        norm = self._normalisation
+        E0 = self._norm_energy
+        Ecut = self._cutoff_energy
+        gamma = self._index1
+        lambda_ = self._index2
+
+        E1 = lower_energy_bound
+        E2 = upper_energy_bound
+        incGamma = np.frompyfunc(mp.gammainc, 3, 1)
+
+        if isinstance(lower_energy_bound, np.ndarray) or isinstance(upper_energy_bound, np.ndarray):
+            return norm/E0**(-gamma) * Ecut**(1-gamma)/lambda_ * incGamma((1-gamma)/lambda_, (E1/Ecut)**lambda_, (E2/Ecut)**lambda_).astype('float64')
+        
+        else:
+            return norm/E0**(-gamma) * Ecut**(1-gamma)/lambda_ * float(incGamma((1-gamma)/lambda_, (E1/Ecut)**lambda_, (E2/Ecut)**lambda_))
+        
+    def redshift_factor(self, z: float):
+        return 1.0
