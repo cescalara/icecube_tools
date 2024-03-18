@@ -244,6 +244,32 @@ Uses inverse transform sampling.</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="icecube_tools.source.flux_model.PowerLawSubexpCutoffFlux">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">icecube_tools.source.flux_model.</span></span><span class="sig-name descname"><span class="pre">PowerLawSubexpCutoffFlux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalisation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000000.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.source.flux_model.PowerLawSubexpCutoffFlux" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#icecube_tools.source.flux_model.FluxModel" title="icecube_tools.source.flux_model.FluxModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxModel</span></code></a></p>
+<p>Power law flux models with a subexponential cutoff.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.source.flux_model.PowerLawSubexpCutoffFlux.integrated_spectrum">
+<span class="sig-name descname"><span class="pre">integrated_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lower_energy_bound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_energy_bound</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.source.flux_model.PowerLawSubexpCutoffFlux.integrated_spectrum" title="Link to this definition"></a></dt>
+<dd><p>Integrates the spectrum with respect to E over a finite energy interval.
+:param lower_energy_bound: in GeV
+:param upper_energy_bound: in GeV</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.source.flux_model.PowerLawSubexpCutoffFlux.redshift_factor">
+<span class="sig-name descname"><span class="pre">redshift_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.source.flux_model.PowerLawSubexpCutoffFlux.redshift_factor" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="icecube_tools.source.flux_model.PowerLawSubexpCutoffFlux.spectrum">
+<span class="sig-name descname"><span class="pre">spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">energy</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#icecube_tools.source.flux_model.PowerLawSubexpCutoffFlux.spectrum" title="Link to this definition"></a></dt>
+<dd><p>dN/dEdAdt or dN/dEdAdtdO.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
 
