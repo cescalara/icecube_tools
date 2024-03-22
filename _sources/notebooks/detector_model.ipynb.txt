@@ -2,7 +2,7 @@
  "cells": [
   {
    "cell_type": "markdown",
-   "id": "b0b1bf22",
+   "id": "01406ab8",
    "metadata": {},
    "source": [
     "# Detector model interface\n",
@@ -16,13 +16,13 @@
   {
    "cell_type": "code",
    "execution_count": 1,
-   "id": "e446234f",
+   "id": "518791b3",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:01:18.172924Z",
-     "iopub.status.busy": "2024-03-18T17:01:18.172540Z",
-     "iopub.status.idle": "2024-03-18T17:01:22.520121Z",
-     "shell.execute_reply": "2024-03-18T17:01:22.519359Z"
+     "iopub.execute_input": "2024-03-22T09:55:57.355826Z",
+     "iopub.status.busy": "2024-03-22T09:55:57.355300Z",
+     "iopub.status.idle": "2024-03-22T09:55:58.944405Z",
+     "shell.execute_reply": "2024-03-22T09:55:58.943637Z"
     }
    },
    "outputs": [],
@@ -37,7 +37,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "97b41d39",
+   "id": "5bb3f706",
    "metadata": {},
    "source": [
     "The `IceCubeData` class can be used for a quick check of the available datasets on the IceCube website."
@@ -46,13 +46,13 @@
   {
    "cell_type": "code",
    "execution_count": 2,
-   "id": "75a2a5be",
+   "id": "0b39c313",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:01:22.523010Z",
-     "iopub.status.busy": "2024-03-18T17:01:22.522789Z",
-     "iopub.status.idle": "2024-03-18T17:01:22.548497Z",
-     "shell.execute_reply": "2024-03-18T17:01:22.547830Z"
+     "iopub.execute_input": "2024-03-22T09:55:58.947519Z",
+     "iopub.status.busy": "2024-03-22T09:55:58.947289Z",
+     "iopub.status.idle": "2024-03-22T09:55:58.972978Z",
+     "shell.execute_reply": "2024-03-22T09:55:58.972335Z"
     }
    },
    "outputs": [
@@ -106,7 +106,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "9a6f6216",
+   "id": "f5dc4bff",
    "metadata": {},
    "source": [
     "## Effective area, angular resolution and energy resolution of 10 year data\n",
@@ -126,13 +126,13 @@
   {
    "cell_type": "code",
    "execution_count": 3,
-   "id": "a9bc8f72",
+   "id": "07a40eef",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:01:22.550778Z",
-     "iopub.status.busy": "2024-03-18T17:01:22.550585Z",
-     "iopub.status.idle": "2024-03-18T17:01:22.553569Z",
-     "shell.execute_reply": "2024-03-18T17:01:22.553062Z"
+     "iopub.execute_input": "2024-03-22T09:55:58.975580Z",
+     "iopub.status.busy": "2024-03-22T09:55:58.975187Z",
+     "iopub.status.idle": "2024-03-22T09:55:58.978254Z",
+     "shell.execute_reply": "2024-03-22T09:55:58.977727Z"
     }
    },
    "outputs": [],
@@ -144,13 +144,13 @@
   {
    "cell_type": "code",
    "execution_count": 4,
-   "id": "df8c21f5",
+   "id": "fe41e231",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:01:22.555744Z",
-     "iopub.status.busy": "2024-03-18T17:01:22.555556Z",
-     "iopub.status.idle": "2024-03-18T17:01:35.356123Z",
-     "shell.execute_reply": "2024-03-18T17:01:35.355499Z"
+     "iopub.execute_input": "2024-03-22T09:55:58.980562Z",
+     "iopub.status.busy": "2024-03-22T09:55:58.980185Z",
+     "iopub.status.idle": "2024-03-22T09:56:10.743081Z",
+     "shell.execute_reply": "2024-03-22T09:56:10.742403Z"
     }
    },
    "outputs": [
@@ -167,7 +167,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20210126_PS-IC40-IC86_VII.zip:   3%|▎         | 1048576/39848048 [00:00<00:10, 3679591.54it/s]"
+      "20210126_PS-IC40-IC86_VII.zip:   3%|▎         | 1048576/39848048 [00:00<00:35, 1098727.14it/s]"
      ]
     },
     {
@@ -175,7 +175,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20210126_PS-IC40-IC86_VII.zip:   8%|▊         | 3145728/39848048 [00:00<00:05, 7148596.71it/s]"
+      "20210126_PS-IC40-IC86_VII.zip:   5%|▌         | 2097152/39848048 [00:01<00:18, 1992448.96it/s]"
      ]
     },
     {
@@ -183,7 +183,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20210126_PS-IC40-IC86_VII.zip:  13%|█▎        | 5242880/39848048 [00:00<00:03, 10540962.30it/s]"
+      "20210126_PS-IC40-IC86_VII.zip:   8%|▊         | 3145728/39848048 [00:01<00:12, 2972324.29it/s]"
      ]
     },
     {
@@ -191,7 +191,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20210126_PS-IC40-IC86_VII.zip:  21%|██        | 8388608/39848048 [00:00<00:02, 13290406.16it/s]"
+      "20210126_PS-IC40-IC86_VII.zip:  11%|█         | 4194304/39848048 [00:01<00:08, 4026210.00it/s]"
      ]
     },
     {
@@ -199,7 +199,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20210126_PS-IC40-IC86_VII.zip:  34%|███▍      | 13631488/39848048 [00:00<00:01, 19311502.37it/s]"
+      "20210126_PS-IC40-IC86_VII.zip:  16%|█▌        | 6291456/39848048 [00:01<00:05, 6651607.34it/s]"
      ]
     },
     {
@@ -207,7 +207,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20210126_PS-IC40-IC86_VII.zip:  42%|████▏     | 16777216/39848048 [00:01<00:01, 21555814.33it/s]"
+      "20210126_PS-IC40-IC86_VII.zip:  21%|██        | 8388608/39848048 [00:01<00:03, 9077886.07it/s]"
      ]
     },
     {
@@ -215,7 +215,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20210126_PS-IC40-IC86_VII.zip:  63%|██████▎   | 25165824/39848048 [00:01<00:00, 35499804.43it/s]"
+      "20210126_PS-IC40-IC86_VII.zip:  29%|██▉       | 11534336/39848048 [00:01<00:02, 13068057.70it/s]"
      ]
     },
     {
@@ -223,7 +223,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20210126_PS-IC40-IC86_VII.zip:  82%|████████▏ | 32505856/39848048 [00:01<00:00, 44267268.92it/s]"
+      "20210126_PS-IC40-IC86_VII.zip:  37%|███▋      | 14680064/39848048 [00:01<00:01, 16689198.78it/s]"
      ]
     },
     {
@@ -231,7 +231,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20210126_PS-IC40-IC86_VII.zip:  95%|█████████▍| 37748736/39848048 [00:01<00:00, 36275301.91it/s]"
+      "20210126_PS-IC40-IC86_VII.zip:  50%|████▉     | 19922944/39848048 [00:02<00:00, 22773136.24it/s]"
      ]
     },
     {
@@ -239,7 +239,47 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20210126_PS-IC40-IC86_VII.zip: 100%|██████████| 39848048/39848048 [00:01<00:00, 26324188.64it/s]"
+      "20210126_PS-IC40-IC86_VII.zip:  58%|█████▊    | 23068672/39848048 [00:02<00:00, 21927518.74it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20210126_PS-IC40-IC86_VII.zip:  68%|██████▊   | 27262976/39848048 [00:02<00:00, 25648950.38it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20210126_PS-IC40-IC86_VII.zip:  76%|███████▋  | 30408704/39848048 [00:02<00:00, 25622823.46it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20210126_PS-IC40-IC86_VII.zip:  87%|████████▋ | 34603008/39848048 [00:02<00:00, 27921399.13it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20210126_PS-IC40-IC86_VII.zip:  95%|█████████▍| 37748736/39848048 [00:02<00:00, 27215067.02it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20210126_PS-IC40-IC86_VII.zip: 100%|██████████| 39848048/39848048 [00:02<00:00, 14235579.40it/s]"
      ]
     },
     {
@@ -257,13 +297,13 @@
   {
    "cell_type": "code",
    "execution_count": 5,
-   "id": "b8028d2e",
+   "id": "f426f1c6",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:01:35.358905Z",
-     "iopub.status.busy": "2024-03-18T17:01:35.358697Z",
-     "iopub.status.idle": "2024-03-18T17:01:36.073153Z",
-     "shell.execute_reply": "2024-03-18T17:01:36.072419Z"
+     "iopub.execute_input": "2024-03-22T09:56:10.745785Z",
+     "iopub.status.busy": "2024-03-22T09:56:10.745522Z",
+     "iopub.status.idle": "2024-03-22T09:56:11.445529Z",
+     "shell.execute_reply": "2024-03-22T09:56:11.444819Z"
     }
    },
    "outputs": [
@@ -293,7 +333,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "4a722e31",
+   "id": "ea8e92f3",
    "metadata": {},
    "source": [
     "### Energy resolution\n",
@@ -308,13 +348,13 @@
   {
    "cell_type": "code",
    "execution_count": 6,
-   "id": "adc0eb0b",
+   "id": "af088825",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:01:36.075583Z",
-     "iopub.status.busy": "2024-03-18T17:01:36.075360Z",
-     "iopub.status.idle": "2024-03-18T17:01:37.229122Z",
-     "shell.execute_reply": "2024-03-18T17:01:37.228474Z"
+     "iopub.execute_input": "2024-03-22T09:56:11.448114Z",
+     "iopub.status.busy": "2024-03-22T09:56:11.447867Z",
+     "iopub.status.idle": "2024-03-22T09:56:12.498407Z",
+     "shell.execute_reply": "2024-03-22T09:56:12.497754Z"
     }
    },
    "outputs": [],
@@ -325,20 +365,20 @@
   {
    "cell_type": "code",
    "execution_count": 7,
-   "id": "c82194fa",
+   "id": "d4ad5656",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:01:37.232073Z",
-     "iopub.status.busy": "2024-03-18T17:01:37.231636Z",
-     "iopub.status.idle": "2024-03-18T17:01:37.429483Z",
-     "shell.execute_reply": "2024-03-18T17:01:37.428803Z"
+     "iopub.execute_input": "2024-03-22T09:56:12.501209Z",
+     "iopub.status.busy": "2024-03-22T09:56:12.500973Z",
+     "iopub.status.idle": "2024-03-22T09:56:12.695708Z",
+     "shell.execute_reply": "2024-03-22T09:56:12.695080Z"
     }
    },
    "outputs": [
     {
      "data": {
       "text/plain": [
-       "<matplotlib.legend.Legend at 0x78bd22fea7f0>"
+       "<matplotlib.legend.Legend at 0x7ff929f1d6d0>"
       ]
      },
      "execution_count": 7,
@@ -369,7 +409,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "72fec7cd",
+   "id": "c39da669",
    "metadata": {},
    "source": [
     "This should look like the Fig.4, left panel, of the mentioned paper, the y-axis is only scaled by a constant factor, corresponding to a properly normalised distribution. On this topic, it should be mentioned that the quantities distributed according to these histograms are the logarithms of reconstructed energy, PSF and angular uncertainty! Accordingly, logarithmic quantities are drawn as samples and only exponentiated for calculations and final data products."
@@ -377,7 +417,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "9896f323",
+   "id": "4d563338",
    "metadata": {},
    "source": [
     "### Etrue vs. Ereco\n",
@@ -388,13 +428,13 @@
   {
    "cell_type": "code",
    "execution_count": 8,
-   "id": "8c49de44",
+   "id": "7f760a8e",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:01:37.432187Z",
-     "iopub.status.busy": "2024-03-18T17:01:37.431787Z",
-     "iopub.status.idle": "2024-03-18T17:01:37.435124Z",
-     "shell.execute_reply": "2024-03-18T17:01:37.434481Z"
+     "iopub.execute_input": "2024-03-22T09:56:12.698408Z",
+     "iopub.status.busy": "2024-03-22T09:56:12.698019Z",
+     "iopub.status.idle": "2024-03-22T09:56:12.701096Z",
+     "shell.execute_reply": "2024-03-22T09:56:12.700526Z"
     }
    },
    "outputs": [],
@@ -406,13 +446,13 @@
   {
    "cell_type": "code",
    "execution_count": 9,
-   "id": "a3a75d7b",
+   "id": "344d9676",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:01:37.437426Z",
-     "iopub.status.busy": "2024-03-18T17:01:37.437224Z",
-     "iopub.status.idle": "2024-03-18T17:01:37.442898Z",
-     "shell.execute_reply": "2024-03-18T17:01:37.442400Z"
+     "iopub.execute_input": "2024-03-22T09:56:12.703445Z",
+     "iopub.status.busy": "2024-03-22T09:56:12.703066Z",
+     "iopub.status.idle": "2024-03-22T09:56:12.708630Z",
+     "shell.execute_reply": "2024-03-22T09:56:12.708151Z"
     }
    },
    "outputs": [],
@@ -425,13 +465,13 @@
   {
    "cell_type": "code",
    "execution_count": 10,
-   "id": "180b38d9",
+   "id": "4b6868d7",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:01:37.445465Z",
-     "iopub.status.busy": "2024-03-18T17:01:37.444954Z",
-     "iopub.status.idle": "2024-03-18T17:01:38.480715Z",
-     "shell.execute_reply": "2024-03-18T17:01:38.479974Z"
+     "iopub.execute_input": "2024-03-22T09:56:12.710915Z",
+     "iopub.status.busy": "2024-03-22T09:56:12.710534Z",
+     "iopub.status.idle": "2024-03-22T09:56:13.726677Z",
+     "shell.execute_reply": "2024-03-22T09:56:13.726012Z"
     }
    },
    "outputs": [
@@ -461,7 +501,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "b71d1176",
+   "id": "3de3a9e4",
    "metadata": {},
    "source": [
     "### Angular resolution\n",
@@ -476,21 +516,21 @@
   {
    "cell_type": "code",
    "execution_count": 11,
-   "id": "29d6f3c9",
+   "id": "1ec19c54",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:01:38.483433Z",
-     "iopub.status.busy": "2024-03-18T17:01:38.483203Z",
-     "iopub.status.idle": "2024-03-18T17:01:38.563654Z",
-     "shell.execute_reply": "2024-03-18T17:01:38.562915Z"
+     "iopub.execute_input": "2024-03-22T09:56:13.729279Z",
+     "iopub.status.busy": "2024-03-22T09:56:13.729078Z",
+     "iopub.status.idle": "2024-03-22T09:56:13.801869Z",
+     "shell.execute_reply": "2024-03-22T09:56:13.801233Z"
     }
    },
    "outputs": [
     {
      "data": {
       "text/plain": [
-       "(array([3.13831027, 3.10093067, 3.16810154, 3.09582489]),\n",
-       " array([0.78845519, 0.7592969 , 0.7787466 , 0.79109647]),\n",
+       "(array([3.15403423, 3.13035278, 3.14113431, 3.10152851]),\n",
+       " array([0.80411628, 0.80839959, 0.77166036, 0.78062339]),\n",
        " array([0.81314284, 1.18484801, 0.8403489 , 1.56147217]),\n",
        " array([ 638.4537496 , 1580.39481862,  985.08856794,  837.29002682]))"
       ]
@@ -506,7 +546,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "34a97de7",
+   "id": "40bb9216",
    "metadata": {},
    "source": [
     "If you are interested in the actual distributions, they are accessible through the attributes `R2021IRF().reco_energy` (2d numpy array storing `scipy.stats.rv_histogram` instances) and `R2021IRF().maginal_pdf_psf` (a modified ditionary class instance, indexed by a chain of keys):"
@@ -515,13 +555,13 @@
   {
    "cell_type": "code",
    "execution_count": 12,
-   "id": "d02ce48c",
+   "id": "58af7d5e",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:01:38.566264Z",
-     "iopub.status.busy": "2024-03-18T17:01:38.566056Z",
-     "iopub.status.idle": "2024-03-18T17:01:38.570318Z",
-     "shell.execute_reply": "2024-03-18T17:01:38.569666Z"
+     "iopub.execute_input": "2024-03-22T09:56:13.804390Z",
+     "iopub.status.busy": "2024-03-22T09:56:13.804169Z",
+     "iopub.status.idle": "2024-03-22T09:56:13.808313Z",
+     "shell.execute_reply": "2024-03-22T09:56:13.807650Z"
     }
    },
    "outputs": [
@@ -533,7 +573,7 @@
       " -1.54136215 -1.27646224 -1.01153023 -0.74666199 -0.48174935 -0.21688286\n",
       "  0.04805317  0.31281183  0.57772152  0.84267163  1.10754913  1.37235958\n",
       "  1.63728955  1.90222053  2.1670218 ]\n",
-      "<scipy.stats._continuous_distns.rv_histogram object at 0x78bd22f51fd0>\n"
+      "<scipy.stats._continuous_distns.rv_histogram object at 0x7ff9299d10a0>\n"
      ]
     }
    ],
@@ -547,7 +587,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "fc5911c9",
+   "id": "69943002",
    "metadata": {},
    "source": [
     "The same works for `marginal_pdf_angerr`. The entries are only created once the `sample()` method needs to. See the  class defintion of `ddict` in `icecube_tools.utils.data` for more details."
@@ -555,7 +595,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "d8f025ac",
+   "id": "16ee6f8c",
    "metadata": {},
    "source": [
     "### Mean angular uncertainty\n",
@@ -566,13 +606,13 @@
   {
    "cell_type": "code",
    "execution_count": 13,
-   "id": "8d02963b",
+   "id": "3ab19338",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:01:38.572709Z",
-     "iopub.status.busy": "2024-03-18T17:01:38.572513Z",
-     "iopub.status.idle": "2024-03-18T17:02:07.232594Z",
-     "shell.execute_reply": "2024-03-18T17:02:07.231903Z"
+     "iopub.execute_input": "2024-03-22T09:56:13.810718Z",
+     "iopub.status.busy": "2024-03-22T09:56:13.810397Z",
+     "iopub.status.idle": "2024-03-22T09:56:40.831071Z",
+     "shell.execute_reply": "2024-03-22T09:56:40.830518Z"
     }
    },
    "outputs": [
@@ -614,7 +654,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "1e6a5c55",
+   "id": "8d1ec0ca",
    "metadata": {},
    "source": [
     "## Constructing a detector\n",
@@ -625,13 +665,13 @@
   {
    "cell_type": "code",
    "execution_count": 14,
-   "id": "41eb0bc7",
+   "id": "4d9b9e44",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:07.235347Z",
-     "iopub.status.busy": "2024-03-18T17:02:07.234973Z",
-     "iopub.status.idle": "2024-03-18T17:02:07.238181Z",
-     "shell.execute_reply": "2024-03-18T17:02:07.237554Z"
+     "iopub.execute_input": "2024-03-22T09:56:40.833746Z",
+     "iopub.status.busy": "2024-03-22T09:56:40.833252Z",
+     "iopub.status.idle": "2024-03-22T09:56:40.836322Z",
+     "shell.execute_reply": "2024-03-22T09:56:40.835661Z"
     }
    },
    "outputs": [],
@@ -641,7 +681,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "27282b99",
+   "id": "19a82046",
    "metadata": {},
    "source": [
     "`irf = R2021IRF()` is used both as spatial and energy resolution, because it encompasses both types of information and inherits from both classes."
@@ -649,7 +689,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "1622a802",
+   "id": "9e72c3b9",
    "metadata": {},
    "source": [
     "## Time dependent detector\n",
@@ -660,13 +700,13 @@
   {
    "cell_type": "code",
    "execution_count": 15,
-   "id": "6478e466",
+   "id": "884d3faa",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:07.240659Z",
-     "iopub.status.busy": "2024-03-18T17:02:07.240309Z",
-     "iopub.status.idle": "2024-03-18T17:02:08.384422Z",
-     "shell.execute_reply": "2024-03-18T17:02:08.383763Z"
+     "iopub.execute_input": "2024-03-22T09:56:40.838861Z",
+     "iopub.status.busy": "2024-03-22T09:56:40.838512Z",
+     "iopub.status.idle": "2024-03-22T09:56:41.907182Z",
+     "shell.execute_reply": "2024-03-22T09:56:41.906466Z"
     }
    },
    "outputs": [
@@ -688,8 +728,8 @@
     {
      "data": {
       "text/plain": [
-       "{'IC86_I': <icecube_tools.detector.detector.IceCube at 0x78bd22b00d30>,\n",
-       " 'IC86_II': <icecube_tools.detector.detector.IceCube at 0x78bd21a3c6a0>}"
+       "{'IC86_I': <icecube_tools.detector.detector.IceCube at 0x7ff929ed2cd0>,\n",
+       " 'IC86_II': <icecube_tools.detector.detector.IceCube at 0x7ff929ef07c0>}"
       ]
      },
      "execution_count": 15,
@@ -704,7 +744,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "1c3711ba",
+   "id": "eeec93c3",
    "metadata": {},
    "source": [
     "Available periods are"
@@ -713,13 +753,13 @@
   {
    "cell_type": "code",
    "execution_count": 16,
-   "id": "5cac9526",
+   "id": "2f376088",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:08.387077Z",
-     "iopub.status.busy": "2024-03-18T17:02:08.386647Z",
-     "iopub.status.idle": "2024-03-18T17:02:08.391056Z",
-     "shell.execute_reply": "2024-03-18T17:02:08.390413Z"
+     "iopub.execute_input": "2024-03-22T09:56:41.909804Z",
+     "iopub.status.busy": "2024-03-22T09:56:41.909440Z",
+     "iopub.status.idle": "2024-03-22T09:56:41.913583Z",
+     "shell.execute_reply": "2024-03-22T09:56:41.912997Z"
     }
    },
    "outputs": [
@@ -740,7 +780,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "7885618b",
+   "id": "2f68e400",
    "metadata": {},
    "source": [
     "# Effective area, angular resolution and energy resolution of earlier releases\n",
@@ -751,13 +791,13 @@
   {
    "cell_type": "code",
    "execution_count": 17,
-   "id": "e9495897",
+   "id": "bf0b047f",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:08.393740Z",
-     "iopub.status.busy": "2024-03-18T17:02:08.393331Z",
-     "iopub.status.idle": "2024-03-18T17:02:08.396516Z",
-     "shell.execute_reply": "2024-03-18T17:02:08.395995Z"
+     "iopub.execute_input": "2024-03-22T09:56:41.915937Z",
+     "iopub.status.busy": "2024-03-22T09:56:41.915576Z",
+     "iopub.status.idle": "2024-03-22T09:56:41.918562Z",
+     "shell.execute_reply": "2024-03-22T09:56:41.918002Z"
     }
    },
    "outputs": [],
@@ -770,13 +810,13 @@
   {
    "cell_type": "code",
    "execution_count": 18,
-   "id": "6677771e",
+   "id": "e72a19a8",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:08.398888Z",
-     "iopub.status.busy": "2024-03-18T17:02:08.398536Z",
-     "iopub.status.idle": "2024-03-18T17:02:08.451513Z",
-     "shell.execute_reply": "2024-03-18T17:02:08.450726Z"
+     "iopub.execute_input": "2024-03-22T09:56:41.921030Z",
+     "iopub.status.busy": "2024-03-22T09:56:41.920584Z",
+     "iopub.status.idle": "2024-03-22T09:56:41.971656Z",
+     "shell.execute_reply": "2024-03-22T09:56:41.971006Z"
     }
    },
    "outputs": [
@@ -799,13 +839,13 @@
   {
    "cell_type": "code",
    "execution_count": 19,
-   "id": "cdd50d73",
+   "id": "57256b80",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:08.454279Z",
-     "iopub.status.busy": "2024-03-18T17:02:08.453868Z",
-     "iopub.status.idle": "2024-03-18T17:02:10.176984Z",
-     "shell.execute_reply": "2024-03-18T17:02:10.176411Z"
+     "iopub.execute_input": "2024-03-22T09:56:41.973804Z",
+     "iopub.status.busy": "2024-03-22T09:56:41.973605Z",
+     "iopub.status.idle": "2024-03-22T09:56:43.627292Z",
+     "shell.execute_reply": "2024-03-22T09:56:43.626568Z"
     }
    },
    "outputs": [
@@ -835,13 +875,13 @@
   {
    "cell_type": "code",
    "execution_count": 20,
-   "id": "6789d464",
+   "id": "3ba3ee5a",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:10.179645Z",
-     "iopub.status.busy": "2024-03-18T17:02:10.179217Z",
-     "iopub.status.idle": "2024-03-18T17:02:10.544323Z",
-     "shell.execute_reply": "2024-03-18T17:02:10.543612Z"
+     "iopub.execute_input": "2024-03-22T09:56:43.629679Z",
+     "iopub.status.busy": "2024-03-22T09:56:43.629471Z",
+     "iopub.status.idle": "2024-03-22T09:56:44.010599Z",
+     "shell.execute_reply": "2024-03-22T09:56:44.009937Z"
     }
    },
    "outputs": [
@@ -876,7 +916,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "9124e806",
+   "id": "c9428ea2",
    "metadata": {},
    "source": [
     "We can also easily check what datasets are supported by the different detector information classes:"
@@ -885,13 +925,13 @@
   {
    "cell_type": "code",
    "execution_count": 21,
-   "id": "a27607e5",
+   "id": "581e7b8f",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:10.547262Z",
-     "iopub.status.busy": "2024-03-18T17:02:10.546822Z",
-     "iopub.status.idle": "2024-03-18T17:02:10.551249Z",
-     "shell.execute_reply": "2024-03-18T17:02:10.550605Z"
+     "iopub.execute_input": "2024-03-22T09:56:44.013124Z",
+     "iopub.status.busy": "2024-03-22T09:56:44.012919Z",
+     "iopub.status.idle": "2024-03-22T09:56:44.016977Z",
+     "shell.execute_reply": "2024-03-22T09:56:44.016343Z"
     }
    },
    "outputs": [
@@ -913,13 +953,13 @@
   {
    "cell_type": "code",
    "execution_count": 22,
-   "id": "59e6950d",
+   "id": "7a22fcec",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:10.553675Z",
-     "iopub.status.busy": "2024-03-18T17:02:10.553480Z",
-     "iopub.status.idle": "2024-03-18T17:02:10.557609Z",
-     "shell.execute_reply": "2024-03-18T17:02:10.556977Z"
+     "iopub.execute_input": "2024-03-22T09:56:44.019214Z",
+     "iopub.status.busy": "2024-03-22T09:56:44.019015Z",
+     "iopub.status.idle": "2024-03-22T09:56:44.022711Z",
+     "shell.execute_reply": "2024-03-22T09:56:44.022064Z"
     }
    },
    "outputs": [
@@ -941,13 +981,13 @@
   {
    "cell_type": "code",
    "execution_count": 23,
-   "id": "b4fe9d99",
+   "id": "4ef00bab",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:10.560169Z",
-     "iopub.status.busy": "2024-03-18T17:02:10.559783Z",
-     "iopub.status.idle": "2024-03-18T17:02:10.563800Z",
-     "shell.execute_reply": "2024-03-18T17:02:10.563136Z"
+     "iopub.execute_input": "2024-03-22T09:56:44.024987Z",
+     "iopub.status.busy": "2024-03-22T09:56:44.024791Z",
+     "iopub.status.idle": "2024-03-22T09:56:44.028609Z",
+     "shell.execute_reply": "2024-03-22T09:56:44.027972Z"
     }
    },
    "outputs": [
@@ -968,7 +1008,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "485e9a2f",
+   "id": "d4b49eca",
    "metadata": {},
    "source": [
     "If you would like to see some other datasets supported, please feel free to open an issue or contribute your own!\n",
@@ -980,13 +1020,13 @@
   {
    "cell_type": "code",
    "execution_count": 24,
-   "id": "48038107",
+   "id": "fde43c1f",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:10.566382Z",
-     "iopub.status.busy": "2024-03-18T17:02:10.565988Z",
-     "iopub.status.idle": "2024-03-18T17:02:24.346764Z",
-     "shell.execute_reply": "2024-03-18T17:02:24.346023Z"
+     "iopub.execute_input": "2024-03-22T09:56:44.030819Z",
+     "iopub.status.busy": "2024-03-22T09:56:44.030624Z",
+     "iopub.status.idle": "2024-03-22T09:56:56.523920Z",
+     "shell.execute_reply": "2024-03-22T09:56:56.523183Z"
     }
    },
    "outputs": [
@@ -1003,7 +1043,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:   2%|▏         | 1048576/43711022 [00:00<00:09, 4362950.93it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:   2%|▏         | 1048576/43711022 [00:00<00:34, 1227736.42it/s]"
      ]
     },
     {
@@ -1011,7 +1051,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:   7%|▋         | 3145728/43711022 [00:00<00:04, 9788302.02it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:   5%|▍         | 2097152/43711022 [00:01<00:18, 2201262.07it/s]"
      ]
     },
     {
@@ -1019,7 +1059,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  17%|█▋        | 7340032/43711022 [00:00<00:01, 20165646.25it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:   7%|▋         | 3145728/43711022 [00:01<00:13, 3088516.40it/s]"
      ]
     },
     {
@@ -1027,7 +1067,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  34%|███▎      | 14680064/43711022 [00:00<00:00, 34110767.60it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  10%|▉         | 4194304/43711022 [00:01<00:09, 4207028.52it/s]"
      ]
     },
     {
@@ -1035,7 +1075,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  46%|████▌     | 19922944/43711022 [00:00<00:00, 38615394.61it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  14%|█▍        | 6291456/43711022 [00:01<00:05, 6654563.18it/s]"
      ]
     },
     {
@@ -1043,7 +1083,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  72%|███████▏  | 31457280/43711022 [00:00<00:00, 60437408.84it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  19%|█▉        | 8388608/43711022 [00:01<00:03, 8972665.38it/s]"
      ]
     },
     {
@@ -1051,7 +1091,7 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...:  98%|█████████▊| 42991616/43711022 [00:00<00:00, 75736770.48it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  26%|██▋       | 11534336/43711022 [00:01<00:02, 12969338.16it/s]"
      ]
     },
     {
@@ -1059,7 +1099,63 @@
      "output_type": "stream",
      "text": [
       "\r",
-      "20150820_Astrophysical_muon_neutrino_flu...: 100%|██████████| 43711022/43711022 [00:00<00:00, 47872900.32it/s]"
+      "20150820_Astrophysical_muon_neutrino_flu...:  34%|███▎      | 14680064/43711022 [00:01<00:01, 16943208.95it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20150820_Astrophysical_muon_neutrino_flu...:  43%|████▎     | 18874368/43711022 [00:01<00:01, 22344580.39it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20150820_Astrophysical_muon_neutrino_flu...:  53%|█████▎    | 23068672/43711022 [00:02<00:00, 26830405.65it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20150820_Astrophysical_muon_neutrino_flu...:  62%|██████▏   | 27262976/43711022 [00:02<00:00, 29028170.79it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20150820_Astrophysical_muon_neutrino_flu...:  74%|███████▍  | 32505856/43711022 [00:02<00:00, 34983511.06it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20150820_Astrophysical_muon_neutrino_flu...:  84%|████████▍ | 36700160/43711022 [00:02<00:00, 34115280.67it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20150820_Astrophysical_muon_neutrino_flu...:  94%|█████████▎| 40894464/43711022 [00:02<00:00, 35163456.24it/s]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\r",
+      "20150820_Astrophysical_muon_neutrino_flu...: 100%|██████████| 43711022/43711022 [00:02<00:00, 16648789.08it/s]"
      ]
     },
     {
@@ -1078,13 +1174,13 @@
   {
    "cell_type": "code",
    "execution_count": 25,
-   "id": "a2735578",
+   "id": "27bb507b",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:24.349883Z",
-     "iopub.status.busy": "2024-03-18T17:02:24.349437Z",
-     "iopub.status.idle": "2024-03-18T17:02:25.004004Z",
-     "shell.execute_reply": "2024-03-18T17:02:25.003270Z"
+     "iopub.execute_input": "2024-03-22T09:56:56.526889Z",
+     "iopub.status.busy": "2024-03-22T09:56:56.526651Z",
+     "iopub.status.idle": "2024-03-22T09:56:57.141819Z",
+     "shell.execute_reply": "2024-03-22T09:56:57.141092Z"
     }
    },
    "outputs": [
@@ -1114,13 +1210,13 @@
   {
    "cell_type": "code",
    "execution_count": 26,
-   "id": "be0480f5",
+   "id": "e8476a17",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:25.006640Z",
-     "iopub.status.busy": "2024-03-18T17:02:25.006259Z",
-     "iopub.status.idle": "2024-03-18T17:02:27.031948Z",
-     "shell.execute_reply": "2024-03-18T17:02:27.031165Z"
+     "iopub.execute_input": "2024-03-22T09:56:57.144489Z",
+     "iopub.status.busy": "2024-03-22T09:56:57.144083Z",
+     "iopub.status.idle": "2024-03-22T09:56:59.027858Z",
+     "shell.execute_reply": "2024-03-22T09:56:59.027158Z"
     }
    },
    "outputs": [
@@ -1150,7 +1246,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "a10f52f6",
+   "id": "2fef8db9",
    "metadata": {},
    "source": [
     "## Detector model\n",
@@ -1161,13 +1257,13 @@
   {
    "cell_type": "code",
    "execution_count": 27,
-   "id": "a9801f4c",
+   "id": "a07dbed4",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:27.034779Z",
-     "iopub.status.busy": "2024-03-18T17:02:27.034481Z",
-     "iopub.status.idle": "2024-03-18T17:02:27.037793Z",
-     "shell.execute_reply": "2024-03-18T17:02:27.037224Z"
+     "iopub.execute_input": "2024-03-22T09:56:59.030586Z",
+     "iopub.status.busy": "2024-03-22T09:56:59.030199Z",
+     "iopub.status.idle": "2024-03-22T09:56:59.033180Z",
+     "shell.execute_reply": "2024-03-22T09:56:59.032604Z"
     }
    },
    "outputs": [],
@@ -1178,13 +1274,13 @@
   {
    "cell_type": "code",
    "execution_count": 28,
-   "id": "a7b57881",
+   "id": "7c0549dc",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:27.040033Z",
-     "iopub.status.busy": "2024-03-18T17:02:27.039833Z",
-     "iopub.status.idle": "2024-03-18T17:02:27.042992Z",
-     "shell.execute_reply": "2024-03-18T17:02:27.042351Z"
+     "iopub.execute_input": "2024-03-22T09:56:59.035380Z",
+     "iopub.status.busy": "2024-03-22T09:56:59.035185Z",
+     "iopub.status.idle": "2024-03-22T09:56:59.038170Z",
+     "shell.execute_reply": "2024-03-22T09:56:59.037641Z"
     }
    },
    "outputs": [],
@@ -1195,7 +1291,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "8d16fd73",
+   "id": "d1274fdb",
    "metadata": {},
    "outputs": [],
    "source": []

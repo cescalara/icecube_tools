@@ -2,7 +2,7 @@
  "cells": [
   {
    "cell_type": "markdown",
-   "id": "9d759409",
+   "id": "91976a72",
    "metadata": {},
    "source": [
     "# Point source likelihood\n",
@@ -22,13 +22,13 @@
   {
    "cell_type": "code",
    "execution_count": 1,
-   "id": "e490ce0e",
+   "id": "1ee0b254",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:43.726091Z",
-     "iopub.status.busy": "2024-03-18T17:02:43.725688Z",
-     "iopub.status.idle": "2024-03-18T17:02:45.018569Z",
-     "shell.execute_reply": "2024-03-18T17:02:45.017806Z"
+     "iopub.execute_input": "2024-03-22T09:57:15.032311Z",
+     "iopub.status.busy": "2024-03-22T09:57:15.032125Z",
+     "iopub.status.idle": "2024-03-22T09:57:16.298404Z",
+     "shell.execute_reply": "2024-03-22T09:57:16.297736Z"
     }
    },
    "outputs": [],
@@ -58,7 +58,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "6126bd33",
+   "id": "cad2dc9b",
    "metadata": {},
    "source": [
     "## Spatial likelihood"
@@ -66,7 +66,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "f0eeb9a7",
+   "id": "4fce8452",
    "metadata": {},
    "source": [
     "We can start with the spatial/directional term. Let's use the energy dependent spatial likelihood. It is build from a Gaussian with an event-wise uncertainty sampled from the IRF data. The background case will simply be an isotropic distribution on the sphere."
@@ -75,13 +75,13 @@
   {
    "cell_type": "code",
    "execution_count": 2,
-   "id": "c696f0e0",
+   "id": "8b4e3647",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:45.021755Z",
-     "iopub.status.busy": "2024-03-18T17:02:45.021496Z",
-     "iopub.status.idle": "2024-03-18T17:02:45.024775Z",
-     "shell.execute_reply": "2024-03-18T17:02:45.024173Z"
+     "iopub.execute_input": "2024-03-22T09:57:16.301440Z",
+     "iopub.status.busy": "2024-03-22T09:57:16.301227Z",
+     "iopub.status.idle": "2024-03-22T09:57:16.304382Z",
+     "shell.execute_reply": "2024-03-22T09:57:16.303846Z"
     }
    },
    "outputs": [],
@@ -92,7 +92,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "64fd4a4a",
+   "id": "b401c616",
    "metadata": {},
    "source": [
     "We show the likelihood profile for a single event with an assumed uncertainty of 1 degree."
@@ -101,20 +101,20 @@
   {
    "cell_type": "code",
    "execution_count": 3,
-   "id": "2c0cf673",
+   "id": "e81ee224",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:45.027127Z",
-     "iopub.status.busy": "2024-03-18T17:02:45.026779Z",
-     "iopub.status.idle": "2024-03-18T17:02:45.202419Z",
-     "shell.execute_reply": "2024-03-18T17:02:45.201685Z"
+     "iopub.execute_input": "2024-03-22T09:57:16.306826Z",
+     "iopub.status.busy": "2024-03-22T09:57:16.306394Z",
+     "iopub.status.idle": "2024-03-22T09:57:16.480976Z",
+     "shell.execute_reply": "2024-03-22T09:57:16.480386Z"
     }
    },
    "outputs": [
     {
      "data": {
       "text/plain": [
-       "<matplotlib.legend.Legend at 0x774589f59fa0>"
+       "<matplotlib.legend.Legend at 0x7f807aba2dc0>"
       ]
      },
      "execution_count": 3,
@@ -149,7 +149,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "acd0f8c5",
+   "id": "1d58517b",
    "metadata": {},
    "source": [
     "## Energy likelihood"
@@ -157,7 +157,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "04df7775",
+   "id": "7a02f3b5",
    "metadata": {},
    "source": [
     "Now let's think about the energy-dependent term. The way this is handled is to marginalise over the true neutrino energies, to directly connect the reconstructed neutrino energies to the spectral index of a simple power-law source model.\n",
@@ -168,13 +168,13 @@
   {
    "cell_type": "code",
    "execution_count": 4,
-   "id": "ca9d085e",
+   "id": "d59d0ee7",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:45.205217Z",
-     "iopub.status.busy": "2024-03-18T17:02:45.204725Z",
-     "iopub.status.idle": "2024-03-18T17:02:47.411225Z",
-     "shell.execute_reply": "2024-03-18T17:02:47.410519Z"
+     "iopub.execute_input": "2024-03-22T09:57:16.483569Z",
+     "iopub.status.busy": "2024-03-22T09:57:16.483176Z",
+     "iopub.status.idle": "2024-03-22T09:57:18.627576Z",
+     "shell.execute_reply": "2024-03-22T09:57:18.626796Z"
     }
    },
    "outputs": [],
@@ -194,13 +194,13 @@
   {
    "cell_type": "code",
    "execution_count": 5,
-   "id": "29ad0a14",
+   "id": "5ba0d4ae",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:47.414221Z",
-     "iopub.status.busy": "2024-03-18T17:02:47.413766Z",
-     "iopub.status.idle": "2024-03-18T17:02:47.419598Z",
-     "shell.execute_reply": "2024-03-18T17:02:47.418929Z"
+     "iopub.execute_input": "2024-03-22T09:57:18.630380Z",
+     "iopub.status.busy": "2024-03-22T09:57:18.630153Z",
+     "iopub.status.idle": "2024-03-22T09:57:18.634823Z",
+     "shell.execute_reply": "2024-03-22T09:57:18.634200Z"
     }
    },
    "outputs": [
@@ -226,20 +226,20 @@
   {
    "cell_type": "code",
    "execution_count": 6,
-   "id": "e3e7fb29",
+   "id": "2a301867",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:47.422129Z",
-     "iopub.status.busy": "2024-03-18T17:02:47.421720Z",
-     "iopub.status.idle": "2024-03-18T17:02:47.910498Z",
-     "shell.execute_reply": "2024-03-18T17:02:47.909752Z"
+     "iopub.execute_input": "2024-03-22T09:57:18.637256Z",
+     "iopub.status.busy": "2024-03-22T09:57:18.636870Z",
+     "iopub.status.idle": "2024-03-22T09:57:19.152409Z",
+     "shell.execute_reply": "2024-03-22T09:57:19.151716Z"
     }
    },
    "outputs": [
     {
      "data": {
       "text/plain": [
-       "<matplotlib.legend.Legend at 0x774582888580>"
+       "<matplotlib.legend.Legend at 0x7f80734af400>"
       ]
      },
      "execution_count": 6,
@@ -277,7 +277,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "9b0de4c7",
+   "id": "10014d1c",
    "metadata": {},
    "source": [
     "## Point source likelihood"
@@ -285,7 +285,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "219c6b59",
+   "id": "f3025e76",
    "metadata": {},
    "source": [
     "Now we can bring together the spatial and energy terms to build a full `PointSourceLikelihood`. First, let's load some data from the simulation notebook to allow us to demonstrate."
@@ -294,13 +294,13 @@
   {
    "cell_type": "code",
    "execution_count": 7,
-   "id": "6caa4ecd",
+   "id": "ca609d05",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:47.913528Z",
-     "iopub.status.busy": "2024-03-18T17:02:47.913100Z",
-     "iopub.status.idle": "2024-03-18T17:02:47.918942Z",
-     "shell.execute_reply": "2024-03-18T17:02:47.918310Z"
+     "iopub.execute_input": "2024-03-22T09:57:19.154951Z",
+     "iopub.status.busy": "2024-03-22T09:57:19.154554Z",
+     "iopub.status.idle": "2024-03-22T09:57:19.160554Z",
+     "shell.execute_reply": "2024-03-22T09:57:19.160073Z"
     }
    },
    "outputs": [],
@@ -310,7 +310,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "18c6c130",
+   "id": "47db2b2f",
    "metadata": {},
    "source": [
     "Now lets put our likelihood structure and data in together, along with a proposed source location:"
@@ -319,13 +319,13 @@
   {
    "cell_type": "code",
    "execution_count": 8,
-   "id": "55ec89f2",
+   "id": "db0daf69",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:47.921706Z",
-     "iopub.status.busy": "2024-03-18T17:02:47.921348Z",
-     "iopub.status.idle": "2024-03-18T17:02:47.925304Z",
-     "shell.execute_reply": "2024-03-18T17:02:47.924742Z"
+     "iopub.execute_input": "2024-03-22T09:57:19.163030Z",
+     "iopub.status.busy": "2024-03-22T09:57:19.162635Z",
+     "iopub.status.idle": "2024-03-22T09:57:19.166601Z",
+     "shell.execute_reply": "2024-03-22T09:57:19.166081Z"
     }
    },
    "outputs": [],
@@ -344,7 +344,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "eaaa11df",
+   "id": "4f33cc51",
    "metadata": {},
    "source": [
     "The likelihood will automatically select a declination band around the proposed source location. Because of the Gaussian spatial likelihood, neutrinos far from the source will have negligible contribution. We can control the width of this band with the optional argument `band_width_factor`. Let's see how many events are there in total, in the selected declination band and in vicinity of the proposed source:"
@@ -353,13 +353,13 @@
   {
    "cell_type": "code",
    "execution_count": 9,
-   "id": "042cfe49",
+   "id": "f5463c07",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:47.927763Z",
-     "iopub.status.busy": "2024-03-18T17:02:47.927365Z",
-     "iopub.status.idle": "2024-03-18T17:02:47.931751Z",
-     "shell.execute_reply": "2024-03-18T17:02:47.931165Z"
+     "iopub.execute_input": "2024-03-22T09:57:19.168744Z",
+     "iopub.status.busy": "2024-03-22T09:57:19.168548Z",
+     "iopub.status.idle": "2024-03-22T09:57:19.172821Z",
+     "shell.execute_reply": "2024-03-22T09:57:19.172296Z"
     }
    },
    "outputs": [
@@ -380,7 +380,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "b66cdde4",
+   "id": "d51787f2",
    "metadata": {},
    "source": [
     "We also note that the background likelihood is implemented automatically, for more information on the options here, check out the API docs. This is just a function of energy, with a constant factor to account for the isotropic directional likelihood."
@@ -389,13 +389,13 @@
   {
    "cell_type": "code",
    "execution_count": 10,
-   "id": "4837d435",
+   "id": "71e845aa",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:47.934192Z",
-     "iopub.status.busy": "2024-03-18T17:02:47.933817Z",
-     "iopub.status.idle": "2024-03-18T17:02:48.435864Z",
-     "shell.execute_reply": "2024-03-18T17:02:48.435083Z"
+     "iopub.execute_input": "2024-03-22T09:57:19.175181Z",
+     "iopub.status.busy": "2024-03-22T09:57:19.174782Z",
+     "iopub.status.idle": "2024-03-22T09:57:19.691235Z",
+     "shell.execute_reply": "2024-03-22T09:57:19.690500Z"
     }
    },
    "outputs": [
@@ -436,7 +436,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "910c459f",
+   "id": "998e8b94",
    "metadata": {},
    "source": [
     "## Point source search\n",
@@ -449,13 +449,13 @@
   {
    "cell_type": "code",
    "execution_count": 11,
-   "id": "c6db2b0d",
+   "id": "5de695aa",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:48.438680Z",
-     "iopub.status.busy": "2024-03-18T17:02:48.438242Z",
-     "iopub.status.idle": "2024-03-18T17:02:48.554830Z",
-     "shell.execute_reply": "2024-03-18T17:02:48.554139Z"
+     "iopub.execute_input": "2024-03-22T09:57:19.693798Z",
+     "iopub.status.busy": "2024-03-22T09:57:19.693418Z",
+     "iopub.status.idle": "2024-03-22T09:57:19.809882Z",
+     "shell.execute_reply": "2024-03-22T09:57:19.809229Z"
     }
    },
    "outputs": [
@@ -477,13 +477,13 @@
   {
    "cell_type": "code",
    "execution_count": 12,
-   "id": "3ab3d97b",
+   "id": "f5333307",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:48.557692Z",
-     "iopub.status.busy": "2024-03-18T17:02:48.557143Z",
-     "iopub.status.idle": "2024-03-18T17:02:48.561644Z",
-     "shell.execute_reply": "2024-03-18T17:02:48.560971Z"
+     "iopub.execute_input": "2024-03-22T09:57:19.812196Z",
+     "iopub.status.busy": "2024-03-22T09:57:19.811997Z",
+     "iopub.status.idle": "2024-03-22T09:57:19.815845Z",
+     "shell.execute_reply": "2024-03-22T09:57:19.815341Z"
     }
    },
    "outputs": [
@@ -505,13 +505,13 @@
   {
    "cell_type": "code",
    "execution_count": 13,
-   "id": "9a33a7e2",
+   "id": "9abf5817",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:48.564160Z",
-     "iopub.status.busy": "2024-03-18T17:02:48.563782Z",
-     "iopub.status.idle": "2024-03-18T17:02:48.568238Z",
-     "shell.execute_reply": "2024-03-18T17:02:48.567578Z"
+     "iopub.execute_input": "2024-03-22T09:57:19.818128Z",
+     "iopub.status.busy": "2024-03-22T09:57:19.817771Z",
+     "iopub.status.idle": "2024-03-22T09:57:19.821984Z",
+     "shell.execute_reply": "2024-03-22T09:57:19.821345Z"
     }
    },
    "outputs": [
@@ -533,7 +533,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "778054b9",
+   "id": "cd49a168",
    "metadata": {},
    "source": [
     "To understand the significance of this results, we would have to calculate the test statistic for a large number of background-only simulations. These could then be used to calculate a p-value. Given there is a strong point source in the simulation we used, we can expect the test stastic to be lower if we remove the source events. Let's try this:"
@@ -542,13 +542,13 @@
   {
    "cell_type": "code",
    "execution_count": 14,
-   "id": "c48d9140",
+   "id": "c754c30e",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:48.570665Z",
-     "iopub.status.busy": "2024-03-18T17:02:48.570453Z",
-     "iopub.status.idle": "2024-03-18T17:02:51.682989Z",
-     "shell.execute_reply": "2024-03-18T17:02:51.682328Z"
+     "iopub.execute_input": "2024-03-22T09:57:19.824428Z",
+     "iopub.status.busy": "2024-03-22T09:57:19.824075Z",
+     "iopub.status.idle": "2024-03-22T09:57:22.926083Z",
+     "shell.execute_reply": "2024-03-22T09:57:22.925444Z"
     }
    },
    "outputs": [],
@@ -585,13 +585,13 @@
   {
    "cell_type": "code",
    "execution_count": 15,
-   "id": "0e5e2fe1",
+   "id": "16a8a71c",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:51.685731Z",
-     "iopub.status.busy": "2024-03-18T17:02:51.685500Z",
-     "iopub.status.idle": "2024-03-18T17:02:51.835410Z",
-     "shell.execute_reply": "2024-03-18T17:02:51.834717Z"
+     "iopub.execute_input": "2024-03-22T09:57:22.928974Z",
+     "iopub.status.busy": "2024-03-22T09:57:22.928580Z",
+     "iopub.status.idle": "2024-03-22T09:57:23.074674Z",
+     "shell.execute_reply": "2024-03-22T09:57:23.074065Z"
     }
    },
    "outputs": [
@@ -626,13 +626,13 @@
   {
    "cell_type": "code",
    "execution_count": 16,
-   "id": "0a6fe08e",
+   "id": "26d7e379",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:51.838003Z",
-     "iopub.status.busy": "2024-03-18T17:02:51.837774Z",
-     "iopub.status.idle": "2024-03-18T17:02:51.842431Z",
-     "shell.execute_reply": "2024-03-18T17:02:51.841783Z"
+     "iopub.execute_input": "2024-03-22T09:57:23.077161Z",
+     "iopub.status.busy": "2024-03-22T09:57:23.076767Z",
+     "iopub.status.idle": "2024-03-22T09:57:23.081046Z",
+     "shell.execute_reply": "2024-03-22T09:57:23.080393Z"
     }
    },
    "outputs": [
@@ -653,7 +653,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "82e0eb51",
+   "id": "d91766e0",
    "metadata": {},
    "source": [
     "So the more neutrinos are seen from a source, the easier that source is to detect.\n",
@@ -664,13 +664,13 @@
   {
    "cell_type": "code",
    "execution_count": 17,
-   "id": "8719fd5f",
+   "id": "7567b61b",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:51.844949Z",
-     "iopub.status.busy": "2024-03-18T17:02:51.844562Z",
-     "iopub.status.idle": "2024-03-18T17:02:51.956685Z",
-     "shell.execute_reply": "2024-03-18T17:02:51.956086Z"
+     "iopub.execute_input": "2024-03-22T09:57:23.083537Z",
+     "iopub.status.busy": "2024-03-22T09:57:23.083157Z",
+     "iopub.status.idle": "2024-03-22T09:57:23.195482Z",
+     "shell.execute_reply": "2024-03-22T09:57:23.194831Z"
     }
    },
    "outputs": [
@@ -718,7 +718,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "a82fc5d2",
+   "id": "983b704e",
    "metadata": {},
    "source": [
     "We can also draw the likelihood profiles for `ns` and `index` and compare to the inputted values (20 source events and an index of 2.5, cf. the simulation notebook)"
@@ -727,13 +727,13 @@
   {
    "cell_type": "code",
    "execution_count": 18,
-   "id": "baf2a4ac",
+   "id": "09ed4f35",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:51.959279Z",
-     "iopub.status.busy": "2024-03-18T17:02:51.958884Z",
-     "iopub.status.idle": "2024-03-18T17:02:52.359997Z",
-     "shell.execute_reply": "2024-03-18T17:02:52.359264Z"
+     "iopub.execute_input": "2024-03-22T09:57:23.197994Z",
+     "iopub.status.busy": "2024-03-22T09:57:23.197632Z",
+     "iopub.status.idle": "2024-03-22T09:57:23.567561Z",
+     "shell.execute_reply": "2024-03-22T09:57:23.566872Z"
     }
    },
    "outputs": [
@@ -755,13 +755,13 @@
   {
    "cell_type": "code",
    "execution_count": 19,
-   "id": "553ff417",
+   "id": "7ff91c44",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:52.362581Z",
-     "iopub.status.busy": "2024-03-18T17:02:52.362182Z",
-     "iopub.status.idle": "2024-03-18T17:02:52.366793Z",
-     "shell.execute_reply": "2024-03-18T17:02:52.366154Z"
+     "iopub.execute_input": "2024-03-22T09:57:23.570088Z",
+     "iopub.status.busy": "2024-03-22T09:57:23.569709Z",
+     "iopub.status.idle": "2024-03-22T09:57:23.574190Z",
+     "shell.execute_reply": "2024-03-22T09:57:23.573561Z"
     }
    },
    "outputs": [
@@ -783,13 +783,13 @@
   {
    "cell_type": "code",
    "execution_count": 20,
-   "id": "03ddfb5b",
+   "id": "cd53ebfc",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:52.369264Z",
-     "iopub.status.busy": "2024-03-18T17:02:52.368889Z",
-     "iopub.status.idle": "2024-03-18T17:02:52.762632Z",
-     "shell.execute_reply": "2024-03-18T17:02:52.761864Z"
+     "iopub.execute_input": "2024-03-22T09:57:23.576549Z",
+     "iopub.status.busy": "2024-03-22T09:57:23.576113Z",
+     "iopub.status.idle": "2024-03-22T09:57:23.964634Z",
+     "shell.execute_reply": "2024-03-22T09:57:23.963997Z"
     }
    },
    "outputs": [
@@ -816,7 +816,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "4e9d3f5c",
+   "id": "b9006008",
    "metadata": {},
    "source": [
     "And finally have a look at the 2d likelihood profile."
@@ -825,13 +825,13 @@
   {
    "cell_type": "code",
    "execution_count": 21,
-   "id": "fc4cc8e8",
+   "id": "7a82276b",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:52.765397Z",
-     "iopub.status.busy": "2024-03-18T17:02:52.764902Z",
-     "iopub.status.idle": "2024-03-18T17:02:58.662907Z",
-     "shell.execute_reply": "2024-03-18T17:02:58.662215Z"
+     "iopub.execute_input": "2024-03-22T09:57:23.967318Z",
+     "iopub.status.busy": "2024-03-22T09:57:23.966904Z",
+     "iopub.status.idle": "2024-03-22T09:57:29.861592Z",
+     "shell.execute_reply": "2024-03-22T09:57:29.860948Z"
     }
    },
    "outputs": [
@@ -853,13 +853,13 @@
   {
    "cell_type": "code",
    "execution_count": 22,
-   "id": "426aea13",
+   "id": "f3e2d0a9",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:58.665603Z",
-     "iopub.status.busy": "2024-03-18T17:02:58.665244Z",
-     "iopub.status.idle": "2024-03-18T17:02:59.108366Z",
-     "shell.execute_reply": "2024-03-18T17:02:59.107698Z"
+     "iopub.execute_input": "2024-03-22T09:57:29.864548Z",
+     "iopub.status.busy": "2024-03-22T09:57:29.864088Z",
+     "iopub.status.idle": "2024-03-22T09:57:30.302638Z",
+     "shell.execute_reply": "2024-03-22T09:57:30.302088Z"
     }
    },
    "outputs": [
@@ -906,7 +906,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "65f7322f",
+   "id": "5b618a34",
    "metadata": {},
    "source": [
     "For the simulation-based energy likelihood used in the following, the profile o `index` has some edges. This is due to the interpolation done by the energy likelihood. We fed it simulation for discreet values of `index`. We cannot sensibly interpolate the likelihood of a given energy to any index, this leads to Heaviside-like discontinuities in the global (spatial + energy) likelihood. Instead, `PointSourceLikelihood` calculates the likelihood for the next simulated values of `index`, e.g. asking for an index 2.3 would lead to 2.0 and 2.5, and interpolate linearly between the resulting likelihoods. The precision of this method can be improved by providing simulations on a denser grid of spectral indices.\n",
@@ -917,13 +917,13 @@
   {
    "cell_type": "code",
    "execution_count": 23,
-   "id": "61477ac8",
+   "id": "0a809c96",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:59.111051Z",
-     "iopub.status.busy": "2024-03-18T17:02:59.110659Z",
-     "iopub.status.idle": "2024-03-18T17:02:59.130044Z",
-     "shell.execute_reply": "2024-03-18T17:02:59.129522Z"
+     "iopub.execute_input": "2024-03-22T09:57:30.305161Z",
+     "iopub.status.busy": "2024-03-22T09:57:30.304787Z",
+     "iopub.status.idle": "2024-03-22T09:57:30.323819Z",
+     "shell.execute_reply": "2024-03-22T09:57:30.323191Z"
     },
     "lines_to_next_cell": 2
    },
@@ -971,13 +971,13 @@
   {
    "cell_type": "code",
    "execution_count": 24,
-   "id": "2e894c59",
+   "id": "1110a16e",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:59.132631Z",
-     "iopub.status.busy": "2024-03-18T17:02:59.132163Z",
-     "iopub.status.idle": "2024-03-18T17:02:59.170657Z",
-     "shell.execute_reply": "2024-03-18T17:02:59.170009Z"
+     "iopub.execute_input": "2024-03-22T09:57:30.326282Z",
+     "iopub.status.busy": "2024-03-22T09:57:30.325904Z",
+     "iopub.status.idle": "2024-03-22T09:57:30.364702Z",
+     "shell.execute_reply": "2024-03-22T09:57:30.364081Z"
     }
    },
    "outputs": [
@@ -999,13 +999,13 @@
   {
    "cell_type": "code",
    "execution_count": 25,
-   "id": "6f5be393",
+   "id": "b8b5dbf6",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:59.172919Z",
-     "iopub.status.busy": "2024-03-18T17:02:59.172719Z",
-     "iopub.status.idle": "2024-03-18T17:02:59.230235Z",
-     "shell.execute_reply": "2024-03-18T17:02:59.229716Z"
+     "iopub.execute_input": "2024-03-22T09:57:30.367224Z",
+     "iopub.status.busy": "2024-03-22T09:57:30.366802Z",
+     "iopub.status.idle": "2024-03-22T09:57:30.404278Z",
+     "shell.execute_reply": "2024-03-22T09:57:30.403647Z"
     }
    },
    "outputs": [],
@@ -1016,13 +1016,13 @@
   {
    "cell_type": "code",
    "execution_count": 26,
-   "id": "b2c8033c",
+   "id": "76fe25f1",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:59.232744Z",
-     "iopub.status.busy": "2024-03-18T17:02:59.232360Z",
-     "iopub.status.idle": "2024-03-18T17:02:59.426678Z",
-     "shell.execute_reply": "2024-03-18T17:02:59.425969Z"
+     "iopub.execute_input": "2024-03-22T09:57:30.406807Z",
+     "iopub.status.busy": "2024-03-22T09:57:30.406446Z",
+     "iopub.status.idle": "2024-03-22T09:57:30.600273Z",
+     "shell.execute_reply": "2024-03-22T09:57:30.599645Z"
     }
    },
    "outputs": [
@@ -1044,13 +1044,13 @@
   {
    "cell_type": "code",
    "execution_count": 27,
-   "id": "2c69b51d",
+   "id": "1150ea3f",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:59.429385Z",
-     "iopub.status.busy": "2024-03-18T17:02:59.428986Z",
-     "iopub.status.idle": "2024-03-18T17:02:59.627727Z",
-     "shell.execute_reply": "2024-03-18T17:02:59.626989Z"
+     "iopub.execute_input": "2024-03-22T09:57:30.602687Z",
+     "iopub.status.busy": "2024-03-22T09:57:30.602315Z",
+     "iopub.status.idle": "2024-03-22T09:57:30.800816Z",
+     "shell.execute_reply": "2024-03-22T09:57:30.800235Z"
     },
     "lines_to_next_cell": 2
    },
@@ -1108,7 +1108,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "85d0f721",
+   "id": "39826c90",
    "metadata": {},
    "source": [
     "# Time dependent point source analysis\n",
@@ -1119,13 +1119,13 @@
   {
    "cell_type": "code",
    "execution_count": 28,
-   "id": "0892bfe6",
+   "id": "290dac32",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:02:59.630484Z",
-     "iopub.status.busy": "2024-03-18T17:02:59.630047Z",
-     "iopub.status.idle": "2024-03-18T17:03:00.664064Z",
-     "shell.execute_reply": "2024-03-18T17:03:00.663275Z"
+     "iopub.execute_input": "2024-03-22T09:57:30.803394Z",
+     "iopub.status.busy": "2024-03-22T09:57:30.803011Z",
+     "iopub.status.idle": "2024-03-22T09:57:31.831332Z",
+     "shell.execute_reply": "2024-03-22T09:57:31.830637Z"
     }
    },
    "outputs": [
@@ -1338,13 +1338,13 @@
   {
    "cell_type": "code",
    "execution_count": 29,
-   "id": "4b9ecacb",
+   "id": "a88e6276",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:03:00.666837Z",
-     "iopub.status.busy": "2024-03-18T17:03:00.666375Z",
-     "iopub.status.idle": "2024-03-18T17:03:01.133375Z",
-     "shell.execute_reply": "2024-03-18T17:03:01.132647Z"
+     "iopub.execute_input": "2024-03-22T09:57:31.834009Z",
+     "iopub.status.busy": "2024-03-22T09:57:31.833555Z",
+     "iopub.status.idle": "2024-03-22T09:57:32.264901Z",
+     "shell.execute_reply": "2024-03-22T09:57:32.264276Z"
     }
    },
    "outputs": [
@@ -1366,13 +1366,13 @@
   {
    "cell_type": "code",
    "execution_count": 30,
-   "id": "051acff0",
+   "id": "f50c0bcb",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:03:01.136384Z",
-     "iopub.status.busy": "2024-03-18T17:03:01.135932Z",
-     "iopub.status.idle": "2024-03-18T17:03:01.580445Z",
-     "shell.execute_reply": "2024-03-18T17:03:01.579678Z"
+     "iopub.execute_input": "2024-03-22T09:57:32.267505Z",
+     "iopub.status.busy": "2024-03-22T09:57:32.267121Z",
+     "iopub.status.idle": "2024-03-22T09:57:32.680529Z",
+     "shell.execute_reply": "2024-03-22T09:57:32.679872Z"
     }
    },
    "outputs": [
@@ -1393,7 +1393,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "9788fcdd",
+   "id": "da2f88ae",
    "metadata": {},
    "source": [
     "There is also a method to use only the events within the selected declination band and their energy to fit the background index. Default setting is one background index (`index_atmo`), using two at once does not lead to a converging fit right now."
@@ -1402,13 +1402,13 @@
   {
    "cell_type": "code",
    "execution_count": 31,
-   "id": "76c6f496",
+   "id": "e833f4f8",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:03:01.583250Z",
-     "iopub.status.busy": "2024-03-18T17:03:01.582767Z",
-     "iopub.status.idle": "2024-03-18T17:03:01.603856Z",
-     "shell.execute_reply": "2024-03-18T17:03:01.603173Z"
+     "iopub.execute_input": "2024-03-22T09:57:32.683100Z",
+     "iopub.status.busy": "2024-03-22T09:57:32.682687Z",
+     "iopub.status.idle": "2024-03-22T09:57:32.703511Z",
+     "shell.execute_reply": "2024-03-22T09:57:32.702984Z"
     }
    },
    "outputs": [
@@ -1520,13 +1520,13 @@
   {
    "cell_type": "code",
    "execution_count": 32,
-   "id": "580b88d5",
+   "id": "a8e1f95f",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-03-18T17:03:01.606486Z",
-     "iopub.status.busy": "2024-03-18T17:03:01.606071Z",
-     "iopub.status.idle": "2024-03-18T17:03:01.782292Z",
-     "shell.execute_reply": "2024-03-18T17:03:01.781574Z"
+     "iopub.execute_input": "2024-03-22T09:57:32.705872Z",
+     "iopub.status.busy": "2024-03-22T09:57:32.705480Z",
+     "iopub.status.idle": "2024-03-22T09:57:32.849939Z",
+     "shell.execute_reply": "2024-03-22T09:57:32.849310Z"
     }
    },
    "outputs": [
@@ -1548,7 +1548,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "a84cffc7",
+   "id": "d44664fd",
    "metadata": {},
    "outputs": [],
    "source": []
