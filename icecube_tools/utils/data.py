@@ -976,12 +976,20 @@ class RealEvents(Events):
             else:
                 temp = cls(seed=42)
                 temp.events = {}
-                temp.events[p] = np.loadtxt(
-                    join(
-                        data_directory,
-                        f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv",
+                try:
+                    temp.events[p] = np.loadtxt(
+                        join(
+                            data_directory,
+                            f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv",
+                        )
                     )
-                )
+                except FileNotFoundError:
+                    temp.events[p] = np.loadtxt(
+                        join(
+                            data_directory,
+                            f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp-1.csv",
+                        )
+                    )
                 temp._periods.append(p)
                 temp._sort()
                 RealEvents.STACK[p] = temp
