@@ -23,10 +23,8 @@ from icecube_tools.utils.data import IceCubeData
 The `IceCubeData` class provides this functionality. Upon initialisation, `IceCubeData` queries the website using HTTP requests to check what datasets are currently available. By default, this request is cached to avoid spamming the IceCube website. However, you can use the keyword argument `update` to override this.
 
 ```python
-my_data = IceCubeData(update=True)
+my_data = IceCubeData()
 
-# The available datasets
-my_data.datasets
 ```
 
 You can use the `find` method to pick out datasets you are interested in.
