@@ -23,8 +23,31 @@ from typing import List, Dict
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 
-icecube_data_base_url = "https://icecube.wisc.edu/data-releases"
+# icecube_data_base_url = "https://icecube.wisc.edu/data-releases"
 data_directory = os.path.abspath(os.path.join(os.path.expanduser("~"), ".icecube_data"))
+
+available_datasets = {
+    "20210126": {
+        "url": "https://dataverse.harvard.edu/api/access/dataset/:persistentId/?persistentId=doi:10.7910/DVN/VKL316",
+        "dir": "20210126_PS-IC40-IC86_VII",
+        "subdir": "icecube_10year_ps",
+    },
+    "20181018": {
+        "url": "https://icecube.wisc.edu/data-releases/20181018_All-sky_point-source_IceCube_data%20_years_2010-2012.zip",
+        "dir": "20181018_All-sky_point-source_IceCube_data%20_years_2010-2012",
+        "subdir": ""
+    },
+    "20150820": {
+        "url": "https://icecube.wisc.edu/data-releases/20150820_Astrophysical_muon_neutrino_flux_in_the_northern_sky_with_2_years_of_IceCube_data.zip",
+        "dir": "20150820_Astrophysical_muon_neutrino_flux_in_the_northern_sky_with_2_years_of_IceCube_data",
+        "subdir": ""
+    },
+    "20131121": {
+        "url": "https://icecube.wisc.edu/data-releases/20131121_Search_for_contained_neutrino_events_at_energies_above_30_TeV_in_2_years_of_data.zip",
+        "dir": "20131121_Search_for_contained_neutrino_events_at_energies_above_30_TeV_in_2_years_of_data",
+        "subdir": "",
+    }
+}
 
 available_irf_periods = ["IC40", "IC59", "IC79", "IC86_I", "IC86_II"]
 
@@ -50,10 +73,10 @@ class IceCubeData:
 
     def __init__(
         self,
-        base_url=icecube_data_base_url,
+        #base_url=icecube_data_base_url,
         data_directory=data_directory,
         cache_name=".cache",
-        update=False,
+        # update=False,
     ):
         """
         Handle the interface with IceCube's public data
@@ -65,7 +88,7 @@ class IceCubeData:
         :param update: Refresh the cache if true
         """
 
-        self.base_url = base_url
+        #self.base_url = base_url
 
         self.data_directory = data_directory
 
@@ -74,11 +97,10 @@ class IceCubeData:
             expire_after=-1,
         )
 
-        self.ls(verbose=False, update=update)
-
         # Make data directory if it doesn't exist
         if not os.path.exists(self.data_directory):
             os.makedirs(self.data_directory)
+
 
     def ls(self, verbose=True, update=False):
         """
@@ -87,8 +109,9 @@ class IceCubeData:
         :param verbose: Print the datasets if true
         :param update: Refresh the cache if true
         """
+        raise NotImplementedError()
 
-        self.datasets = []
+        available_datasets = []
 
         if update:
             requests_cache.clear()
@@ -104,7 +127,7 @@ class IceCubeData:
                 href = link.get("href")
 
                 if ".zip" in href:
-                    self.datasets.append(href)
+                    available_datasets.append(href)
 
                     if verbose:
                         print(href)
@@ -116,7 +139,7 @@ class IceCubeData:
 
         found_datasets = []
 
-        for dataset in self.datasets:
+        for dataset in available_datasets:
             if search_string in dataset:
                 found_datasets.append(dataset)
 
@@ -137,23 +160,25 @@ class IceCubeData:
             self.data_directory = write_to
 
         for dataset in datasets:
-            if dataset not in self.datasets:
+            if dataset not in available_datasets:
                 raise ValueError(
                     "Dataset %s is not in list of known datasets" % dataset
                 )
-
-            url = os.path.join(self.base_url, dataset)
-
-            local_path = os.path.join(self.data_directory, dataset)
-
+            
+            ds = available_datasets[dataset]
+            url = ds["url"]
+            dl_dir = ds["dir"]
+            local_path = os.path.join(self.data_directory, dl_dir)
+            subdir = ds["subdir"]
+            file = os.path.join(local_path, dl_dir+".zip")
             # Only fetch if not already there!
-            if not os.path.exists(os.path.splitext(local_path)[0]) or overwrite:
+            if not os.path.exists(local_path) or overwrite:
+                os.makedirs(local_path, exist_ok=True)
                 # Don't cache this as we want to stream
                 with requests_cache.disabled():
                     response = requests.get(url, stream=True)
 
                     if response.ok:
-                        total = int(response.headers["content-length"])
 
                         # For progress bar description
                         short_name = dataset
@@ -161,20 +186,23 @@ class IceCubeData:
                             short_name = dataset[0:40] + "..."
 
                         # Save locally
-                        with open(local_path, "wb") as f, tqdm(
-                            desc=short_name, total=total
+                        with open(file, "wb") as f, tqdm(
+                            desc=short_name,
                         ) as bar:
                             for chunk in response.iter_content(chunk_size=1024 * 1024):
                                 size = f.write(chunk)
                                 bar.update(size)
 
                         # Unzip
-                        dataset_dir = os.path.splitext(local_path)[0]
-                        with ZipFile(local_path, "r") as zip_ref:
+                        if subdir:
+                            dataset_dir = os.path.join(local_path, subdir)
+                        else:
+                            dataset_dir = local_path
+                        with ZipFile(file, "r") as zip_ref:
                             zip_ref.extractall(dataset_dir)
 
                         # Delete zipfile
-                        os.remove(local_path)
+                        os.remove(file)
 
                         # Check for further compressed files in the extraction
                         tar_files = find_files(dataset_dir, ".tar")
@@ -198,22 +226,28 @@ class IceCubeData:
         """
         Download all data to a given location
         """
-
-        self.fetch(self.datasets, write_to=write_to, overwrite=overwrite)
+        raise NotImplementedError()
+        self.fetch(list(available_datasets.keys()), write_to=write_to, overwrite=overwrite)
 
     def get_path_to(self, dataset):
         """
         Get path to a given dataset
         """
 
-        if dataset not in self.datasets:
+        if dataset not in available_datasets.keys():
             raise ValueError("Dataset is not available")
+        
+        ds = available_datasets[dataset]
+        dl_dir = ds["dir"]
+        local_path = os.path.join(self.data_directory, dl_dir)
+        subdir = ds["subdir"]
+        #file = os.path.join(local_path, dl_dir+".zip")
 
-        local_zip_loc = os.path.join(self.data_directory, dataset)
+        #local_zip_loc = os.path.join(self.data_directory, dataset)
 
-        local_path = os.path.splitext(local_zip_loc)[0]
+        path = os.path.join(local_path, subdir)
 
-        return local_path
+        return path
 
 
 class ddict(dict):
@@ -942,12 +976,20 @@ class RealEvents(Events):
             else:
                 temp = cls(seed=42)
                 temp.events = {}
-                temp.events[p] = np.loadtxt(
-                    join(
-                        data_directory,
-                        f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv",
+                try:
+                    temp.events[p] = np.loadtxt(
+                        join(
+                            data_directory,
+                            f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp.csv",
+                        )
                     )
-                )
+                except FileNotFoundError:
+                    temp.events[p] = np.loadtxt(
+                        join(
+                            data_directory,
+                            f"20210126_PS-IC40-IC86_VII/icecube_10year_ps/events/{p}_exp-1.csv",
+                        )
+                    )
                 temp._periods.append(p)
                 temp._sort()
                 RealEvents.STACK[p] = temp
