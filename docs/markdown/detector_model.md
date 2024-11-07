@@ -34,7 +34,6 @@ The `IceCubeData` class can be used for a quick check of the available datasets 
 
 ```python
 my_data = IceCubeData()
-my_data.datasets
 ```
 
 <!-- #region -->
