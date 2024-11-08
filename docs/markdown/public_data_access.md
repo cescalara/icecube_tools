@@ -20,13 +20,10 @@ IceCube has a bunch of public datasets available at [https://icecube.wisc.edu/sc
 from icecube_tools.utils.data import IceCubeData
 ```
 
-The `IceCubeData` class provides this functionality. Upon initialisation, `IceCubeData` queries the website using HTTP requests to check what datasets are currently available. By default, this request is cached to avoid spamming the IceCube website. However, you can use the keyword argument `update` to override this.
+The `IceCubeData` class provides this functionality.
 
 ```python
-my_data = IceCubeData(update=True)
-
-# The available datasets
-my_data.datasets
+my_data = IceCubeData()
 ```
 
 You can use the `find` method to pick out datasets you are interested in.
